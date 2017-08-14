@@ -24,11 +24,10 @@ class Email extends React.Component {
           hasFeedback
         >
           {getFieldDecorator('email', {
-            rules: [{
-              type: 'email', message: 'The input is not valid E-mail!',
-            }, {
-              required: true, message: 'Please input your E-mail!',
-            }],
+            rules: [
+              { type: 'email', message: 'Please input a valid email address' },
+              { required: true, message: 'Please input your email address' },
+            ],
           })(
             <Input />
           )}
