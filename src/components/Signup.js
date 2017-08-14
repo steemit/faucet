@@ -11,35 +11,38 @@ class Signup extends Component {
     this.state = {
       step: 'username',
       stepNumber: 0,
+      username: '',
+      email: '',
+      phoneNumber: '',
     };
   }
 
   handleSubmitUsername = (values) => {
-    console.log(values);
     this.setState({
       step: 'email',
       stepNumber: 1,
+      username: values.username,
     });
   };
 
   handleSubmitEmail = (values) => {
-    console.log(values);
     this.setState({
       step: 'phoneNumber',
       stepNumber: 2,
+      email: values.email,
     });
   };
 
   handleSubmitPhoneNumber = (values) => {
-    console.log(values);
     this.setState({
       step: 'confirmPhoneNumber',
       stepNumber: 3,
+      phoneNumber: values.phoneNumber,
     });
   };
 
-  handleSubmitConfirmPhoneNumber = (values) => {
-    console.log(values);
+  handleSubmitConfirmPhoneNumber = () => {
+    console.log(this.state);
     this.setState({
       step: 'finish',
       stepNumber: 4,

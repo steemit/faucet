@@ -29,7 +29,7 @@ class PhoneNumber extends React.Component {
         <Form.Item
           label="Phone Number"
         >
-          {getFieldDecorator('phone', {
+          {getFieldDecorator('phoneNumber', {
             rules: [{ required: true, message: 'Please input your phone number!' }],
           })(
             <Input addonBefore={prefixSelector} style={{ width: '100%' }} />
