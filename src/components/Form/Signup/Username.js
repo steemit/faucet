@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Checkbox, Button } from 'antd';
+import { Form, Input, Button } from 'antd';
+import { accountNotExist, validateAccountName } from '../../../utils/validator';
 
 class Username extends React.Component {
   handleSubmit = (e) => {
@@ -24,18 +25,13 @@ class Username extends React.Component {
           hasFeedback
         >
           {getFieldDecorator('username', {
-            rules: [{
-              required: true, message: 'Please input an username!',
-            }],
+            rules: [
+              { required: true, message: 'Please input an username' },
+              { validator: validateAccountName },
+              { validator: accountNotExist },
+            ],
           })(
             <Input />
-          )}
-        </Form.Item>
-        <Form.Item style={{ marginBottom: 8 }}>
-          {getFieldDecorator('agreement', {
-            valuePropName: 'checked',
-          })(
-            <Checkbox>I have read the <a href="">agreement</a></Checkbox>
           )}
         </Form.Item>
         <Form.Item>
