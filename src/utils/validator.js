@@ -17,13 +17,13 @@ export const validateAccountName = (rule, value, callback) => {
   let len;
   let suffix;
 
-  const length = value.length;
-  const ref = value.split('.');
-
   suffix = 'Account name should ';
   if (!value) {
     return callback([`${suffix}not be empty`]);
   }
+
+  const length = value.length;
+
   if (length < 3) {
     return callback([`${suffix}be longer`]);
   }
@@ -34,6 +34,8 @@ export const validateAccountName = (rule, value, callback) => {
   if (/\./.test(value)) {
     suffix = 'Each account segment should ';
   }
+
+  const ref = value.split('.');
 
   for (i = 0, len = ref.length; i < len; i += 1) {
     label = ref[i];

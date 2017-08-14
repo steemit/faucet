@@ -26,7 +26,6 @@ class Username extends React.Component {
         >
           {getFieldDecorator('username', {
             rules: [
-              { required: true, message: 'Please input an username' },
               { validator: validateAccountName },
               { validator: accountNotExist },
             ],
