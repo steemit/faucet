@@ -2,30 +2,13 @@
 import React from 'react';
 import fetch from 'isomorphic-fetch';
 import { Alert, Form, Input, Button } from 'antd';
-import ReactRecaptcha from 'react-recaptcha';
-
-class RecaptchaItem extends React.Component {
-  verifyCallback = (result) => {
-    this.props.onChange(result);
-  };
-
-  render() {
-    return (
-      <ReactRecaptcha
-        render="explicit"
-        sitekey={process.env.RECAPTCHA_SITE_KEY}
-        onloadCallback={() => {}}
-        verifyCallback={this.verifyCallback}
-      />
-    );
-  }
-};
+import RecaptchaItem from '../../Utils/RecaptchaItem';
 
 class Email extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      error: null
+      error: null,
     };
   }
 
@@ -36,8 +19,8 @@ class Email extends React.Component {
       if (!err) {
         fetch(`/api/submit_email?email=${values.email}&recaptcha=${values.recaptcha}`)
           .then(res => res.json())
-          .then(data => {
-            if(data.success) {
+          .then((data) => {
+            if (data.success) {
               if (this.props.onSubmit) {
                 this.props.onSubmit(values);
               }
@@ -70,7 +53,7 @@ class Email extends React.Component {
         <Form.Item>
           {getFieldDecorator('recaptcha', {
             rules: [
-              { required: true, message: 'Please validate the captcha' }
+              { required: true, message: 'Please validate the captcha' },
             ],
           })(
             <RecaptchaItem />
