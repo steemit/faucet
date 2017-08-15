@@ -19,7 +19,12 @@ router.get('/submit_email', async (req, res) => {
 
   const body = JSON.parse(response.body);
   if (body.success) {
-    const userCount = await req.db.users.count({ where: { email: req.query.email } });
+    const userCount = await req.db.users.count({
+      where: {
+        email: req.query.email,
+        email_is_verified: true,
+      },
+    });
     if (userCount > 0) {
       res.json({ error: 'Email already used.' });
     } else {
