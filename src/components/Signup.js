@@ -42,7 +42,6 @@ class Signup extends Component {
   };
 
   handleSubmitConfirmPhoneNumber = () => {
-    console.log(this.state);
     this.setState({
       step: 'finish',
       stepNumber: 4,
