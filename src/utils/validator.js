@@ -55,5 +55,5 @@ export const validateAccountName = (rule, value, callback) => {
       return callback([`${suffix}be longer`]);
     }
   }
-  callback();
+  return callback();
 };
