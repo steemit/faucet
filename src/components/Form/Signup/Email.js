@@ -25,6 +25,9 @@ class Email extends React.Component {
                 this.props.onSubmit(values);
               }
             } else {
+              if (window && window.grecaptcha) {
+                window.grecaptcha.reset();
+              }
               this.setState({ error: data.error });
             }
           });
