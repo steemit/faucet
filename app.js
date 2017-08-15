@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('steem');
+const mail = require('./helpers/mail');
 
 steem.api.setOptions({ transport: 'http' });
 http.globalAgent.maxSockets = Infinity;
@@ -25,6 +26,7 @@ app.enable('trust proxy');
 
 app.use((req, res, next) => {
   req.steem = steem;
+  req.mail = mail;
   next();
 });
 
