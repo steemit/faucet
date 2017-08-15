@@ -1,16 +1,14 @@
-import React, { Component } from 'react';
+import React from 'react';
 import '../styles/common.less';
 
-export default class Wrapper extends Component {
-  static propTypes = {
-    children: React.PropTypes.element.isRequired,
-  };
+const App = ({ children }) => (
+  <div className="main">
+    {children}
+  </div>
+);
 
-  render() {
-    return (
-      <div className="main">
-        {this.props.children}
-      </div>
-    );
-  }
-}
+App.propTypes = {
+  children: React.PropTypes.element.isRequired,
+};
+
+export default App;
