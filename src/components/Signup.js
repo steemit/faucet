@@ -42,7 +42,6 @@ class Signup extends Component {
   };
 
   handleSubmitConfirmPhoneNumber = () => {
-    console.log(this.state);
     this.setState({
       step: 'finish',
       stepNumber: 4,
@@ -103,8 +102,8 @@ class Signup extends Component {
         {step === 'confirmPhoneNumber' &&
           <div>
             <p>
-              Thank you for providing your phone number (1029302390923).<br />
-              To continue please enter the SMS code we've sent you.
+              Thank you for providing your phone number (0102030405).
+              <br />{"To continue please enter the SMS code we've sent you."}
             </p>
             <FormSignupConfirmPhoneNumber onSubmit={this.handleSubmitConfirmPhoneNumber} />
           </div>
@@ -112,16 +111,9 @@ class Signup extends Component {
         {step === 'finish' &&
           <div>
             <h1>Thanks for confirming your phone number!</h1>
-            <p>
-              You're few steps aways from getting to the top of the list. Check your email and
-              click the email validation link.
-            </p>
-            <p>
-              After validating your sign up request with us we'll look it over for approval. As
-              soon as your turn is up and you're approved, you'll be sent a link to finalize
-              your account!
-            </p>
-            <p>You'll be among the earliest members of the Steem community!</p>
+            <p>{"You're few steps aways from getting to the top of the list. Check your email and click the email validation link."}</p>
+            <p>{"After validating your sign up request with us we'll look it over for approval. As soon as your turn is up and you're approved, you'll be sent a link to finalize your account!"}</p>
+            <p>{"You'll be among the earliest members of the Steem community!"}</p>
           </div>
         }
       </div>
