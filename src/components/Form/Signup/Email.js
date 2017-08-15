@@ -3,10 +3,11 @@ import React from 'react';
 import { Form, Input, Button } from 'antd';
 import ReactRecaptcha from 'react-recaptcha';
 
-const RecaptchaItem = React.createClass({
-  verifyCallback(result) {
+class RecaptchaItem extends React.Component {
+  verifyCallback = (result) => {
     this.props.onChange(result);
-  },
+  };
+
   render() {
     const siteKey = process.env.RECAPTCHA_SITE_KEY;
     return (
@@ -18,13 +19,12 @@ const RecaptchaItem = React.createClass({
       />
     );
   }
-});
+};
 
 class Email extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
-      console.log(values);
       if (!err) {
         if (this.props.onSubmit) {
           this.props.onSubmit(values);
