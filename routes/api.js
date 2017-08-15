@@ -26,12 +26,12 @@ router.get('/submit_email', async (req, res) => {
       },
     });
     if (userCount > 0) {
-      res.json({ error: 'Email already used.' });
+      res.status(400).json({ error: 'Email already used.' });
     } else {
       res.json({ success: true });
     }
   } else {
-    res.json({ error: 'Recaptcha invalid.' });
+    res.status(400).json({ error: 'Recaptcha invalid.' });
   }
 });
 

@@ -3,6 +3,7 @@ import React from 'react';
 import fetch from 'isomorphic-fetch';
 import { Alert, Form, Input, Button } from 'antd';
 import RecaptchaItem from '../../Utils/RecaptchaItem';
+import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class Email extends React.Component {
   constructor(props) {
@@ -18,18 +19,22 @@ class Email extends React.Component {
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         fetch(`/api/submit_email?email=${values.email}&recaptcha=${values.recaptcha}`)
-          .then(res => res.json())
+          .then(checkStatus)
+          .then(parseJSON)
           .then((data) => {
             if (data.success) {
               if (this.props.onSubmit) {
                 this.props.onSubmit(values);
               }
-            } else {
+            }
+          })
+          .catch((error) => {
+            error.response.json().then((data) => {
               if (window && window.grecaptcha) {
                 window.grecaptcha.reset();
               }
               this.setState({ error: data.error });
-            }
+            });
           });
       }
     });
