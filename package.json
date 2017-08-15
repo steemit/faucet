@@ -50,6 +50,7 @@
     "lodash": "^4.0.0",
     "lodash-webpack-plugin": "^0.10.6",
     "morgan": "~1.6.1",
+    "mysql": "^2.14.1",
     "node-sass": "^4.5.3",
     "nodemon": "^1.11.0",
     "numeral": "^1.5.3",
