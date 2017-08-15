@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Button } from 'antd';
+import fetch from 'isomorphic-fetch';
+import { Alert, Form, Input, Button } from 'antd';
 import ReactRecaptcha from 'react-recaptcha';
 
 class RecaptchaItem extends React.Component {
@@ -9,11 +10,10 @@ class RecaptchaItem extends React.Component {
   };
 
   render() {
-    const siteKey = process.env.RECAPTCHA_SITE_KEY;
     return (
       <ReactRecaptcha
         render="explicit"
-        sitekey={siteKey}
+        sitekey={process.env.RECAPTCHA_SITE_KEY}
         onloadCallback={() => {}}
         verifyCallback={this.verifyCallback}
       />
@@ -22,20 +22,36 @@ class RecaptchaItem extends React.Component {
 };
 
 class Email extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: null
+    };
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
+    this.setState({ error: null });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        if (this.props.onSubmit) {
-          this.props.onSubmit(values);
-        }
+        fetch(`/api/submit_email?email=${values.email}&recaptcha=${values.recaptcha}`)
+          .then(res => res.json())
+          .then(data => {
+            if(data.success) {
+              if (this.props.onSubmit) {
+                this.props.onSubmit(values);
+              }
+            } else {
+              this.setState({ error: data.error });
+            }
+          });
       }
     });
   };
 
   render() {
     const { getFieldDecorator } = this.props.form;
-
+    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
         <Form.Item
@@ -52,7 +68,7 @@ class Email extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          {getFieldDecorator('captcha', {
+          {getFieldDecorator('recaptcha', {
             rules: [
               { required: true, message: 'Please validate the captcha' }
             ],
@@ -63,6 +79,7 @@ class Email extends React.Component {
         <Form.Item>
           <Button type="primary" htmlType="submit">Continue</Button>
         </Form.Item>
+        {error && <Alert message={error} type="error" />}
       </Form>
     );
   }
