@@ -9,6 +9,9 @@
     "JAWSDB_URL": {
       "required": true
     },
+    "JWT_SECRET": {
+      "generator": "secret"
+    },
     "MAILGUN_API_KEY": {
       "required": true
     },

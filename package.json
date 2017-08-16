@@ -43,7 +43,7 @@
     "isomorphic-fetch": "^2.2.1",
     "js-base64": "^2.1.9",
     "json-loader": "^0.5.4",
-    "jsonwebtoken": "^7.3.0",
+    "jsonwebtoken": "^7.4.2",
     "less": "^2.7.2",
     "less-loader": "^4.0.4",
     "local-storage": "^1.4.2",
