@@ -31,6 +31,7 @@ class Email extends React.Component {
           .catch((error) => {
             error.response.json().then((data) => {
               if (window && window.grecaptcha) {
+                this.props.form.setFieldsValue({ recaptcha: '' });
                 window.grecaptcha.reset();
               }
               this.setState({ error: data.error });
