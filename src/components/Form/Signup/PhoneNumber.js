@@ -27,7 +27,7 @@ class PhoneNumber extends React.Component {
         {countries.map(country => (
           <Select.Option
             key={_.uniqueId()}
-            value={country.prefix}
+            value={`${country.prefix}_${country.iso}`}
             label={`${country.name} (+${country.prefix})`}
           >
             {`${country.name} (+${country.prefix})`}
