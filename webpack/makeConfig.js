@@ -30,6 +30,7 @@ function makePlugins(options) {
           'wss://steemd.steemit.com'
         ),
         IS_BROWSER: JSON.stringify(true),
+        RECAPTCHA_SITE_KEY: JSON.stringify(process.env.RECAPTCHA_SITE_KEY)
       },
     }),
     new LodashModuleReplacementPlugin({ collections: true, paths: true }),
