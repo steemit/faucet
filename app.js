@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('steem');
+const mail = require('./helpers/mail');
 const db = require('./db/models');
 const twilio = require('./helpers/twilio');
 
@@ -28,6 +29,7 @@ app.enable('trust proxy');
 app.use((req, res, next) => {
   req.steem = steem;
   req.twilio = twilio;
+  req.mail = mail;
   req.db = db;
   next();
 });

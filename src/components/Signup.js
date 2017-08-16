@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Steps } from 'antd';
-import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
@@ -9,7 +8,7 @@ class Signup extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      step: 'username',
+      step: 'email',
       stepNumber: 0,
       username: '',
       email: '',
@@ -17,18 +16,10 @@ class Signup extends Component {
     };
   }
 
-  handleSubmitUsername = (values) => {
-    this.setState({
-      step: 'email',
-      stepNumber: 1,
-      username: values.username,
-    });
-  };
-
   handleSubmitEmail = (values) => {
     this.setState({
       step: 'phoneNumber',
-      stepNumber: 2,
+      stepNumber: 1,
       email: values.email,
     });
   };
@@ -36,7 +27,7 @@ class Signup extends Component {
   handleSubmitPhoneNumber = (values) => {
     this.setState({
       step: 'confirmPhoneNumber',
-      stepNumber: 3,
+      stepNumber: 2,
       phoneNumber: values.phoneNumber,
     });
   };
@@ -44,7 +35,7 @@ class Signup extends Component {
   handleSubmitConfirmPhoneNumber = () => {
     this.setState({
       step: 'finish',
-      stepNumber: 4,
+      stepNumber: 3,
     });
   };
 
@@ -58,15 +49,7 @@ class Signup extends Component {
           <Steps.Step />
           <Steps.Step />
           <Steps.Step />
-          <Steps.Step />
         </Steps>
-        {step === 'username' &&
-          <div>
-            <h1>Welcome to Steem</h1>
-            <p>Your account name is how you will be known on Steem.</p>
-            <FormSignupUsername onSubmit={this.handleSubmitUsername} />
-          </div>
-        }
         {step === 'email' &&
           <div>
             <h1>Please provide your email address to continue</h1>
