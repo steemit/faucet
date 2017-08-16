@@ -3,14 +3,14 @@ const checkStatus = (response) => {
     return response;
   }
 
-  const error = new Error(response.statusText)
-  error.response = response
+  const error = new Error(response.statusText);
+  error.response = response;
   throw error;
-}
+};
 
 const parseJSON = response => response.json();
 
 module.exports = {
   checkStatus,
   parseJSON,
-}
+};
