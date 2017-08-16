@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -23,6 +24,10 @@ router.get('/request_email', async (req, res) => {
       },
     });
 
+    const token = jwt.sign({
+      email: req.query.email,
+    }, process.env.JWT_SECRET);
+
     if (userExist === 0) {
       req.db.users.create({
         email: req.query.email,
@@ -37,10 +42,10 @@ router.get('/request_email', async (req, res) => {
         created_at: new Date(),
         updated_at: null,
       }).then(() => {
-        res.json({ success: true });
+        res.json({ success: true, token });
       });
     } else {
-      res.json({ success: true });
+      res.json({ success: true, token });
     }
   }
 });
