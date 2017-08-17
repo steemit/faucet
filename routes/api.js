@@ -8,44 +8,48 @@ router.get('/', (req, res) => {
 });
 
 router.get('/request_email', async (req, res) => {
-  const userCount = await req.db.users.count({
-    where: {
-      email: req.query.email,
-      email_is_verified: true,
-    },
-  });
-
-  if (userCount > 0) {
-    res.status(400).json({ error: 'Email already used.' });
+  if (!req.query.email) {
+    res.status(400).json({ error: 'Email is required.' });
   } else {
-    const userExist = await req.db.users.count({
+    const userCount = await req.db.users.count({
       where: {
         email: req.query.email,
+        email_is_verified: true,
       },
     });
 
-    const token = jwt.sign({
-      email: req.query.email,
-    }, process.env.JWT_SECRET);
-
-    if (userExist === 0) {
-      req.db.users.create({
-        email: req.query.email,
-        email_is_verified: false,
-        last_attempt_verify_email: null,
-        phone_number: '',
-        phone_number_is_verified: false,
-        last_attempt_verify_phone_number: null,
-        ip: req.connection.remoteAddress,
-        ua: req.headers['user-agent'],
-        account_is_created: false,
-        created_at: new Date(),
-        updated_at: null,
-      }).then(() => {
-        res.json({ success: true, token });
-      });
+    if (userCount > 0) {
+      res.status(400).json({ error: 'Email already used.' });
     } else {
-      res.json({ success: true, token });
+      const userExist = await req.db.users.count({
+        where: {
+          email: req.query.email,
+        },
+      });
+
+      const token = jwt.sign({
+        email: req.query.email,
+      }, process.env.JWT_SECRET);
+
+      if (userExist === 0) {
+        req.db.users.create({
+          email: req.query.email,
+          email_is_verified: false,
+          last_attempt_verify_email: null,
+          phone_number: '',
+          phone_number_is_verified: false,
+          last_attempt_verify_phone_number: null,
+          ip: req.connection.remoteAddress,
+          ua: req.headers['user-agent'],
+          account_is_created: false,
+          created_at: new Date(),
+          updated_at: null,
+        }).then(() => {
+          res.json({ success: true, token });
+        });
+      } else {
+        res.json({ success: true, token });
+      }
     }
   }
 });
