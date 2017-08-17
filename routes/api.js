@@ -20,17 +20,17 @@ const sendConfirmationEmail = async (req, res) => {
     user.last_attempt_verify_email.getTime() < oneMinLater
   ) {
     // create an email token valid for 24 hours
-    const emailExpireAt = new Date(date.setTime(date.getTime() + 86460000));
     const mailToken = jwt.sign({
+      type: 'confirm_email',
       email: req.query.email,
-      emailExpireAt,
-    }, process.env.JWT_SECRET);
+    }, process.env.JWT_SECRET, { expiresIn: '1d' });
     req.mail.send(req.query.email, 'confirm_email', {
       url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
     },
     (err) => {
       if (!err) {
         const token = jwt.sign({
+          type: 'signup',
           email: req.query.email,
         }, process.env.JWT_SECRET);
 
@@ -83,7 +83,7 @@ router.get('/request_email', async (req, res) => {
           account_is_created: false,
           created_at: new Date(),
           updated_at: null,
-        }).then(() => sendConfirmationEmail(req, res));
+        }).then(async () => { await sendConfirmationEmail(req, res); });
       } else {
         await sendConfirmationEmail(req, res);
       }
@@ -106,7 +106,7 @@ router.get('/confirm_email', async (req, res) => {
     let decoded;
     try {
       decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-      if (new Date(decoded.emailExpireAt).getTime() > new Date().getTime()) {
+      if (decoded.type === 'confirm_email') {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (!user) {
           res.status(400).json({ error: 'Email doesn\'t exist.' });
@@ -119,7 +119,7 @@ router.get('/confirm_email', async (req, res) => {
             .then(() => res.json({ success: true }));
         }
       } else {
-        res.status(400).json({ error: 'Token expired, please try again' });
+        res.status(400).json({ error: 'Invalid token.' });
       }
     } catch (err) {
       res.status(500).json({ error: 'Invalid token.' });
