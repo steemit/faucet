@@ -1,4 +1,5 @@
 const express = require('express');
+const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router(); // eslint-disable-line new-cap
@@ -10,6 +11,8 @@ router.get('/', (req, res) => {
 router.get('/request_email', async (req, res) => {
   if (!req.query.email) {
     res.status(400).json({ error: 'Email is required.' });
+  } else if (!validator.isEmail(req.query.email)) {
+    res.status(400).json({ error: 'Please provide a valid email.' });
   } else {
     const userCount = await req.db.users.count({
       where: {
