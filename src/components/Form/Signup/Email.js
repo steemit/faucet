@@ -29,7 +29,7 @@ class Email extends React.Component {
               { required: true, message: 'Please input your email address' },
             ],
           })(
-            <Input />
+            <Input />,
           )}
         </Form.Item>
         <Form.Item>

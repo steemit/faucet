@@ -28,7 +28,7 @@ class ConfirmPhoneNumber extends React.Component {
               required: true, message: 'Please input your E-mail!',
             }],
           })(
-            <Input />
+            <Input />,
           )}
         </Form.Item>
         <Form.Item>
