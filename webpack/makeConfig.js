@@ -30,7 +30,6 @@ function makePlugins(options) {
           'wss://steemd.steemit.com'
         ),
         IS_BROWSER: JSON.stringify(true),
-        JWT_SECRET: JSON.stringify(process.env.JWT_SECRET),
       },
     }),
     new LodashModuleReplacementPlugin({ collections: true, paths: true }),

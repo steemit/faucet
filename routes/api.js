@@ -1,4 +1,5 @@
 const express = require('express');
+const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router(); // eslint-disable-line new-cap
@@ -48,21 +49,26 @@ const sendConfirmationEmail = async (req, res) => {
 };
 
 router.get('/request_email', async (req, res) => {
-  const userCount = await req.db.users.count({
-    where: {
-      email: req.query.email,
-      email_is_verified: true,
-    },
-  });
-
-  if (userCount > 0) {
-    res.status(400).json({ error: 'Email already used.' });
+  if (!req.query.email) {
+    res.status(400).json({ error: 'Email is required.' });
+  } else if (!validator.isEmail(req.query.email)) {
+    res.status(400).json({ error: 'Please provide a valid email.' });
   } else {
-    const userExist = await req.db.users.count({
+    const userCount = await req.db.users.count({
       where: {
         email: req.query.email,
+        email_is_verified: true,
       },
     });
+
+    if (userCount > 0) {
+      res.status(400).json({ error: 'Email already used.' });
+    } else {
+      const userExist = await req.db.users.count({
+        where: {
+          email: req.query.email,
+        },
+      });
 
     if (userExist === 0) {
       req.db.users.create({
