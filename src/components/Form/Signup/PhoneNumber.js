@@ -8,8 +8,10 @@ class PhoneNumber extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
-      if (this.props.onSubmit) {
-        this.props.onSubmit(values);
+      if (!err) {
+        if (this.props.onSubmit) {
+          this.props.onSubmit(values);
+        }
       }
     });
   };
@@ -17,7 +19,11 @@ class PhoneNumber extends React.Component {
   render() {
     const { getFieldDecorator } = this.props.form;
 
-    const prefixSelector = getFieldDecorator('prefix')(
+    const prefixSelector = getFieldDecorator('prefix', {
+      rules: [
+        { required: true, message: 'Please select your country code' },
+      ],
+    })(
       <Select
         showSearch
         optionFilterProp="children"
@@ -47,7 +53,10 @@ class PhoneNumber extends React.Component {
           label="Phone Number"
         >
           {getFieldDecorator('phoneNumber', {
-            rules: [{ required: true, message: 'Please input your phone number!' }],
+            rules: [
+              { required: true, message: 'Please input your phone number' },
+              { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: 'Phone number is not valid' },
+            ],
           })(
             <Input />
           )}
