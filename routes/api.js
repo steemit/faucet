@@ -26,7 +26,7 @@ const sendConfirmationEmail = async (req, res) => {
       emailExpireAt,
     }, process.env.JWT_SECRET);
     req.mail.send(req.query.email, 'confirm_email', {
-      url: `${req.protocol}://${req.get('host')}/confirmemail?token=${mailToken}`,
+      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
     },
     (err) => {
       if (!err) {
