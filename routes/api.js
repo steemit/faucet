@@ -70,22 +70,23 @@ router.get('/request_email', async (req, res) => {
         },
       });
 
-    if (userExist === 0) {
-      req.db.users.create({
-        email: req.query.email,
-        email_is_verified: false,
-        last_attempt_verify_email: null,
-        phone_number: '',
-        phone_number_is_verified: false,
-        last_attempt_verify_phone_number: null,
-        ip: req.connection.remoteAddress,
-        ua: req.headers['user-agent'],
-        account_is_created: false,
-        created_at: new Date(),
-        updated_at: null,
-      }).then(() => sendConfirmationEmail(req, res));
-    } else {
-      await sendConfirmationEmail(req, res);
+      if (userExist === 0) {
+        req.db.users.create({
+          email: req.query.email,
+          email_is_verified: false,
+          last_attempt_verify_email: null,
+          phone_number: '',
+          phone_number_is_verified: false,
+          last_attempt_verify_phone_number: null,
+          ip: req.connection.remoteAddress,
+          ua: req.headers['user-agent'],
+          account_is_created: false,
+          created_at: new Date(),
+          updated_at: null,
+        }).then(() => sendConfirmationEmail(req, res));
+      } else {
+        await sendConfirmationEmail(req, res);
+      }
     }
   }
 });
@@ -99,26 +100,30 @@ router.get('/confirm_sms', (req, res) => {
 });
 
 router.get('/confirm_email', async (req, res) => {
-  let decoded;
-  try {
-    decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-    if (new Date(decoded.emailExpireAt).getTime() > new Date().getTime()) {
-      const user = await req.db.users.findOne({ where: { email: decoded.email } });
-      if (!user) {
-        res.status(400).json({ error: 'Email doesn\'t exist.' });
-      } else if (user.email_is_verified) {
-        res.status(400).json({ error: 'Email already verified.' });
+  if (!req.query.token) {
+    res.status(400).json({ error: 'Token is required.' });
+  } else {
+    let decoded;
+    try {
+      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+      if (new Date(decoded.emailExpireAt).getTime() > new Date().getTime()) {
+        const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        if (!user) {
+          res.status(400).json({ error: 'Email doesn\'t exist.' });
+        } else if (user.email_is_verified) {
+          res.status(400).json({ error: 'Email already verified.' });
+        } else {
+          req.db.users.update({
+            email_is_verified: true,
+          }, { where: { email: decoded.email } })
+            .then(() => res.json({ success: true }));
+        }
       } else {
-        req.db.users.update({
-          email_is_verified: true,
-        }, { where: { email: decoded.email } })
-          .then(() => res.json({ success: true }));
+        res.status(400).json({ error: 'Token expired, please try again' });
       }
-    } else {
-      res.status(400).json({ error: 'Token expired, please try again' });
+    } catch (err) {
+      res.status(500).json({ error: 'Invalid token.' });
     }
-  } catch (err) {
-    res.status(500).json({ error: 'Invalid token.' });
   }
 });
 
