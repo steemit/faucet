@@ -22,7 +22,7 @@ class PhoneNumber extends React.Component {
         showSearch
         optionFilterProp="children"
         filterOption={(input, option) =>
-          option.props.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+          option.props.label.toLowerCase().includes(input.toLowerCase())}
       >
         {countries.map(country => (
           <Select.Option
