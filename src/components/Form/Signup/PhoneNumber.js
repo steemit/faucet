@@ -39,7 +39,7 @@ class PhoneNumber extends React.Component {
             {`${country.name} (+${country.prefix})`}
           </Select.Option>
         ))}
-      </Select>
+      </Select>,
     );
 
     return (
@@ -58,7 +58,7 @@ class PhoneNumber extends React.Component {
               { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: 'Phone number is not valid' },
             ],
           })(
-            <Input />
+            <Input />,
           )}
         </Form.Item>
         <Form.Item>

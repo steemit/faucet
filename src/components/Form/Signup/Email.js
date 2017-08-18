@@ -1,15 +1,34 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { Form, Input, Button } from 'antd';
+import fetch from 'isomorphic-fetch';
+import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class Email extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        if (this.props.onSubmit) {
-          this.props.onSubmit(values);
-        }
+        fetch(`/api/request_email?email=${values.email}`)
+          .then(checkStatus)
+          .then(parseJSON)
+          .then((data) => {
+            if (data.success) {
+              if (this.props.onSubmit) {
+                this.props.onSubmit(values);
+              }
+            }
+          })
+          .catch((error) => {
+            error.response.json().then((data) => {
+              this.props.form.setFields({
+                email: {
+                  value: values.email,
+                  errors: [new Error(data.error)],
+                },
+              });
+            });
+          });
       }
     });
   };
@@ -29,7 +48,7 @@ class Email extends React.Component {
               { required: true, message: 'Please input your email address' },
             ],
           })(
-            <Input />
+            <Input />,
           )}
         </Form.Item>
         <Form.Item>
