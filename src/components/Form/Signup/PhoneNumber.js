@@ -2,16 +2,30 @@
 import React from 'react';
 import { Form, Input, Select, Button } from 'antd';
 import _ from 'lodash';
+import fetch from 'isomorphic-fetch';
 import countries from '../../../../countries.json';
+import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class PhoneNumber extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        if (this.props.onSubmit) {
-          this.props.onSubmit(values);
-        }
+        fetch(`/api/request_sms?token=${this.props.token}&phoneNumber=${values.phoneNumber}&prefix=${values.prefix}`)
+          .then(checkStatus)
+          .then(parseJSON)
+          .then((data) => {
+            if (data.success) {
+              if (this.props.onSubmit) {
+                this.props.onSubmit(values);
+              }
+            }
+          })
+          .catch((error) => {
+            error.response.json().then((data) => {
+              // Do something
+            });
+          });
       }
     });
   };

@@ -23,7 +23,7 @@ class Email extends React.Component {
           .then((data) => {
             if (data.success) {
               if (this.props.onSubmit) {
-                this.props.onSubmit(values);
+                this.props.onSubmit(values, data.token);
               }
             }
           })
