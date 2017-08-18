@@ -41,8 +41,18 @@ export default class Index extends Component {
     return (
       <div className="container">
         {status === 'loading' && <Loading />}
-        {status === 'error' && <span>{error}</span>}
-        {status === 'success' && <span>Your email has been approuved. Thank you!</span>}
+        {status === 'error' &&
+          <div>
+            <h1>Oops!</h1>
+            <p>{error}</p>
+          </div>
+        }
+        {status === 'success' &&
+          <div>
+            <h1>Thank you!</h1>
+            <p>Your email address has been verified.</p>
+          </div>
+        }
       </div>
     );
   }
