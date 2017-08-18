@@ -1,15 +1,23 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Button } from 'antd';
+import { Alert, Form, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
+import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class Email extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: null,
+    };
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}`)
+        fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -21,12 +29,33 @@ class Email extends React.Component {
           })
           .catch((error) => {
             error.response.json().then((data) => {
-              this.props.form.setFields({
-                email: {
-                  value: values.email,
-                  errors: [new Error(data.error)],
-                },
-              });
+              if (window && window.grecaptcha) {
+                window.grecaptcha.reset();
+              }
+              const emailError = data.errors.find(o => o.field === 'email');
+              if (emailError) {
+                this.props.form.setFields({
+                  email: {
+                    value: values.email,
+                    errors: [new Error(emailError.error)],
+                  },
+                });
+              }
+
+              const recaptchaError = data.errors.find(o => o.field === 'recaptcha');
+              if (recaptchaError) {
+                this.props.form.setFields({
+                  recaptcha: {
+                    value: values.recaptcha,
+                    errors: [new Error(recaptchaError.error)],
+                  },
+                });
+              }
+
+              const formError = data.errors.find(o => o.field === 'form');
+              if (formError) {
+                this.setState({ error: formError.error });
+              }
             });
           });
       }
@@ -35,9 +64,10 @@ class Email extends React.Component {
 
   render() {
     const { getFieldDecorator } = this.props.form;
-
+    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
+        {error && <Alert message={error} type="error" />}
         <Form.Item
           label="E-mail"
           hasFeedback
@@ -49,6 +79,15 @@ class Email extends React.Component {
             ],
           })(
             <Input />,
+          )}
+        </Form.Item>
+        <Form.Item>
+          {getFieldDecorator('recaptcha', {
+            rules: [
+              { required: true, message: 'Please validate the captcha' },
+            ],
+          })(
+            <RecaptchaItem />,
           )}
         </Form.Item>
         <Form.Item>
