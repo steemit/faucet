@@ -1,7 +1,7 @@
 const express = require('express');
+const fetch = require('isomorphic-fetch');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
-const request = require('async-request');
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -73,16 +73,8 @@ router.get('/request_email', async (req, res) => {
   if (!req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'Recaptcha is required.' });
   } else {
-    const response = await request('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      data: {
-        secret: process.env.RECAPTCHA_SECRET,
-        response: req.query.recaptcha,
-        remoteip: req.connection.remoteAddress,
-      },
-    });
-
-    const body = JSON.parse(response.body);
+    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+    const body = await response.json();
     if (!body.success) {
       errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid.' });
     }
@@ -103,7 +95,7 @@ router.get('/request_email', async (req, res) => {
         phone_number: '',
         phone_number_is_verified: false,
         last_attempt_verify_phone_number: null,
-        ip: req.connection.remoteAddress,
+        ip: req.ip,
         ua: req.headers['user-agent'],
         account_is_created: false,
         created_at: new Date(),
