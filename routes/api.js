@@ -58,6 +58,16 @@ router.get('/request_email', async (req, res) => {
     errors.push({ field: 'email', error: 'Email is required.' });
   } else if (!validator.isEmail(req.query.email)) {
     errors.push({ field: 'email', error: 'Please provide a valid email' });
+  } else {
+    const userCount = await req.db.users.count({
+      where: {
+        email: req.query.email,
+        email_is_verified: true,
+      },
+    });
+    if (userCount > 0) {
+      errors.push({ field: 'email', error: 'Email already used.' });
+    }
   }
 
   if (!req.query.recaptcha) {
@@ -79,40 +89,28 @@ router.get('/request_email', async (req, res) => {
   }
 
   if (errors.length === 0) {
-    const userCount = await req.db.users.count({
+    const userExist = await req.db.users.count({
       where: {
         email: req.query.email,
-        email_is_verified: true,
       },
     });
 
-    if (userCount > 0) {
-      errors.push({ field: 'email', error: 'Email already used.' });
-      res.status(400).json({ errors });
+    if (userExist === 0) {
+      req.db.users.create({
+        email: req.query.email,
+        email_is_verified: false,
+        last_attempt_verify_email: null,
+        phone_number: '',
+        phone_number_is_verified: false,
+        last_attempt_verify_phone_number: null,
+        ip: req.connection.remoteAddress,
+        ua: req.headers['user-agent'],
+        account_is_created: false,
+        created_at: new Date(),
+        updated_at: null,
+      }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
-      const userExist = await req.db.users.count({
-        where: {
-          email: req.query.email,
-        },
-      });
-
-      if (userExist === 0) {
-        req.db.users.create({
-          email: req.query.email,
-          email_is_verified: false,
-          last_attempt_verify_email: null,
-          phone_number: '',
-          phone_number_is_verified: false,
-          last_attempt_verify_phone_number: null,
-          ip: req.connection.remoteAddress,
-          ua: req.headers['user-agent'],
-          account_is_created: false,
-          created_at: new Date(),
-          updated_at: null,
-        }).then(async () => { await sendConfirmationEmail(req, res); });
-      } else {
-        await sendConfirmationEmail(req, res);
-      }
+      await sendConfirmationEmail(req, res);
     }
   } else {
     res.status(400).json({ errors });
