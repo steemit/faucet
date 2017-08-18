@@ -1,4 +1,5 @@
 const express = require('express');
+const fetch = require('isomorphic-fetch');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
@@ -14,7 +15,8 @@ const sendConfirmationEmail = async (req, res) => {
   const user = await req.db.users.findOne({ where: { email: req.query.email } });
 
   if (user.email_is_verified) {
-    res.status(400).json({ error: 'Email already verified.' });
+    const errors = [{ field: 'email', error: 'Email already verified.' }];
+    res.status(400).json({ errors });
   } else if (
     !user.last_attempt_verify_email ||
     user.last_attempt_verify_email.getTime() < oneMinLater
@@ -40,19 +42,22 @@ const sendConfirmationEmail = async (req, res) => {
 
         res.json({ success: true, token });
       } else {
-        res.status(500).json({ error: 'Failed to send confirmation email.' });
+        const errors = [{ field: 'form', error: 'Failed to send confirmation email.' }];
+        res.status(500).json({ errors });
       }
     });
   } else {
-    res.status(400).json({ error: 'Please wait at least one minute between retries.' });
+    const errors = [{ field: 'form', error: 'Please wait at least one minute between retries.' }];
+    res.status(400).json({ errors });
   }
 };
 
 router.get('/request_email', async (req, res) => {
+  const errors = [];
   if (!req.query.email) {
-    res.status(400).json({ error: 'Email is required.' });
+    errors.push({ field: 'email', error: 'Email is required.' });
   } else if (!validator.isEmail(req.query.email)) {
-    res.status(400).json({ error: 'Please provide a valid email.' });
+    errors.push({ field: 'email', error: 'Please provide a valid email' });
   } else {
     const userCount = await req.db.users.count({
       where: {
@@ -60,34 +65,47 @@ router.get('/request_email', async (req, res) => {
         email_is_verified: true,
       },
     });
-
     if (userCount > 0) {
-      res.status(400).json({ error: 'Email already used.' });
-    } else {
-      const userExist = await req.db.users.count({
-        where: {
-          email: req.query.email,
-        },
-      });
-
-      if (userExist === 0) {
-        req.db.users.create({
-          email: req.query.email,
-          email_is_verified: false,
-          last_attempt_verify_email: null,
-          phone_number: '',
-          phone_number_is_verified: false,
-          last_attempt_verify_phone_number: null,
-          ip: req.connection.remoteAddress,
-          ua: req.headers['user-agent'],
-          account_is_created: false,
-          created_at: new Date(),
-          updated_at: null,
-        }).then(async () => { await sendConfirmationEmail(req, res); });
-      } else {
-        await sendConfirmationEmail(req, res);
-      }
+      errors.push({ field: 'email', error: 'Email already used.' });
     }
+  }
+
+  if (!req.query.recaptcha) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is required.' });
+  } else {
+    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+    const body = await response.json();
+    if (!body.success) {
+      errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid.' });
+    }
+  }
+
+  if (errors.length === 0) {
+    const userExist = await req.db.users.count({
+      where: {
+        email: req.query.email,
+      },
+    });
+
+    if (userExist === 0) {
+      req.db.users.create({
+        email: req.query.email,
+        email_is_verified: false,
+        last_attempt_verify_email: null,
+        phone_number: '',
+        phone_number_is_verified: false,
+        last_attempt_verify_phone_number: null,
+        ip: req.ip,
+        ua: req.headers['user-agent'],
+        account_is_created: false,
+        created_at: new Date(),
+        updated_at: null,
+      }).then(async () => { await sendConfirmationEmail(req, res); });
+    } else {
+      await sendConfirmationEmail(req, res);
+    }
+  } else {
+    res.status(400).json({ errors });
   }
 });
 
