@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react';
 import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../utils/fetch';
-import Loading from '../../widgets/Loading';
+import { checkStatus, parseJSON } from '../utils/fetch';
+import Loading from '../widgets/Loading';
 
 export default class Index extends Component {
   constructor(props) {
