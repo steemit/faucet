@@ -1,6 +1,7 @@
 const express = require('express');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const request = require('async-request');
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -14,7 +15,8 @@ const sendConfirmationEmail = async (req, res) => {
   const user = await req.db.users.findOne({ where: { email: req.query.email } });
 
   if (user.email_is_verified) {
-    res.status(400).json({ error: 'Email already verified.' });
+    const errors = [{ field: 'email', error: 'Email already verified.' }];
+    res.status(400).json({ errors });
   } else if (
     !user.last_attempt_verify_email ||
     user.last_attempt_verify_email.getTime() < oneMinLater
@@ -40,20 +42,43 @@ const sendConfirmationEmail = async (req, res) => {
 
         res.json({ success: true, token });
       } else {
-        res.status(500).json({ error: 'Failed to send confirmation email.' });
+        const errors = [{ field: 'form', error: 'Failed to send confirmation email.' }];
+        res.status(500).json({ errors });
       }
     });
   } else {
-    res.status(400).json({ error: 'Please wait at least one minute between retries.' });
+    const errors = [{ field: 'form', error: 'Please wait at least one minute between retries.' }];
+    res.status(400).json({ errors });
   }
 };
 
 router.get('/request_email', async (req, res) => {
+  const errors = [];
   if (!req.query.email) {
-    res.status(400).json({ error: 'Email is required.' });
+    errors.push({ field: 'email', error: 'Email is required.' });
   } else if (!validator.isEmail(req.query.email)) {
-    res.status(400).json({ error: 'Please provide a valid email.' });
+    errors.push({ field: 'email', error: 'Please provide a valid email' });
+  }
+
+  if (!req.query.recaptcha) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is required.' });
   } else {
+    const response = await request('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      data: {
+        secret: process.env.RECAPTCHA_SECRET,
+        response: req.query.recaptcha,
+        remoteip: req.connection.remoteAddress,
+      },
+    });
+
+    const body = JSON.parse(response.body);
+    if (!body.success) {
+      errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid.' });
+    }
+  }
+
+  if (errors.length === 0) {
     const userCount = await req.db.users.count({
       where: {
         email: req.query.email,
@@ -62,7 +87,8 @@ router.get('/request_email', async (req, res) => {
     });
 
     if (userCount > 0) {
-      res.status(400).json({ error: 'Email already used.' });
+      errors.push({ field: 'email', error: 'Email already used.' });
+      res.status(400).json({ errors });
     } else {
       const userExist = await req.db.users.count({
         where: {
@@ -88,6 +114,8 @@ router.get('/request_email', async (req, res) => {
         await sendConfirmationEmail(req, res);
       }
     }
+  } else {
+    res.status(400).json({ errors });
   }
 });
 
