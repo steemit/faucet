@@ -27,9 +27,10 @@ function makePlugins(options) {
           : JSON.stringify(process.env.SENTRY_PUBLIC_DSN),
         WS: JSON.stringify(
           process.env.WS ||
-          'wss://steemd.steemit.com'
+          'wss://steemd.steemit.com',
         ),
         IS_BROWSER: JSON.stringify(true),
+        RECAPTCHA_SITE_KEY: JSON.stringify(process.env.RECAPTCHA_SITE_KEY),
       },
     }),
     new LodashModuleReplacementPlugin({ collections: true, paths: true }),

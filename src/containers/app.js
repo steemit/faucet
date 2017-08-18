@@ -1,10 +1,14 @@
 import React from 'react';
+import { LocaleProvider } from 'antd';
+import enUS from 'antd/lib/locale-provider/en_US';
 import '../styles/common.less';
 
 const App = ({ children }) => (
-  <div className="main">
-    {children}
-  </div>
+  <LocaleProvider locale={enUS}>
+    <div className="main">
+      {children}
+    </div>
+  </LocaleProvider>
 );
 
 App.propTypes = {
