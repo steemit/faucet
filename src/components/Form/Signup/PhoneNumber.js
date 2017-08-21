@@ -1,12 +1,19 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Select, Button } from 'antd';
+import { Alert, Form, Input, Select, Button } from 'antd';
 import _ from 'lodash';
 import fetch from 'isomorphic-fetch';
 import countries from '../../../../countries.json';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class PhoneNumber extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: null,
+    };
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
@@ -23,7 +30,30 @@ class PhoneNumber extends React.Component {
           })
           .catch((error) => {
             error.response.json().then((data) => {
-              // Do something
+              const phoneNumberError = data.errors.find(o => o.field === 'phoneNumber');
+              if (phoneNumberError) {
+                this.props.form.setFields({
+                  phoneNumber: {
+                    value: values.phoneNumber,
+                    errors: [new Error(phoneNumberError.error)],
+                  },
+                });
+              }
+
+              const prefixError = data.errors.find(o => o.field === 'prefix');
+              if (prefixError) {
+                this.props.form.setFields({
+                  prefix: {
+                    value: values.prefix,
+                    errors: [new Error(prefixError.error)],
+                  },
+                });
+              }
+
+              const formError = data.errors.find(o => o.field === 'form');
+              if (formError) {
+                this.setState({ error: formError.error });
+              }
             });
           });
       }
@@ -55,9 +85,10 @@ class PhoneNumber extends React.Component {
         ))}
       </Select>,
     );
-
+    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
+        {error && <Alert message={error} type="error" />}
         <Form.Item
           label="Country Code"
         >
