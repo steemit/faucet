@@ -45,12 +45,12 @@ const sendConfirmationEmail = async (req, res) => {
 
         res.json({ success: true, token });
       } else {
-        const errors = [{ field: 'form', error: 'Failed to send confirmation email' }];
+        const errors = [{ field: 'email', error: 'Failed to send confirmation email' }];
         res.status(500).json({ errors });
       }
     });
   } else {
-    const errors = [{ field: 'form', error: 'Please wait at least one minute between retries' }];
+    const errors = [{ field: 'email', error: 'Please wait at least one minute between retries' }];
     res.status(400).json({ errors });
   }
 };
@@ -117,7 +117,7 @@ router.get('/request_sms', async (req, res) => {
   const errors = [];
 
   if (!req.query.token) {
-    errors.push({ field: 'form', error: 'Token is required' });
+    errors.push({ field: 'phoneNumber', error: 'Token is required' });
   }
   if (!req.query.phoneNumber) {
     errors.push({ field: 'phoneNumber', error: 'Phone number is required' });
@@ -129,7 +129,7 @@ router.get('/request_sms', async (req, res) => {
   try {
     decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
   } catch (err) {
-    errors.push({ field: 'form', error: 'Invalid token' });
+    errors.push({ field: 'phoneNumber', error: 'Invalid token' });
   }
   if (errors.length === 0) {
     if (decoded && decoded.type === 'signup') {
@@ -148,11 +148,11 @@ router.get('/request_sms', async (req, res) => {
         const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
 
         if (!user) {
-          errors.push({ field: 'form', error: 'Unknown user' });
+          errors.push({ field: 'phoneNumber', error: 'Unknown user' });
         } else if (user.last_attempt_verify_phone_number &&
           user.last_attempt_verify_phone_number.getTime() > oneMinLater
         ) {
-          errors.push({ field: 'form', error: 'Please wait at least one minute between retries' });
+          errors.push({ field: 'phoneNumber', error: 'Please wait at least one minute between retries' });
         }
 
         const phoneExists = await req.db.users.count({
@@ -190,7 +190,7 @@ router.get('/request_sms', async (req, res) => {
         errors.push({ field: 'prefix', error: `Invalid prefix: ${countryPrefix} ${countryCode}` });
       }
     } else {
-      errors.push({ field: 'form', error: 'Invalid token type' });
+      errors.push({ field: 'phoneNumber', error: 'Invalid token type' });
     }
   }
   if (errors.length > 0) {
@@ -203,7 +203,7 @@ router.get('/confirm_sms', async (req, res) => {
   const errors = [];
 
   if (!req.query.token) {
-    errors.push({ field: 'form', error: 'Token is required' });
+    errors.push({ field: 'code', error: 'Token is required' });
   }
   if (!req.query.code) {
     errors.push({ field: 'code', error: 'Code is required' });
@@ -212,7 +212,7 @@ router.get('/confirm_sms', async (req, res) => {
   try {
     decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
   } catch (err) {
-    errors.push({ field: 'form', error: 'Invalid token' });
+    errors.push({ field: 'code', error: 'Invalid token' });
   }
 
   if (errors.length === 0) {
@@ -224,9 +224,9 @@ router.get('/confirm_sms', async (req, res) => {
       });
       if (user) {
         if (user.phone_number_is_verified) {
-          errors.push({ field: 'form', error: 'Phone already verified' });
+          errors.push({ field: 'code', error: 'Phone already verified' });
         } else if (user.phone_code_attempts >= 5) {
-          errors.push({ field: 'form', error: 'Too many attempts, please request a new code' });
+          errors.push({ field: 'code', error: 'Too many attempts, please request a new code' });
         } else if (user.phone_code !== req.query.code) {
           errors.push({ field: 'code', error: 'Invalid code' });
           req.db.users.update({
@@ -240,10 +240,10 @@ router.get('/confirm_sms', async (req, res) => {
           res.json({ success: true });
         }
       } else {
-        errors.push({ field: 'form', error: 'Unknown user' });
+        errors.push({ field: 'code', error: 'Unknown user' });
       }
     } else {
-      errors.push({ field: 'form', error: 'Invalid token type' });
+      errors.push({ field: 'code', error: 'Invalid token type' });
     }
   }
   if (errors.length > 0) {
