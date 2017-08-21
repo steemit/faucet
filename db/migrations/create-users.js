@@ -29,6 +29,13 @@ module.exports = {
       last_attempt_verify_phone_number: {
         type: Sequelize.DATE,
       },
+      phone_code_attempts: {
+        type: Sequelize.INTEGER,
+        default: 0,
+      },
+      phone_code: {
+        type: Sequelize.STRING,
+      },
       ip: {
         type: Sequelize.STRING,
       },

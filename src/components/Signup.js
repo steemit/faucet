@@ -13,14 +13,16 @@ class Signup extends Component {
       username: '',
       email: '',
       phoneNumber: '',
+      token: '',
     };
   }
 
-  handleSubmitEmail = (values) => {
+  handleSubmitEmail = (values, token) => {
     this.setState({
       step: 'phoneNumber',
       stepNumber: 1,
       email: values.email,
+      token,
     });
   };
 
@@ -40,7 +42,7 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber } = this.state;
+    const { step, stepNumber, token } = this.state;
 
     return (
       <div className="container">
@@ -79,16 +81,19 @@ class Signup extends Component {
                 compromised.
               </em>
             </p>
-            <FormSignupPhoneNumber onSubmit={this.handleSubmitPhoneNumber} />
+            <FormSignupPhoneNumber onSubmit={this.handleSubmitPhoneNumber} token={token} />
           </div>
         }
         {step === 'confirmPhoneNumber' &&
           <div>
             <p>
-              Thank you for providing your phone number (0102030405).
+              Thank you for providing your phone number ({this.state.phoneNumber}).
               <br />{"To continue please enter the SMS code we've sent you."}
             </p>
-            <FormSignupConfirmPhoneNumber onSubmit={this.handleSubmitConfirmPhoneNumber} />
+            <FormSignupConfirmPhoneNumber
+              onSubmit={this.handleSubmitConfirmPhoneNumber}
+              token={token}
+            />
           </div>
         }
         {step === 'finish' &&

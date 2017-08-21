@@ -2,6 +2,9 @@ const express = require('express');
 const fetch = require('isomorphic-fetch');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const generateCode = require('../src/utils/phone-utils').generateCode;
+const PNF = require('google-libphonenumber').PhoneNumberFormat;
+const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -109,8 +112,90 @@ router.get('/request_email', async (req, res) => {
   }
 });
 
-router.get('/request_sms', (req, res) => {
-  res.json({});
+router.get('/request_sms', async (req, res) => {
+  let decoded;
+  const errors = [];
+
+  if (!req.query.token) {
+    errors.push({ field: 'form', error: 'Token is required.' });
+  }
+  if (!req.query.phoneNumber) {
+    errors.push({ field: 'phoneNumber', error: 'Phone number is required.' });
+  }
+  if (!req.query.prefix) {
+    errors.push({ field: 'prefix', error: 'Country code is required.' });
+  }
+
+  try {
+    decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+  } catch (err) {
+    errors.push({ field: 'form', error: 'Invalid token.' });
+  }
+  if (errors.length === 0) {
+    if (decoded && decoded.type === 'signup') {
+      const [countryPrefix, countryCode] = req.query.prefix.split('_');
+      if (countryCode) {
+        const phoneNumber = phoneUtil.format(
+          phoneUtil.parse(req.query.phoneNumber, countryCode),
+          PNF.INTERNATIONAL);
+        const user = await req.db.users.findOne({
+          where: {
+            email: decoded.email,
+          },
+        });
+
+        const date = new Date();
+        const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
+
+        if (!user) {
+          errors.push({ field: 'form', error: 'Unknown user.' });
+        } else if (user.last_attempt_verify_phone_number &&
+          user.last_attempt_verify_phone_number.getTime() > oneMinLater
+        ) {
+          errors.push({ field: 'form', error: 'Please wait at least one minute between retries.' });
+        }
+
+        const phoneExists = await req.db.users.count({
+          where: {
+            phone_number: phoneNumber,
+            phone_number_is_verified: true,
+          },
+        });
+
+        if (phoneExists > 0) {
+          errors.push({ field: 'phoneNumber', error: 'Phone number already used.' });
+        }
+
+        if (errors.length === 0) {
+          const phoneCode = generateCode(5);
+          req.db.users.update({
+            last_attempt_verify_phone_number: new Date(),
+            phone_code: phoneCode,
+            phone_number: phoneNumber,
+            phone_code_attempts: 0,
+          }, { where: { email: decoded.email } });
+
+          req.twilio.messages.create({
+            body: `${phoneCode} is your SteemConnect confirmation code`,
+            to: phoneNumber,
+            from: '+12062028357',
+          }).then(() => {
+            res.json({ success: true });
+          }).catch((error) => {
+            const status = error.status || 400;
+            res.status(status).json(error);
+          });
+        }
+      } else {
+        errors.push({ field: 'prefix', error: `Invalid prefix: ${countryPrefix} ${countryCode}` });
+      }
+    } else {
+      errors.push({ field: 'form', error: 'Invalid token type.' });
+    }
+  }
+  if (errors.length > 0) {
+    res.status(500).json({ errors });
+  }
 });
 
 router.get('/confirm_sms', (req, res) => {
