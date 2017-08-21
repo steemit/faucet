@@ -163,12 +163,21 @@ router.get('/request_sms', async (req, res) => {
 
         if (!user) {
           errors.push({ field: 'form', error: 'Unknown user.' });
-        } else if (user.phone_number === phoneNumber && user.phone_number_is_verified) {
-          errors.push({ field: 'phoneNumber', error: 'Phone number already used.' });
         } else if (user.last_attempt_verify_phone_number &&
           user.last_attempt_verify_phone_number.getTime() > oneMinLater
         ) {
           errors.push({ field: 'form', error: 'Please wait at least one minute between retries.' });
+        }
+
+        const phoneExists = await req.db.users.count({
+          where: {
+            phone_number: phoneNumber,
+            phone_number_is_verified: true,
+          },
+        });
+
+        if (phoneExists > 0) {
+          errors.push({ field: 'phoneNumber', error: 'Phone number already used.' });
         }
 
         if (errors.length === 0) {
