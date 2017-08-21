@@ -1,17 +1,10 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Alert, Form, Input, Button } from 'antd';
+import { Form, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class ConfirmPhoneNumber extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-    };
-  }
-
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
@@ -37,11 +30,6 @@ class ConfirmPhoneNumber extends React.Component {
                   },
                 });
               }
-
-              const formError = data.errors.find(o => o.field === 'form');
-              if (formError) {
-                this.setState({ error: formError.error });
-              }
             });
           });
       }
@@ -50,10 +38,8 @@ class ConfirmPhoneNumber extends React.Component {
 
   render() {
     const { getFieldDecorator } = this.props.form;
-    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
-        {error && <Alert message={error} type="error" />}
         <Form.Item
           label="Confirmation Code"
           hasFeedback

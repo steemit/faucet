@@ -1,19 +1,12 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Alert, Form, Input, Select, Button } from 'antd';
+import { Form, Input, Select, Button } from 'antd';
 import _ from 'lodash';
 import fetch from 'isomorphic-fetch';
 import countries from '../../../../countries.json';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class PhoneNumber extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-    };
-  }
-
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
@@ -49,11 +42,6 @@ class PhoneNumber extends React.Component {
                   },
                 });
               }
-
-              const formError = data.errors.find(o => o.field === 'form');
-              if (formError) {
-                this.setState({ error: formError.error });
-              }
             });
           });
       }
@@ -85,10 +73,8 @@ class PhoneNumber extends React.Component {
         ))}
       </Select>,
     );
-    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
-        {error && <Alert message={error} type="error" />}
         <Form.Item
           label="Country Code"
         >
