@@ -7,14 +7,24 @@ import countries from '../../../../countries.json';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class PhoneNumber extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      submitting: false,
+    };
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
+    if (this.state.submitting) return;
+    this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         fetch(`/api/request_sms?token=${this.props.token}&phoneNumber=${values.phoneNumber}&prefix=${values.prefix}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
+            this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
                 this.props.onSubmit(values);
@@ -22,6 +32,7 @@ class PhoneNumber extends React.Component {
             }
           })
           .catch((error) => {
+            this.setState({ submitting: false });
             error.response.json().then((data) => {
               const phoneNumberError = data.errors.find(o => o.field === 'phoneNumber');
               if (phoneNumberError) {
@@ -44,6 +55,8 @@ class PhoneNumber extends React.Component {
               }
             });
           });
+      } else {
+        this.setState({ submitting: false });
       }
     });
   };
@@ -93,7 +106,7 @@ class PhoneNumber extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );

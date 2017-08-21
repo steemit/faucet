@@ -6,14 +6,24 @@ import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class Email extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      submitting: false,
+    };
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
+    if (this.state.submitting) return;
+    this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
+            this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
                 this.props.onSubmit(values, data.token);
@@ -21,6 +31,7 @@ class Email extends React.Component {
             }
           })
           .catch((error) => {
+            this.setState({ submitting: false });
             error.response.json().then((data) => {
               if (window && window.grecaptcha) {
                 this.props.form.setFieldsValue({ recaptcha: '' });
@@ -47,6 +58,8 @@ class Email extends React.Component {
               }
             });
           });
+      } else {
+        this.setState({ submitting: false });
       }
     });
   };
@@ -78,7 +91,7 @@ class Email extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );
