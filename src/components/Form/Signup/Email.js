@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Alert, Form, Input, Button } from 'antd';
+import { Form, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
@@ -9,18 +9,21 @@ class Email extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      error: null,
+      submitting: false,
     };
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
+    if (this.state.submitting) return;
+    this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
+            this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
                 this.props.onSubmit(values, data.token);
@@ -28,6 +31,7 @@ class Email extends React.Component {
             }
           })
           .catch((error) => {
+            this.setState({ submitting: false });
             error.response.json().then((data) => {
               if (window && window.grecaptcha) {
                 this.props.form.setFieldsValue({ recaptcha: '' });
@@ -52,23 +56,18 @@ class Email extends React.Component {
                   },
                 });
               }
-
-              const formError = data.errors.find(o => o.field === 'form');
-              if (formError) {
-                this.setState({ error: formError.error });
-              }
             });
           });
+      } else {
+        this.setState({ submitting: false });
       }
     });
   };
 
   render() {
     const { getFieldDecorator } = this.props.form;
-    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
-        {error && <Alert message={error} type="error" />}
         <Form.Item
           label="E-mail"
           hasFeedback
@@ -92,7 +91,7 @@ class Email extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );
