@@ -11,8 +11,8 @@ const db = require('./db/models');
 const twilio = require('./helpers/twilio');
 
 steem.api.setOptions({ transport: 'http' });
-http.globalAgent.maxSockets = Infinity;
-https.globalAgent.maxSockets = Infinity;
+http.globalAgent.maxSockets = 100;
+https.globalAgent.maxSockets = 100;
 const app = express();
 const server = http.Server(app);
 

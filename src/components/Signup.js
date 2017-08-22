@@ -94,6 +94,9 @@ class Signup extends Component {
               onSubmit={this.handleSubmitConfirmPhoneNumber}
               token={token}
             />
+            <p>
+              Need a new code ? <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 1 })}>Click here</a>
+            </p>
           </div>
         }
         {step === 'finish' &&

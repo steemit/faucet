@@ -198,8 +198,57 @@ router.get('/request_sms', async (req, res) => {
   }
 });
 
-router.get('/confirm_sms', (req, res) => {
-  res.json({});
+router.get('/confirm_sms', async (req, res) => {
+  let decoded;
+  const errors = [];
+
+  if (!req.query.token) {
+    errors.push({ field: 'form', error: 'Token is required.' });
+  }
+  if (!req.query.code) {
+    errors.push({ field: 'code', error: 'Code is required.' });
+  }
+
+  try {
+    decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+  } catch (err) {
+    errors.push({ field: 'form', error: 'Invalid token.' });
+  }
+
+  if (errors.length === 0) {
+    if (decoded && decoded.type === 'signup') {
+      const user = await req.db.users.findOne({
+        where: {
+          email: decoded.email,
+        },
+      });
+      if (user) {
+        if (user.phone_number_is_verified) {
+          errors.push({ field: 'form', error: 'Phone already verified.' });
+        } else if (user.phone_code_attempts >= 5) {
+          errors.push({ field: 'form', error: 'Too many attempts, please request a new code.' });
+        } else if (user.phone_code !== req.query.code) {
+          errors.push({ field: 'code', error: 'Invalid code.' });
+          req.db.users.update({
+            phone_code_attempts: user.phone_code_attempts + 1,
+          }, { where: { email: decoded.email } });
+        } else if (user.phone_code === req.query.code) {
+          req.db.users.update({
+            phone_number_is_verified: true,
+            phone_code_attempts: user.phone_code_attempts + 1,
+          }, { where: { email: decoded.email } });
+          res.json({ success: true });
+        }
+      } else {
+        errors.push({ field: 'form', error: 'Unknown user.' });
+      }
+    } else {
+      errors.push({ field: 'form', error: 'Invalid token type.' });
+    }
+  }
+  if (errors.length > 0) {
+    res.status(500).json({ errors });
+  }
 });
 
 router.get('/confirm_email', async (req, res) => {
