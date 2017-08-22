@@ -9,9 +9,9 @@
   "private": true,
   "scripts": {
     "start": "nodemon --ignore src ./bin/www",
-    "eslint-autofix": "eslint --fix src/**/*.js *.js",
+    "eslint-autofix": "eslint --fix \"src/**/*.js\" \"*.js\"",
     "test": "npm run lint && nsp check --output summary",
-    "lint": "eslint src/**/*.js routes/**/*.js helpers/**/*.js",
+    "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "build": "webpack --progress -p --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress -p --config webpack/webpack.config.js",
     "postinstall": "npm run build"
@@ -88,6 +88,7 @@
     "chai": "^3.5.0",
     "chai-enzyme": "^0.5.1",
     "cheerio": "^0.20.0",
+    "concurrently": "^3.5.0",
     "enzyme": "^2.4.1",
     "eslint": "^4.3.0",
     "eslint-config-airbnb": "^15.1.0",
