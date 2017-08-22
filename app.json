@@ -41,6 +41,12 @@
     },
     "TWILIO_AUTH_TOKEN": {
       "required": true
+    },
+    "RECAPTCHA_SECRET": {
+      "required": true
+    },
+    "RECAPTCHA_SITE_KEY": {
+      "required": true
     }
   },
   "formation": {
