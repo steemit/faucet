@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
+const badDomains = require('../bad-domains');
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -61,6 +62,8 @@ router.get('/request_email', async (req, res) => {
     errors.push({ field: 'email', error: 'Email is required' });
   } else if (!validator.isEmail(req.query.email)) {
     errors.push({ field: 'email', error: 'Please provide a valid email' });
+  } else if (badDomains.includes(req.query.email.split('@')[1])) {
+    errors.push({ field: 'email', error: 'This domain name is blacklisted, please provide another email' });
   } else {
     const userCount = await req.db.users.count({
       where: {
