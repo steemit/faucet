@@ -4,6 +4,7 @@ import { Form, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
+import badDomains from '../../../../bad-domains';
 
 class Email extends React.Component {
   constructor(props) {
@@ -11,6 +12,15 @@ class Email extends React.Component {
     this.state = {
       submitting: false,
     };
+  }
+
+  validateEmailDomain = (rule, value, callback) => {
+    const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
+    if (domain && badDomains.includes(domain)) {
+      callback('This domain name is blacklisted, please provide another email');
+    } else {
+      callback();
+    }
   }
 
   handleSubmit = (e) => {
@@ -76,6 +86,7 @@ class Email extends React.Component {
             rules: [
               { type: 'email', message: 'Please input a valid email address' },
               { required: true, message: 'Please input your email address' },
+              { validator: this.validateEmailDomain },
             ],
           })(
             <Input />,
