@@ -14,7 +14,7 @@ class Email extends React.Component {
     };
   }
 
-  validateEmailDomain = (rule, value, callback, csfzzfef) => {
+  validateEmailDomain = (rule, value, callback) => {
     const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
     if (domain && badDomains.includes(domain)) {
       callback('This domain name is blacklisted, please provide another email');
