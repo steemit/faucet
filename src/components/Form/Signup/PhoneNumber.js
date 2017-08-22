@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Alert, Form, Input, Select, Button } from 'antd';
+import { Form, Input, Select, Button } from 'antd';
 import _ from 'lodash';
 import fetch from 'isomorphic-fetch';
 import countries from '../../../../countries.json';
@@ -10,18 +10,21 @@ class PhoneNumber extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      error: null,
+      submitting: false,
     };
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
+    if (this.state.submitting) return;
+    this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         fetch(`/api/request_sms?token=${this.props.token}&phoneNumber=${values.phoneNumber}&prefix=${values.prefix}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
+            this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
                 this.props.onSubmit(values);
@@ -29,6 +32,7 @@ class PhoneNumber extends React.Component {
             }
           })
           .catch((error) => {
+            this.setState({ submitting: false });
             error.response.json().then((data) => {
               const phoneNumberError = data.errors.find(o => o.field === 'phoneNumber');
               if (phoneNumberError) {
@@ -49,13 +53,10 @@ class PhoneNumber extends React.Component {
                   },
                 });
               }
-
-              const formError = data.errors.find(o => o.field === 'form');
-              if (formError) {
-                this.setState({ error: formError.error });
-              }
             });
           });
+      } else {
+        this.setState({ submitting: false });
       }
     });
   };
@@ -85,10 +86,8 @@ class PhoneNumber extends React.Component {
         ))}
       </Select>,
     );
-    const { error } = this.state;
     return (
       <Form onSubmit={this.handleSubmit}>
-        {error && <Alert message={error} type="error" />}
         <Form.Item
           label="Country Code"
         >
@@ -107,7 +106,7 @@ class PhoneNumber extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );
