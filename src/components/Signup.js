@@ -11,7 +11,7 @@ class Signup extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      step: 'phoneNumber',
+      step: 'email',
       stepNumber: 0,
       username: '',
       email: '',
