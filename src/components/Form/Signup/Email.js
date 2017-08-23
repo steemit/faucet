@@ -50,6 +50,7 @@ class Email extends React.Component {
               if (window && window.grecaptcha) {
                 this.props.form.setFieldsValue({ recaptcha: '' });
                 window.grecaptcha.reset();
+                window.grecaptcha.execute();
               }
               const emailError = data.errors.find(o => o.field === 'email');
               if (emailError) {
@@ -99,9 +100,6 @@ class Email extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
-        </Form.Item>
-        <Form.Item>
           {getFieldDecorator('recaptcha', {
             rules: [
               { required: true, message: 'Please validate the captcha' },
@@ -109,6 +107,9 @@ class Email extends React.Component {
           })(
             <RecaptchaItem />,
           )}
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );
