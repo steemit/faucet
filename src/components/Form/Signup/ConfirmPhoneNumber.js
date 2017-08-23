@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Button } from 'antd';
+import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 
@@ -52,9 +52,8 @@ class ConfirmPhoneNumber extends React.Component {
   render() {
     const { getFieldDecorator } = this.props.form;
     return (
-      <Form onSubmit={this.handleSubmit}>
+      <Form onSubmit={this.handleSubmit} className="signup-form">
         <Form.Item
-          label="Confirmation Code"
           hasFeedback
         >
           {getFieldDecorator('code', {
@@ -62,7 +61,10 @@ class ConfirmPhoneNumber extends React.Component {
               required: true, message: 'Please input the code you have received.!',
             }],
           })(
-            <Input />,
+            <Input
+              prefix={<Icon type="key" />}
+              placeholder="Confirmation code"
+            />,
           )}
         </Form.Item>
         <Form.Item>

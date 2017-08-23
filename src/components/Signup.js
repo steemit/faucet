@@ -3,6 +3,7 @@ import { Steps } from 'antd';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
+import './Signup.less';
 
 class Signup extends Component {
   constructor(props) {
@@ -45,13 +46,20 @@ class Signup extends Component {
     const { step, stepNumber, token } = this.state;
 
     return (
-      <div className="container">
-        <Steps progressDot current={stepNumber}>
-          <Steps.Step />
-          <Steps.Step />
-          <Steps.Step />
-          <Steps.Step />
-        </Steps>
+      <div className="Signup container">
+        <div id="logo">
+          <object data="img/logo.svg" type="image/svg+xml">
+            <img src="img/logo.png" alt="SteemConnect" />
+          </object>
+        </div>
+        <div className="Signup__steps">
+          <Steps progressDot current={stepNumber}>
+            <Steps.Step />
+            <Steps.Step />
+            <Steps.Step />
+            <Steps.Step />
+          </Steps>
+        </div>
         {step === 'email' &&
           <div>
             <h1>Please provide your email address to continue</h1>
@@ -86,6 +94,7 @@ class Signup extends Component {
         }
         {step === 'confirmPhoneNumber' &&
           <div>
+            <h1>Confirm your phone number</h1>
             <p>
               Thank you for providing your phone number ({this.state.phoneNumber}).
               <br />{"To continue please enter the SMS code we've sent you."}

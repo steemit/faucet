@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Select, Button } from 'antd';
+import { Form, Icon, Input, Select, Button } from 'antd';
 import _ from 'lodash';
 import fetch from 'isomorphic-fetch';
 import countries from '../../../../countries.json';
@@ -70,6 +70,7 @@ class PhoneNumber extends React.Component {
       ],
     })(
       <Select
+        placeholder="Country code"
         showSearch
         optionFilterProp="children"
         filterOption={(input, option) =>
@@ -87,22 +88,21 @@ class PhoneNumber extends React.Component {
       </Select>,
     );
     return (
-      <Form onSubmit={this.handleSubmit}>
-        <Form.Item
-          label="Country Code"
-        >
+      <Form onSubmit={this.handleSubmit} className="signup-form">
+        <Form.Item>
           {prefixSelector}
         </Form.Item>
-        <Form.Item
-          label="Phone Number"
-        >
+        <Form.Item>
           {getFieldDecorator('phoneNumber', {
             rules: [
               { required: true, message: 'Please input your phone number' },
               { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: 'Phone number is not valid' },
             ],
           })(
-            <Input />,
+            <Input
+              prefix={<Icon type="phone" />}
+              placeholder="Phone number"
+            />,
           )}
         </Form.Item>
         <Form.Item>

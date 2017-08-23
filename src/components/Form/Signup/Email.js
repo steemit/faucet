@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Form, Input, Button } from 'antd';
+import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
@@ -15,9 +15,13 @@ class Email extends React.Component {
   }
 
   validateEmailDomain = (rule, value, callback) => {
-    const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
-    if (domain && badDomains.includes(domain)) {
-      callback('This domain name is blacklisted, please provide another email');
+    if (value) {
+      const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
+      if (domain && badDomains.includes(domain)) {
+        callback('This domain name is blacklisted, please provide another email');
+      } else {
+        callback();
+      }
     } else {
       callback();
     }
@@ -77,9 +81,8 @@ class Email extends React.Component {
   render() {
     const { getFieldDecorator } = this.props.form;
     return (
-      <Form onSubmit={this.handleSubmit}>
+      <Form onSubmit={this.handleSubmit} className="signup-form">
         <Form.Item
-          label="E-mail"
           hasFeedback
         >
           {getFieldDecorator('email', {
@@ -89,8 +92,14 @@ class Email extends React.Component {
               { validator: this.validateEmailDomain },
             ],
           })(
-            <Input />,
+            <Input
+              prefix={<Icon type="mail" />}
+              placeholder="E-mail"
+            />,
           )}
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
         <Form.Item>
           {getFieldDecorator('recaptcha', {
@@ -100,9 +109,6 @@ class Email extends React.Component {
           })(
             <RecaptchaItem />,
           )}
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );
