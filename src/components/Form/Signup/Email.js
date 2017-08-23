@@ -27,16 +27,6 @@ class Email extends React.Component {
     }
   }
 
-  validateRecaptcha = (rule, value, callback) => {
-    if (!value) {
-      callback('Please validate the captcha');
-      window.grecaptcha.reset();
-      window.grecaptcha.execute();
-    } else {
-      callback();
-    }
-  }
-
   handleSubmit = (e) => {
     e.preventDefault();
     if (this.state.submitting) return;
@@ -110,16 +100,16 @@ class Email extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
-        </Form.Item>
-        <Form.Item>
           {getFieldDecorator('recaptcha', {
             rules: [
-              { validator: this.validateRecaptcha },
+              { required: true, message: 'Please validate the captcha' },
             ],
           })(
             <RecaptchaItem />,
           )}
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
       </Form>
     );
