@@ -51,6 +51,7 @@
     "lodash": "^4.0.0",
     "lodash-webpack-plugin": "^0.10.6",
     "mailgun-js": "^0.13.1",
+    "maxmind": "^2.2.0",
     "morgan": "~1.6.1",
     "mysql": "^2.14.1",
     "node-sass": "^4.5.3",

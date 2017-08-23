@@ -14,6 +14,17 @@ class PhoneNumber extends React.Component {
     };
   }
 
+  getPrefixDefaultValue = () => {
+    const { countryCode } = this.props;
+    if (countryCode) {
+      const country = countries.find(c => c.iso === countryCode);
+      if (country) {
+        return `${country.prefix}_${country.iso}`;
+      }
+    }
+    return '';
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
     if (this.state.submitting) return;
@@ -68,6 +79,7 @@ class PhoneNumber extends React.Component {
       rules: [
         { required: true, message: 'Please select your country code' },
       ],
+      initialValue: this.getPrefixDefaultValue(),
     })(
       <Select
         placeholder="Country code"

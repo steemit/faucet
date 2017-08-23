@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
+import fetch from 'isomorphic-fetch';
 import { Steps } from 'antd';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
+import { checkStatus, parseJSON } from '../utils/fetch';
 import './Signup.less';
 
 class Signup extends Component {
@@ -15,7 +17,19 @@ class Signup extends Component {
       email: '',
       phoneNumber: '',
       token: '',
+      countryCode: '',
     };
+  }
+
+  componentWillMount() {
+    fetch('/api/guess_country')
+      .then(checkStatus)
+      .then(parseJSON)
+      .then((data) => {
+        if (data.location) {
+          this.setState({ countryCode: data.location.country.iso_code });
+        }
+      });
   }
 
   handleSubmitEmail = (values, token) => {
@@ -43,7 +57,7 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token } = this.state;
+    const { step, stepNumber, token, countryCode } = this.state;
 
     return (
       <div className="Signup container">
@@ -89,7 +103,11 @@ class Signup extends Component {
                 compromised.
               </em>
             </p>
-            <FormSignupPhoneNumber onSubmit={this.handleSubmitPhoneNumber} token={token} />
+            <FormSignupPhoneNumber
+              onSubmit={this.handleSubmitPhoneNumber}
+              token={token}
+              countryCode={countryCode}
+            />
           </div>
         }
         {step === 'confirmPhoneNumber' &&

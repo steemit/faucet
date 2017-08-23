@@ -9,6 +9,7 @@ const steem = require('steem');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const twilio = require('./helpers/twilio');
+const geoip = require('./helpers/maxmind');
 
 steem.api.setOptions({ transport: 'http' });
 http.globalAgent.maxSockets = 100;
@@ -31,6 +32,7 @@ app.use((req, res, next) => {
   req.twilio = twilio;
   req.mail = mail;
   req.db = db;
+  req.geoip = geoip;
   next();
 });
 
