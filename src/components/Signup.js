@@ -46,6 +46,11 @@ class Signup extends Component {
 
     return (
       <div className="container">
+        <div id="logo">
+          <object data="img/logo.svg" type="image/svg+xml">
+            <img src="img/logo.png" alt="SteemConnect" />
+          </object>
+        </div>
         <Steps progressDot current={stepNumber}>
           <Steps.Step />
           <Steps.Step />
@@ -54,7 +59,7 @@ class Signup extends Component {
         </Steps>
         {step === 'email' &&
           <div>
-            <h1>Please provide your email address to continue</h1>
+            <h1 className="title">Please provide your email address to continue</h1>
             <p>
               We need your email address to ensure that we can contact you to verify account
               ownership in the event that your account is ever compromised.
@@ -68,7 +73,7 @@ class Signup extends Component {
         }
         {step === 'phoneNumber' &&
           <div>
-            <h1>Almost there!</h1>
+            <h1 className="title">Almost there!</h1>
             <p>We need to send you a quick text.</p>
             <p>
               With each Steem account comes a free initial grant of Steem Power! Phone verification
@@ -86,6 +91,7 @@ class Signup extends Component {
         }
         {step === 'confirmPhoneNumber' &&
           <div>
+            <h1 className="title">Confirm your phone number</h1>
             <p>
               Thank you for providing your phone number ({this.state.phoneNumber}).
               <br />{"To continue please enter the SMS code we've sent you."}
@@ -101,7 +107,7 @@ class Signup extends Component {
         }
         {step === 'finish' &&
           <div>
-            <h1>Thanks for confirming your phone number!</h1>
+            <h1 className="title">Thanks for confirming your phone number!</h1>
             <p>{"You're few steps aways from getting to the top of the list. Check your email and click the email validation link."}</p>
             <p>{"After validating your sign up request with us we'll look it over for approval. As soon as your turn is up and you're approved, you'll be sent a link to finalize your account!"}</p>
             <p>{"You'll be among the earliest members of the Steem community!"}</p>
