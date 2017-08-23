@@ -8,7 +8,6 @@ export default class RecaptchaItem extends React.Component {
   }
 
   verifyCallback = (result) => {
-    console.log(result);
     this.props.onChange(result);
   };
 
@@ -17,6 +16,7 @@ export default class RecaptchaItem extends React.Component {
       <ReCAPTCHA
         ref={(el) => { this.captcha = el; }}
         sitekey={process.env.RECAPTCHA_SITE_KEY}
+        type="image"
         size="invisible"
         onChange={this.verifyCallback}
       />
