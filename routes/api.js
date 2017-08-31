@@ -282,4 +282,9 @@ router.get('/confirm_email', async (req, res) => {
   }
 });
 
+router.get('/guess_country', (req, res) => {
+  const location = req.geoip.get(req.ip);
+  res.json({ location });
+});
+
 module.exports = router;
