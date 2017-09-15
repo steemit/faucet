@@ -11,12 +11,12 @@ module.exports = {
         phone_code: '84576',
         last_attempt_verify_phone_number: new Date(),
         ip: '100.1.2.300.4',
-        ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36',
         account_is_created: false,
         created_at: new Date(),
         updated_at: new Date(),
+        fingerprint: '{"date": "Fri Sep 15 2017 10:38:36 GMT+0200 (Paris, Madrid (heure d’été)", "device": {"renderer": "ANGLE (Intel(R) HD Graphics 4000 Direct3D11 vs_5_0 ps_5_0)", "vendor": "Google Inc."}, "lang": "fr-FR,fr,en-US,en,ms", "ref": "https://jsfiddle.net/", "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"}',
       },
     ], {})
   ),
-  down: queryInterface => queryInterface.bulkDelete('apps', null, {}),
+  down: queryInterface => queryInterface.bulkDelete('users', null, {}),
 };
