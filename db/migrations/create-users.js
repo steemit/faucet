@@ -52,7 +52,7 @@ module.exports = {
         type: Sequelize.DATE,
       },
       fingerprint: {
-        type: Sequelize.JSONB,
+        type: Sequelize.JSON,
         defaultValue: false,
       },
     })
