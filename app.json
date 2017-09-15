@@ -15,9 +15,7 @@
     "MAILGUN_API_KEY": {
       "required": true
     },
-    "MAILGUN_DOMAIN": {
-      "required": true
-    },
+    "MAILGUN_DOMAIN": "steemconnect.com",
     "MAILGUN_PUBLIC_KEY": {
       "required": true
     },
