@@ -3,12 +3,12 @@
 ## Install
 Download and install Node.js >= 7.7.1 then run
 ```
-npm install
+yarn install
 ```
 
 ## Run
 ```
-npm start
+yarn start
 ```
 
 ## Demo
