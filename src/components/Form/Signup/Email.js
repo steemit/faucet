@@ -5,13 +5,19 @@ import fetch from 'isomorphic-fetch';
 import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
+import fingerprint from '../../../../helpers/fingerprint';
 
 class Email extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       submitting: false,
+      fingerprint: '',
     };
+  }
+
+  componentWillMount() {
+    this.setState({ fingerprint: JSON.stringify(fingerprint()) });
   }
 
   validateEmailDomain = (rule, value, callback) => {
@@ -33,7 +39,7 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}`)
+        fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}&fingerprint=${this.state.fingerprint}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {

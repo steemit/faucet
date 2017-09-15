@@ -9,8 +9,8 @@ module.exports = (sequelize, DataTypes) => (
     phone_code: DataTypes.STRING,
     last_attempt_verify_phone_number: DataTypes.DATE,
     ip: DataTypes.STRING,
-    ua: DataTypes.TEXT,
     account_is_created: DataTypes.BOOLEAN,
+    fingerprint: DataTypes.JSON,
   }, {
     freezeTableName: true,
     underscored: true,

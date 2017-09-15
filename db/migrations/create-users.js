@@ -39,9 +39,6 @@ module.exports = {
       ip: {
         type: Sequelize.STRING,
       },
-      ua: {
-        type: Sequelize.TEXT,
-      },
       account_is_created: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
@@ -54,7 +51,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
       },
+      fingerprint: {
+        type: Sequelize.JSON,
+        defaultValue: false,
+      },
     })
   ),
-  down: queryInterface => queryInterface.dropTable('apps'),
+  down: queryInterface => queryInterface.dropTable('users'),
 };
