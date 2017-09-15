@@ -102,10 +102,10 @@ router.get('/request_email', async (req, res) => {
         phone_number_is_verified: false,
         last_attempt_verify_phone_number: null,
         ip: req.ip,
-        ua: req.headers['user-agent'],
         account_is_created: false,
         created_at: new Date(),
         updated_at: null,
+        fingerprint: JSON.parse(req.query.fingerprint),
       }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
       await sendConfirmationEmail(req, res);

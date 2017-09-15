@@ -9,8 +9,19 @@ module.exports = (sequelize, DataTypes) => (
     phone_code: DataTypes.STRING,
     last_attempt_verify_phone_number: DataTypes.DATE,
     ip: DataTypes.STRING,
-    ua: DataTypes.TEXT,
     account_is_created: DataTypes.BOOLEAN,
+    fingerprint: {
+      type: DataTypes.STRING,
+      get() {
+        if (this.getDataValue('fingerprint')) {
+          return JSON.parse(this.getDataValue('fingerprint'));
+        }
+        return {};
+      },
+      set(value) {
+        this.setDataValue('fingerprint', JSON.stringify(value));
+      },
+    },
   }, {
     freezeTableName: true,
     underscored: true,
