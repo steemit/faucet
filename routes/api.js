@@ -46,7 +46,7 @@ const sendConfirmationEmail = async (req, res) => {
 
         res.json({ success: true, token });
       } else {
-        const errors = [{ field: 'email', error: 'Failed to send confirmation email' }];
+        const errors = [{ field: 'email', error: `Failed to send confirmation email ${err}` }];
         res.status(500).json({ errors });
       }
     });
