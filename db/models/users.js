@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => (
     ip: DataTypes.STRING,
     account_is_created: DataTypes.BOOLEAN,
     fingerprint: DataTypes.JSON,
+    status: DataTypes.STRING,
   }, {
     freezeTableName: true,
     underscored: true,

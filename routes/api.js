@@ -201,6 +201,20 @@ router.get('/request_sms', async (req, res) => {
   }
 });
 
+const sendAccountInformation = async (req, email) => {
+  const user = await req.db.users.findOne({ where: { email } });
+  // TODO send the information to the steemit endpoint
+  if (user && user.email_is_verified && user.phone_number_is_verified) {
+    /* await fetch('/where_to', {
+      method: 'POST',
+      body: user,
+    }); */
+    await req.db.users.update({
+      status: 'PENDING',
+    }, { where: { email } });
+  }
+};
+
 router.get('/confirm_sms', async (req, res) => {
   let decoded;
   const errors = [];
@@ -236,10 +250,11 @@ router.get('/confirm_sms', async (req, res) => {
             phone_code_attempts: user.phone_code_attempts + 1,
           }, { where: { email: decoded.email } });
         } else if (user.phone_code === req.query.code) {
-          req.db.users.update({
+          await req.db.users.update({
             phone_number_is_verified: true,
             phone_code_attempts: user.phone_code_attempts + 1,
           }, { where: { email: decoded.email } });
+          await sendAccountInformation(req, decoded.email);
           res.json({ success: true });
         }
       } else {
@@ -268,10 +283,11 @@ router.get('/confirm_email', async (req, res) => {
         } else if (user.email_is_verified) {
           res.status(400).json({ error: 'Email already verified' });
         } else {
-          req.db.users.update({
+          await req.db.users.update({
             email_is_verified: true,
-          }, { where: { email: decoded.email } })
-            .then(() => res.json({ success: true }));
+          }, { where: { email: decoded.email } });
+          await sendAccountInformation(req, decoded.email);
+          res.json({ success: true });
         }
       } else {
         res.status(400).json({ error: 'Invalid token' });
@@ -285,6 +301,29 @@ router.get('/confirm_email', async (req, res) => {
 router.get('/guess_country', (req, res) => {
   const location = req.geoip.get(req.ip);
   res.json({ location });
+});
+
+router.get('/approve_account', async (req, res) => {
+  await req.db.users.update({
+    status: 'APPROVED',
+  }, { where: { email: req.query.email } });
+
+  const mailToken = jwt.sign({
+    type: 'create_account',
+    email: req.query.email,
+  }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+  req.mail.send(req.query.email, 'create_account', {
+    url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
+  },
+  (err) => {
+    if (!err) {
+      res.json({ success: true });
+    } else {
+      const errors = [{ field: 'email', error: 'Failed to send account creation email' }];
+      res.status(500).json({ errors });
+    }
+  });
 });
 
 module.exports = router;
