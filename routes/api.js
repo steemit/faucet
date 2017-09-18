@@ -326,4 +326,20 @@ router.get('/approve_account', async (req, res) => {
   });
 });
 
+router.get('/decline_account', async (req, res) => {
+  await req.db.users.update({
+    status: 'DECLINED',
+  }, { where: { email: req.query.email } });
+
+  req.mail.send(req.query.email, 'decline_account', {},
+    (err) => {
+      if (!err) {
+        res.json({ success: true });
+      } else {
+        const errors = [{ field: 'email', error: 'Failed to send decline account email' }];
+        res.status(500).json({ errors });
+      }
+    });
+});
+
 module.exports = router;

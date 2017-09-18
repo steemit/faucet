@@ -8,5 +8,10 @@
     "from": "SteemConnect <noreply@steemconnect.com>",
     "subject" : "Create your account",
     "text": "Your information have been verified, please click on the link to continue. \n\n{url}\n\n Cheers,\nSteemConnect"
+  },
+  "decline_account": {
+    "from": "SteemConnect <noreply@steemconnect.com>",
+    "subject" : "Account creation declined",
+    "text": "Your account creation request has been declined. You can try again.\n\n Cheers,\nSteemConnect"
   }
 }
