@@ -1,5 +1,6 @@
 const express = require('express');
 const fetch = require('isomorphic-fetch');
+const steem = require('steem');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
@@ -285,6 +286,104 @@ router.get('/confirm_email', async (req, res) => {
 router.get('/guess_country', (req, res) => {
   const location = req.geoip.get(req.ip);
   res.json({ location });
+});
+
+router.get('/confirm_account', async (req, res) => {
+  if (!req.query.token) {
+    res.status(400).json({ error: 'Token is required' });
+  } else {
+    let decoded;
+    try {
+      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+      if (decoded.type === 'create_account') {
+        const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        if (!user) {
+          res.status(400).json({ error: 'User doesn\'t exist' });
+        } else if (user.status === 'PENDING') {
+          res.status(400).json({ error: 'Account verification is not done' });
+        } else if (user.status === 'DECLINED') {
+          res.status(400).json({ error: 'Account verification has been declined' });
+        } else if (user.status === 'DONE') {
+          res.status(400).json({ error: 'Account already created' });
+        } else {
+          res.json({ success: true });
+        }
+      } else {
+        res.status(400).json({ error: 'Invalid token' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: 'Invalid token' });
+    }
+  }
+});
+
+router.get('/create_account', async (req, res) => {
+  if (!req.query.token) {
+    res.status(400).json({ error: 'Token is required' });
+  } else if (!req.query.username) {
+    res.status(400).json({ error: 'Username is required' });
+  } else if (!req.query.password) {
+    res.status(400).json({ error: 'Password is required' });
+  } else {
+    const { username, password } = req.query;
+    let decoded;
+    try {
+      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+      if (decoded.type === 'create_account') {
+        const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        if (user.status === 'APPROVED') {
+          const publicKeys = steem.auth.generateKeys(username, password, ['owner', 'active', 'posting', 'memo']);
+          const owner = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: [[publicKeys.owner, 1]],
+          };
+          const active = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: [[publicKeys.active, 1]],
+          };
+          const posting = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: [[publicKeys.posting, 1]],
+          };
+
+          steem.broadcast.accountCreateWithDelegation(
+            process.env.DELEGATOR_ACTIVE_WIF,
+            process.env.CREATE_ACCOUNT_FEE,
+            process.env.CREATE_ACCOUNT_DELEGATION,
+            process.env.DELEGATOR_USERNAME,
+            username,
+            owner,
+            active,
+            posting,
+            publicKeys.memo,
+            JSON.stringify({}),
+            [],
+            (err) => {
+              if (err) {
+                res.status(400).json({ error: 'An error occurred while creating the account' });
+              } else {
+                req.db.users.update({
+                  username: req.query.username,
+                  status: 'CREATED',
+                }, { where: { email: decoded.email } });
+
+                res.json({ success: true });
+              }
+            },
+          );
+        } else {
+          res.status(400).json({ error: 'This account hasn\'t been approved yet' });
+        }
+      } else {
+        res.status(400).json({ error: 'Invalid token' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: 'Invalid token' });
+    }
+  }
 });
 
 module.exports = router;
