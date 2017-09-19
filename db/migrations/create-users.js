@@ -55,6 +55,9 @@ module.exports = {
         type: Sequelize.JSON,
         defaultValue: false,
       },
+      status: {
+        type: Sequelize.STRING,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),
