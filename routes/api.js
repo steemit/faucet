@@ -3,6 +3,7 @@ const fetch = require('isomorphic-fetch');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
+const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
@@ -201,18 +202,72 @@ router.get('/request_sms', async (req, res) => {
   }
 });
 
+router.get('/check', (req, res) => {
+  // mocking the response according to
+  // https://github.com/steemit/gatekeeper/blob/master/src/classifier.ts#L13
+  // for some usecase test
+  if (req.query.val === 'approved') {
+    res.send('approved');
+  } else if (req.query.val === 'rejected') {
+    res.send('rejected');
+  } else {
+    res.send('manual_review');
+  }
+});
+
+const rejectAccount = async (req, email) => {
+  await req.db.users.update({
+    status: 'REJECTED',
+  }, { where: { email } });
+
+  await req.mail.send(email, 'decline_account', {},
+    (err) => {
+      if (err) {
+        throw new Error(err);
+      }
+    });
+};
+
+const approveAccount = async (req, email) => {
+  await req.db.users.update({
+    status: 'APPROVED',
+  }, { where: { email } });
+
+  const mailToken = jwt.sign({
+    type: 'create_account',
+    email,
+  }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+  req.mail.send(email, 'create_account', {
+    url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
+  },
+  (err) => {
+    if (err) {
+      throw new Error(err);
+    }
+  });
+};
+
 const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
-  // TODO send the information to the steemit endpoint
   if (user && user.email_is_verified && user.phone_number_is_verified) {
-    /* await fetch('/where_to', {
-      method: 'POST',
-      body: user,
-    }); */
-    await req.db.users.update({
-      status: 'PENDING',
-    }, { where: { email } });
+    // TODO change to the steemit endpoint
+    const result = await fetch('http://localhost:3000/api/check')
+      .then(checkStatus)
+      .then(res => res.text());
+
+    if (result === 'rejected') {
+      await rejectAccount(req, email);
+    } else if (result === 'approved') {
+      await approveAccount(req, email);
+    } else {
+      await req.db.users.update({
+        status: result.toUpperCase(),
+      }, { where: { email } });
+    }
+    return result;
   }
+  return null;
 };
 
 router.get('/confirm_sms', async (req, res) => {
@@ -304,42 +359,23 @@ router.get('/guess_country', (req, res) => {
 });
 
 router.get('/approve_account', async (req, res) => {
-  await req.db.users.update({
-    status: 'APPROVED',
-  }, { where: { email: req.query.email } });
-
-  const mailToken = jwt.sign({
-    type: 'create_account',
-    email: req.query.email,
-  }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-  req.mail.send(req.query.email, 'create_account', {
-    url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
-  },
-  (err) => {
-    if (!err) {
-      res.json({ success: true });
-    } else {
-      const errors = [{ field: 'email', error: 'Failed to send account creation email' }];
-      res.status(500).json({ errors });
-    }
-  });
+  try {
+    await approveAccount(req, req.query.email);
+    res.json({ success: true });
+  } catch (err) {
+    const errors = [{ field: 'email', error: 'Failed to send approve account email' }];
+    res.status(500).json({ errors });
+  }
 });
 
-router.get('/decline_account', async (req, res) => {
-  await req.db.users.update({
-    status: 'DECLINED',
-  }, { where: { email: req.query.email } });
-
-  req.mail.send(req.query.email, 'decline_account', {},
-    (err) => {
-      if (!err) {
-        res.json({ success: true });
-      } else {
-        const errors = [{ field: 'email', error: 'Failed to send decline account email' }];
-        res.status(500).json({ errors });
-      }
-    });
+router.get('/reject_account', async (req, res) => {
+  try {
+    await rejectAccount(req, req.query.email);
+    res.json({ success: true });
+  } catch (err) {
+    const errors = [{ field: 'email', error: 'Failed to send reject account email' }];
+    res.status(500).json({ errors });
+  }
 });
 
 module.exports = router;
