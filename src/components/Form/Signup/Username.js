@@ -3,6 +3,7 @@ import React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
+import { validateAccountName } from '../../../utils/validator';
 
 class Username extends React.Component {
   constructor(props) {
@@ -57,6 +58,7 @@ class Username extends React.Component {
           {getFieldDecorator('username', {
             rules: [
               { required: true, message: 'Please input your username' },
+              { validator: validateAccountName },
               { validator: this.validateUsername },
             ],
           })(
