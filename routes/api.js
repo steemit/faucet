@@ -218,10 +218,10 @@ router.get('/check', (req, res) => {
 
 const rejectAccount = async (req, email) => {
   await req.db.users.update({
-    status: 'REJECTED',
+    status: 'rejected',
   }, { where: { email } });
 
-  await req.mail.send(email, 'decline_account', {},
+  await req.mail.send(email, 'reject_account', {},
     (err) => {
       if (err) {
         throw new Error(err);
@@ -231,7 +231,7 @@ const rejectAccount = async (req, email) => {
 
 const approveAccount = async (req, email) => {
   await req.db.users.update({
-    status: 'APPROVED',
+    status: 'approved',
   }, { where: { email } });
 
   const mailToken = jwt.sign({
@@ -263,12 +263,10 @@ const sendAccountInformation = async (req, email) => {
       await approveAccount(req, email);
     } else {
       await req.db.users.update({
-        status: result.toUpperCase(),
+        status: result,
       }, { where: { email } });
     }
-    return result;
   }
-  return null;
 };
 
 router.get('/confirm_sms', async (req, res) => {
