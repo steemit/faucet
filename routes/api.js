@@ -454,6 +454,8 @@ router.get('/create_account', async (req, res) => {
     } catch (err) {
       res.status(500).json({ error: 'Invalid token' });
     }
+  }
+});
 
 router.get('/approve_account', async (req, res) => {
   try {
@@ -472,7 +474,6 @@ router.get('/reject_account', async (req, res) => {
   } catch (err) {
     const errors = [{ field: 'email', error: 'Failed to send reject account email' }];
     res.status(500).json({ errors });
-
   }
 });
 
