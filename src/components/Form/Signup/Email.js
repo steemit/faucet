@@ -2,7 +2,6 @@
 import React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
-import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
@@ -39,7 +38,7 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}&fingerprint=${this.state.fingerprint}&username=${this.props.username}`)
+        fetch(`/api/request_email?email=${values.email}&fingerprint=${this.state.fingerprint}&username=${this.props.username}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -53,26 +52,12 @@ class Email extends React.Component {
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              if (window && window.grecaptcha) {
-                this.props.form.setFieldsValue({ recaptcha: '' });
-                window.grecaptcha.reset();
-              }
               const emailError = data.errors.find(o => o.field === 'email');
               if (emailError) {
                 this.props.form.setFields({
                   email: {
                     value: values.email,
                     errors: [new Error(emailError.error)],
-                  },
-                });
-              }
-
-              const recaptchaError = data.errors.find(o => o.field === 'recaptcha');
-              if (recaptchaError) {
-                this.props.form.setFields({
-                  recaptcha: {
-                    value: '',
-                    errors: [new Error(recaptchaError.error)],
                   },
                 });
               }
@@ -102,15 +87,6 @@ class Email extends React.Component {
               prefix={<Icon type="mail" />}
               placeholder="E-mail"
             />,
-          )}
-        </Form.Item>
-        <Form.Item>
-          {getFieldDecorator('recaptcha', {
-            rules: [
-              { required: true, message: 'Please validate the captcha' },
-            ],
-          })(
-            <RecaptchaItem />,
           )}
         </Form.Item>
         <Form.Item>
