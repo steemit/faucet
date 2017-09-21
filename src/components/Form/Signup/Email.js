@@ -39,7 +39,7 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}&fingerprint=${this.state.fingerprint}`)
+        fetch(`/api/request_email?email=${values.email}&recaptcha=${values.recaptcha}&fingerprint=${this.state.fingerprint}&username=${this.props.username}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {

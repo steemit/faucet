@@ -55,6 +55,12 @@ module.exports = {
         type: Sequelize.JSON,
         defaultValue: false,
       },
+      username: {
+        type: Sequelize.STRING,
+      },
+      username_booked_at: {
+        type: Sequelize.DATE,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),
