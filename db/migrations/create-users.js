@@ -58,7 +58,7 @@ module.exports = {
       username: {
         type: Sequelize.STRING,
       },
-      booking_date: {
+      username_booked_at: {
         type: Sequelize.DATE,
       },
     })
