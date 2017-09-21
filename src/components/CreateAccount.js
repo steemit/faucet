@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import steem from 'steem';
 import fetch from 'isomorphic-fetch';
 import { Button, Form, Icon, Input } from 'antd';
 import createSuggestedPassword from '../utils/auth';
@@ -56,7 +57,24 @@ class CreateAccount extends Component {
     this.setState({ submitting: true });
     form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/create_account?token=${this.props.location.query.token}&username=${values.username}&password=${values.password}`)
+        const publicKeys = steem.auth.generateKeys(values.username, values.password, ['owner', 'active', 'posting', 'memo']);
+        const owner = {
+          weight_threshold: 1,
+          account_auths: [],
+          key_auths: [[publicKeys.owner, 1]],
+        };
+        const active = {
+          weight_threshold: 1,
+          account_auths: [],
+          key_auths: [[publicKeys.active, 1]],
+        };
+        const posting = {
+          weight_threshold: 1,
+          account_auths: [],
+          key_auths: [[publicKeys.posting, 1]],
+        };
+
+        fetch(`/api/create_account?token=${this.props.location.query.token}&username=${values.username}&owner=${owner}&active=${active}&posting=${posting}&memo=${publicKeys.memo}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
