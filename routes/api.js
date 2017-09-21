@@ -2,6 +2,7 @@ const express = require('express');
 const fetch = require('isomorphic-fetch');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const steem = require('steem');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
@@ -106,8 +107,15 @@ router.get('/request_email', async (req, res) => {
         created_at: new Date(),
         updated_at: null,
         fingerprint: JSON.parse(req.query.fingerprint),
+        username: req.query.username,
+        username_booked_at: new Date(),
       }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
+      req.db.users.update({
+        username: req.query.username,
+        username_booked_at: new Date(),
+      }, { where: { email: req.query.email } });
+
       await sendConfirmationEmail(req, res);
     }
   } else {
@@ -285,6 +293,22 @@ router.get('/confirm_email', async (req, res) => {
 router.get('/guess_country', (req, res) => {
   const location = req.geoip.get(req.ip);
   res.json({ location });
+});
+
+router.get('/check_username', async (req, res) => {
+  const username = req.query.username;
+  const accounts = await steem.api.getAccountsAsync([req.query.username]);
+  if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
+    res.json({ error: 'Username already used' });
+  }
+
+  const user = await req.db.users.findOne({ where: { username }, order: 'username_booked_at DESC' });
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  if (user && (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()) {
+    res.json({ error: 'Username reserved' });
+  }
+
+  res.json({ success: true });
 });
 
 module.exports = router;
