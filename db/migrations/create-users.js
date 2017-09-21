@@ -57,6 +57,7 @@ module.exports = {
       },
       status: {
         type: Sequelize.STRING,
+        defaultValue: false,
       },
     })
   ),
