@@ -220,7 +220,7 @@ const rejectAccount = async (req, email) => {
     status: 'rejected',
   }, { where: { email } });
 
-  await req.mail.send(email, 'decline_account', {},
+  await req.mail.send(email, 'reject_account', {},
     (err) => {
       if (err) {
         throw new Error(err);
@@ -265,9 +265,7 @@ const sendAccountInformation = async (req, email) => {
         status: result,
       }, { where: { email } });
     }
-    return result;
   }
-  return null;
 };
 
 router.get('/confirm_sms', async (req, res) => {
