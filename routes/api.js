@@ -370,11 +370,9 @@ router.get('/confirm_account', async (req, res) => {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (!user) {
           res.status(400).json({ error: 'User doesn\'t exist' });
-        } else if (user.status === 'PENDING') {
+        } else if (user.status === 'manual_review' || user.status === 'rejected') {
           res.status(400).json({ error: 'Account verification is not done' });
-        } else if (user.status === 'DECLINED') {
-          res.status(400).json({ error: 'Account verification has been declined' });
-        } else if (user.status === 'DONE') {
+        } else if (user.status === 'created') {
           res.status(400).json({ error: 'Account already created' });
         } else {
           res.json({ success: true });
@@ -438,7 +436,7 @@ router.get('/create_account', async (req, res) => {
               } else {
                 req.db.users.update({
                   username: req.query.username,
-                  status: 'CREATED',
+                  status: 'created',
                 }, { where: { email: decoded.email } });
 
                 res.json({ success: true });
