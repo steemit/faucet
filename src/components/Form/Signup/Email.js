@@ -5,6 +5,7 @@ import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
+import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 
 class Email extends React.Component {
   constructor(props) {
@@ -17,6 +18,19 @@ class Email extends React.Component {
 
   componentWillMount() {
     this.setState({ fingerprint: JSON.stringify(fingerprint()) });
+  }
+
+  validateRecaptcha = (rule, value, callback) => {
+    if (window.grecaptcha.getResponse() === '') {
+      try {
+        window.grecaptcha.execute();
+        setTimeout(() => { this.validateRecaptcha(rule, value, callback); }, 500);
+      } catch (err) {
+        // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
+      }
+    } else {
+      callback();
+    }
   }
 
   validateEmailDomain = (rule, value, callback) => {
@@ -38,7 +52,7 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}&fingerprint=${this.state.fingerprint}&username=${this.props.username}`)
+        fetch(`/api/request_email?email=${values.email}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -89,6 +103,13 @@ class Email extends React.Component {
             />,
           )}
         </Form.Item>
+        {getFieldDecorator('recaptcha', {
+          rules: [
+            { validator: this.validateRecaptcha },
+          ],
+        })(
+          <RecaptchaItem />,
+        )}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>

@@ -57,27 +57,11 @@ const sendConfirmationEmail = async (req, res) => {
   }
 };
 
-router.get('/verify_recaptcha', async (req, res) => {
+router.get('/request_email', async (req, res) => {
   const errors = [];
   if (!req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'Recaptcha is required' });
-  } else {
-    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
-    const body = await response.json();
-    if (!body.success) {
-      errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
-    }
-  }
-  if (errors.length === 0) {
-    res.json({ success: true });
-  } else {
-    res.status(400).json({ errors });
-  }
-});
-
-router.get('/request_email', async (req, res) => {
-  const errors = [];
-  if (!req.query.email) {
+  } else if (!req.query.email) {
     errors.push({ field: 'email', error: 'Email is required' });
   } else if (!validator.isEmail(req.query.email)) {
     errors.push({ field: 'email', error: 'Please provide a valid email' });
@@ -93,6 +77,12 @@ router.get('/request_email', async (req, res) => {
     if (userCount > 0) {
       errors.push({ field: 'email', error: 'Email already used' });
     }
+  }
+
+  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+  const body = await response.json();
+  if (!body.success) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
   }
 
   if (errors.length === 0) {

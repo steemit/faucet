@@ -4,7 +4,6 @@ import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import { validateAccountName } from '../../../utils/validator';
-import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 
 class Username extends React.Component {
   constructor(props) {
@@ -12,28 +11,6 @@ class Username extends React.Component {
     this.state = {
       submitting: false,
     };
-  }
-
-  validateRecaptcha = (rule, value, callback) => {
-    if (window.grecaptcha.getResponse() === '') {
-      try {
-        window.grecaptcha.execute();
-        setTimeout(() => { this.validateRecaptcha(rule, value, callback); }, 500);
-      } catch (err) {
-        // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
-      }
-    } else {
-      fetch(`/api/verify_recaptcha?recaptcha=${window.grecaptcha.getResponse()}`)
-        .then(checkStatus)
-        .then(parseJSON)
-        .then((data) => {
-          if (data.errors) {
-            callback(data.errors[0]);
-          } else {
-            callback();
-          }
-        });
-    }
   }
 
   validateUsername = (rule, value, callback) => {
@@ -91,13 +68,6 @@ class Username extends React.Component {
             />,
           )}
         </Form.Item>
-        {getFieldDecorator('recaptcha', {
-          rules: [
-            { validator: this.validateRecaptcha },
-          ],
-        })(
-          <RecaptchaItem />,
-        )}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
