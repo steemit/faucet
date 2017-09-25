@@ -59,7 +59,9 @@ const sendConfirmationEmail = async (req, res) => {
 
 router.get('/request_email', async (req, res) => {
   const errors = [];
-  if (!req.query.email) {
+  if (!req.query.recaptcha) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is required' });
+  } else if (!req.query.email) {
     errors.push({ field: 'email', error: 'Email is required' });
   } else if (!validator.isEmail(req.query.email)) {
     errors.push({ field: 'email', error: 'Please provide a valid email' });
@@ -77,14 +79,10 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  if (!req.query.recaptcha) {
-    errors.push({ field: 'recaptcha', error: 'Recaptcha is required' });
-  } else {
-    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
-    const body = await response.json();
-    if (!body.success) {
-      errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
-    }
+  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+  const body = await response.json();
+  if (!body.success) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
   }
 
   if (errors.length === 0) {
