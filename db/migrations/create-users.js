@@ -58,6 +58,11 @@ module.exports = {
       status: {
         type: Sequelize.STRING,
         defaultValue: false,
+      username: {
+        type: Sequelize.STRING,
+      },
+      username_booked_at: {
+        type: Sequelize.DATE,
       },
     })
   ),

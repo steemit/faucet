@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import fetch from 'isomorphic-fetch';
 import { Steps } from 'antd';
+import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
@@ -11,7 +12,7 @@ class Signup extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      step: 'email',
+      step: 'username',
       stepNumber: 0,
       username: '',
       email: '',
@@ -32,10 +33,18 @@ class Signup extends Component {
       });
   }
 
+  handleSubmitUsername = (values) => {
+    this.setState({
+      step: 'email',
+      stepNumber: 1,
+      username: values.username,
+    });
+  }
+
   handleSubmitEmail = (values, token) => {
     this.setState({
       step: 'phoneNumber',
-      stepNumber: 1,
+      stepNumber: 2,
       email: values.email,
       token,
     });
@@ -44,7 +53,7 @@ class Signup extends Component {
   handleSubmitPhoneNumber = (values) => {
     this.setState({
       step: 'confirmPhoneNumber',
-      stepNumber: 2,
+      stepNumber: 3,
       phoneNumber: values.phoneNumber,
     });
   };
@@ -52,7 +61,7 @@ class Signup extends Component {
   handleSubmitConfirmPhoneNumber = () => {
     this.setState({
       step: 'finish',
-      stepNumber: 3,
+      stepNumber: 4,
     });
   };
 
@@ -72,8 +81,14 @@ class Signup extends Component {
             <Steps.Step />
             <Steps.Step />
             <Steps.Step />
+            <Steps.Step />
           </Steps>
         </div>
+        {step === 'username' &&
+        <div>
+          <h1>Username</h1>
+          <FormSignupUsername onSubmit={this.handleSubmitUsername} />
+        </div>}
         {step === 'email' &&
           <div>
             <h1>Please provide your email address to continue</h1>
@@ -85,7 +100,7 @@ class Signup extends Component {
               Please make sure that you enter a valid email so that you receive the confirmation
               link.
             </p>
-            <FormSignupEmail onSubmit={this.handleSubmitEmail} />
+            <FormSignupEmail onSubmit={this.handleSubmitEmail} username={this.state.username} />
           </div>
         }
         {step === 'phoneNumber' &&
