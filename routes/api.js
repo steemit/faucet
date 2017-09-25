@@ -396,7 +396,6 @@ router.get('/check_username', async (req, res) => {
   }
 
   res.json({ success: true });
-
 });
 
 module.exports = router;
