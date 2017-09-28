@@ -109,7 +109,8 @@ class Signup extends Component {
               <h1>Almost there!</h1>
               <p>We need to send you a quick text.</p>
               <p>
-                With each Steem account comes a free initial grant of Steem Power! Phone verification
+                With each Steem account comes a free initial
+                grant of Steem Power! Phone verification
                 helps cut down on spam accounts.
               </p>
               <p>
