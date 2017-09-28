@@ -36,7 +36,7 @@
     "body-parser": "~1.13.2",
     "css-loader": "^0.24.0",
     "debug": "~2.2.0",
-    "express": "^4.15.3",
+    "express": "^4.15.5",
     "extract-text-webpack-plugin": "^1.0.1",
     "google-libphonenumber": "^3.0.0",
     "hbs": "^4.0.1",
