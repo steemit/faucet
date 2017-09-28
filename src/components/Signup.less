@@ -1,5 +1,130 @@
-.Signup {
-  &__steps {
-    margin-bottom: 40px;
+@import "../styles/screen-sizes";
+
+.signup-bg-left {
+  position: fixed;
+  height: 100%;
+  width: 50%;
+  top: 0;
+  z-index: -1;
+  left: 0;
+  background: #fff;
+}
+
+.signup-bg-right {
+  position: fixed;
+  height: 100%;
+  width: 50%;
+  top: 0;
+  z-index: -1;
+  right: 0;
+  background: #fafbfb;
+
+  @media (max-width: @screen-md) {
+    display: none;
+  }
+}
+
+.Signup_main {
+  height: 100%;
+}
+
+.Signup__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 100%;
+  min-height: 570px;
+  max-width: 1000px;
+  margin: 0 auto;
+
+  .Signup__form, .Signup__icons {
+    max-width: 500px;
+    width: 100%;
+    padding: 50px 60px 50px 50px;
+  }
+
+  .Signup__icons {
+    margin-top: -30px;
+
+    @media (max-width: @screen-md) {
+      display: none;
+    }
+  }
+
+  .Signup__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 80px;
+
+    .Signup__steps {
+      display: flex;
+      align-items: center;
+
+      .Signup__steps-step {
+        width: 10px;
+        height: 10px;
+        line-height: 14px;
+        background: #eff4f8;
+        display: inline-block;
+        border-radius: 5px;
+        margin-right: 8px;
+
+        &:last-child {
+          margin-right: 0;
+        }
+
+        &.waiting {
+          width: 14px;
+          height: 14px;
+          line-height: 14px;
+          border-radius: 7px;
+          background: #4ba2f2;
+        }
+
+        &.processed {
+          background: #4ba2f2;
+        }
+      }
+    }
+  }
+
+  .Signup__form {
+    .ant-form-item {
+      margin-bottom: 10px;
+    }
+
+    .ant-btn-primary {
+      background-color: #4ba2f2;
+      border-color: #4ba2f2;
+      box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #333;
+    }
+
+    h2 {
+      font-size: 18px;
+      color: #333;
+      padding-bottom: 30px;
+    }
+  }
+}
+
+#signup-username {
+  width: 392px;
+  height: auto;
+}
+
+.username-step {
+  margin-bottom: 115px;
+}
+.form-footer-info {
+  font-size: 14px;
+  color: #333;
+
+  a {
+    color: #1a5099;
   }
 }
