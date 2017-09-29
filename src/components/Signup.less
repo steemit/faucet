@@ -118,6 +118,10 @@
       font-weight: 500;
       color: #333;
       padding-bottom: 30px;
+
+      a {
+        font-size: 14px;
+      }
     }
 
     button.back {
@@ -128,6 +132,15 @@
 
       &:hover {
         color: #4ba2f2;
+      }
+    }
+
+    .confirm-phone {
+      .ant-input-affix-wrapper .ant-input:not(:last-child) {
+        padding-right: 100px;
+      }
+      .has-success.has-feedback:after, .has-warning.has-feedback:after, .has-error.has-feedback:after, .is-validating.has-feedback:after {
+        right: 60px;
       }
     }
   }
@@ -157,7 +170,7 @@
   margin-top: 70px;
 }
 
-#signup-phone {
+#signup-phone, #signup-sms {
   width: 369px;
   height: auto;
 }

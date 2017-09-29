@@ -20,6 +20,7 @@ class Signup extends Component {
       phoneNumber: '',
       token: '',
       countryCode: '',
+      prefix: '',
     };
   }
 
@@ -56,6 +57,7 @@ class Signup extends Component {
       step: 'confirmPhoneNumber',
       stepNumber: 3,
       phoneNumber: values.phoneNumber,
+      prefix: values.prefix,
     });
   };
 
@@ -67,7 +69,7 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token, countryCode } = this.state;
+    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
 
     return (
       <div className="Signup_main">
@@ -97,7 +99,7 @@ class Signup extends Component {
               <h2>We need to confirm if you really exists</h2>
               <FormSignupEmail onSubmit={this.handleSubmitEmail} username={this.state.username} />
               <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => (this.setState({ step: 'username', stepNumber: 0 }))}>Go back</Button>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>Go back</Button>
               </Form.Item>
             </div>
             }
@@ -111,24 +113,27 @@ class Signup extends Component {
                 countryCode={countryCode}
               />
               <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => (this.setState({ step: 'email', stepNumber: 1 }))}>Go back</Button>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>Go back</Button>
               </Form.Item>
             </div>
             }
             {step === 'confirmPhoneNumber' &&
             <div>
-              <h1>Confirm your phone number</h1>
-              <p>
-                Thank you for providing your phone number ({this.state.phoneNumber}).
-                <br />{"To continue please enter the SMS code we've sent you."}
-              </p>
+              <h1>Enter confirmation code</h1>
+              <h2>
+                We have sms you the code to +{prefix.split('_')[0]}&nbsp;{phoneNumber}&nbsp;
+                <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>Edit</a><br />
+                Please enter the code below to confirm it.
+              </h2>
               <FormSignupConfirmPhoneNumber
                 onSubmit={this.handleSubmitConfirmPhoneNumber}
                 token={token}
+                phoneNumber={phoneNumber}
+                prefix={prefix}
               />
-              <p>
-                Need a new code ? <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 1 })}>Click here</a>
-              </p>
+              <Form.Item>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>Go back</Button>
+              </Form.Item>
             </div>
             }
             {step === 'finish' &&
@@ -144,6 +149,7 @@ class Signup extends Component {
             {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
+            {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
           </div>
         </div>
       </div>
