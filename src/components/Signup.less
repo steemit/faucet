@@ -108,6 +108,24 @@
       font-weight: 600;
     }
 
+    .has-success.has-feedback:after, .has-warning.has-feedback:after, .has-error.has-feedback:after, .is-validating.has-feedback:after {
+      font-size: 18px;
+    }
+
+    .has-success {
+      input {
+        background: #fafff8;
+        border: 1px solid #88d569;
+      }
+    }
+
+    .has-error {
+      input {
+        background: #fff9f9;
+        border: 1px solid #f2564b;
+      }
+    }
+
     h1 {
       font-size: 28px;
       color: #333;
@@ -138,6 +156,13 @@
       &:hover {
         color: #4ba2f2;
       }
+    }
+
+    .username-available {
+      font-size: 14px;
+      color: #333;
+      margin: 30px 0 15px 0;
+      display: block;
     }
 
     .confirm-phone {
