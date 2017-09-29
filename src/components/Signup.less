@@ -52,6 +52,7 @@
   .Signup__header {
     display: flex;
     justify-content: space-between;
+    min-height: 50px;
     margin-bottom: 80px;
 
     .Signup__steps {
@@ -87,6 +88,10 @@
   }
 
   .Signup__form {
+    .ant-input {
+      color: rgba(51, 51, 51, 0.5);
+    }
+
     .ant-form-item {
       margin-bottom: 10px;
     }
@@ -95,6 +100,12 @@
       background-color: #4ba2f2;
       border-color: #4ba2f2;
       box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+    }
+
+    .ant-select-selection-selected-value {
+      color: #333;
+      margin-left: 15px;
+      font-weight: 600;
     }
 
     h1 {
@@ -144,4 +155,9 @@
   width: 300px;
   height: auto;
   margin-top: 70px;
+}
+
+#signup-phone {
+  width: 369px;
+  height: auto;
 }

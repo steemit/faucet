@@ -103,25 +103,16 @@ class Signup extends Component {
             }
             {step === 'phoneNumber' &&
             <div>
-              <h1>Almost there!</h1>
-              <p>We need to send you a quick text.</p>
-              <p>
-                With each Steem account comes a free initial
-                grant of Steem Power! Phone verification
-                helps cut down on spam accounts.
-              </p>
-              <p>
-                <em>
-                  Your phone number will not be used for any other purpose other than account
-                  verification and (potentially) account recovery should your account ever be
-                  compromised.
-                </em>
-              </p>
+              <h1>Enter your phone number</h1>
+              <h2>We need to send you a quick text.</h2>
               <FormSignupPhoneNumber
                 onSubmit={this.handleSubmitPhoneNumber}
                 token={token}
                 countryCode={countryCode}
               />
+              <Form.Item>
+                <Button htmlType="button" className="back" onClick={() => (this.setState({ step: 'email', stepNumber: 1 }))}>Go back</Button>
+              </Form.Item>
             </div>
             }
             {step === 'confirmPhoneNumber' &&
@@ -152,6 +143,7 @@ class Signup extends Component {
           <div className="Signup__icons">
             {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
+            {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
           </div>
         </div>
       </div>
