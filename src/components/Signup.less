@@ -44,8 +44,6 @@
   }
 
   .Signup__icons {
-    margin-top: -30px;
-
     @media (max-width: @screen-md) {
       display: none;
     }
@@ -106,9 +104,34 @@
 
     h2 {
       font-size: 18px;
+      font-weight: 500;
       color: #333;
       padding-bottom: 30px;
     }
+
+    button.back {
+      color: #4ba2f2;
+      background: none;
+      font-size: 14px;
+      width: 100%;
+
+      &:hover {
+        color: #4ba2f2;
+      }
+    }
+  }
+}
+
+.username-step {
+  margin-bottom: 115px;
+}
+
+.form-footer-info {
+  font-size: 14px;
+  color: #333;
+
+  a {
+    color: #1a5099;
   }
 }
 
@@ -117,14 +140,8 @@
   height: auto;
 }
 
-.username-step {
-  margin-bottom: 115px;
-}
-.form-footer-info {
-  font-size: 14px;
-  color: #333;
-
-  a {
-    color: #1a5099;
-  }
+#signup-email {
+  width: 300px;
+  height: auto;
+  margin-top: 70px;
 }

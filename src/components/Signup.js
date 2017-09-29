@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
+import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
@@ -92,16 +93,12 @@ class Signup extends Component {
             </div>}
             {step === 'email' &&
             <div>
-              <h1>Please provide your email address to continue</h1>
-              <p>
-                We need your email address to ensure that we can contact you to verify account
-                ownership in the event that your account is ever compromised.
-              </p>
-              <p>
-                Please make sure that you enter a valid email so that you receive the confirmation
-                link.
-              </p>
+              <h1>Enter email address</h1>
+              <h2>We need to confirm if you really exists</h2>
               <FormSignupEmail onSubmit={this.handleSubmitEmail} username={this.state.username} />
+              <Form.Item>
+                <Button htmlType="button" className="back" onClick={() => (this.setState({ step: 'username', stepNumber: 0 }))}>Go back</Button>
+              </Form.Item>
             </div>
             }
             {step === 'phoneNumber' &&
@@ -154,6 +151,7 @@ class Signup extends Component {
           </div>
           <div className="Signup__icons">
             {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
+            {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
           </div>
         </div>
       </div>
