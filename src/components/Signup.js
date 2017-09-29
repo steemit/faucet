@@ -13,7 +13,7 @@ class Signup extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      step: 'finish',
+      step: 'username',
       stepNumber: 0,
       username: '',
       email: '',
