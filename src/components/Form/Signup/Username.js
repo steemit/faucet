@@ -10,6 +10,7 @@ class Username extends React.Component {
     super(props);
     this.state = {
       submitting: false,
+      username: '',
     };
   }
 
@@ -26,6 +27,7 @@ class Username extends React.Component {
             if (data.error) {
               callback(data.error);
             } else {
+              this.setState({ username: value });
               callback();
             }
           });
@@ -68,6 +70,7 @@ class Username extends React.Component {
             />,
           )}
         </Form.Item>
+        {this.state.username !== '' && <span className="username-available">Good new <strong>{this.state.username}</strong> is available</span>}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
