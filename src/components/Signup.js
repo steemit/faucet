@@ -13,7 +13,7 @@ class Signup extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      step: 'username',
+      step: 'finish',
       stepNumber: 0,
       username: '',
       email: '',
@@ -79,12 +79,12 @@ class Signup extends Component {
           <div className="Signup__form">
             <div className="Signup__header">
               <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
-              <div className="Signup__steps">
+              {step !== 'finish' && <div className="Signup__steps">
                 <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
-              </div>
+              </div>}
             </div>
             {step === 'username' &&
             <div>
@@ -138,7 +138,7 @@ class Signup extends Component {
             }
             {step === 'finish' &&
             <div>
-              <h1>Thanks for confirming your phone number!</h1>
+              <h1>Almost there,</h1>
               <p>{"You're few steps aways from getting to the top of the list. Check your email and click the email validation link."}</p>
               <p>{"After validating your sign up request with us we'll look it over for approval. As soon as your turn is up and you're approved, you'll be sent a link to finalize your account!"}</p>
               <p>{"You'll be among the earliest members of the Steem community!"}</p>
@@ -150,6 +150,7 @@ class Signup extends Component {
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
             {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
+            {step === 'finish' && <object data="img/signup-email-confirmation.svg" type="image/svg+xml" id="signup-email-confirmation" aria-label="signup-email-confirmation" />}
           </div>
         </div>
       </div>
