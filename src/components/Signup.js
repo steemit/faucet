@@ -21,6 +21,7 @@ class Signup extends Component {
       token: '',
       countryCode: '',
       prefix: '',
+      recaptcha: '',
     };
   }
 
@@ -43,12 +44,13 @@ class Signup extends Component {
     });
   }
 
-  handleSubmitEmail = (values, token) => {
+  handleSubmitEmail = (values, token, recaptcha) => {
     this.setState({
       step: 'phoneNumber',
       stepNumber: 2,
       email: values.email,
       token,
+      recaptcha
     });
   };
 
@@ -97,7 +99,11 @@ class Signup extends Component {
             <div>
               <h1>Enter email address</h1>
               <h2>We need to confirm if you really exists</h2>
-              <FormSignupEmail onSubmit={this.handleSubmitEmail} username={this.state.username} />
+              <FormSignupEmail
+                onSubmit={this.handleSubmitEmail}
+                username={this.state.username}
+                recaptcha={this.state.recaptcha}
+              />
               <Form.Item>
                 <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>Go back</Button>
               </Form.Item>
