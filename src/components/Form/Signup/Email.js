@@ -86,7 +86,6 @@ class Email extends React.Component {
             });
           });
       } else {
-        console.log(err);
         this.setState({ submitting: false });
       }
     });

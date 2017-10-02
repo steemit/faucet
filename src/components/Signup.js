@@ -50,7 +50,7 @@ class Signup extends Component {
       stepNumber: 2,
       email: values.email,
       token,
-      recaptcha
+      recaptcha,
     });
   };
 
