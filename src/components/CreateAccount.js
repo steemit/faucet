@@ -112,8 +112,9 @@ class CreateAccount extends Component {
                 rules: [{
                   required: true, message: 'password is required',
                 }],
+                initialValue: createSuggestedPassword(),
               })(
-                <Input prefix={<Icon type="lock" size="large" />} placeholder="Password" id="password" defaultValue={createSuggestedPassword()} />,
+                <Input prefix={<Icon type="lock" size="large" />} placeholder="Password" id="password" />,
               )}
             </Form.Item>
             <Form.Item>
