@@ -1,4 +1,5 @@
 import steem from 'steem';
+import validator from 'validator';
 
 export const accountNotExist = (rule, value, callback) => {
   steem.api.getAccounts([value], (err, result) => {
@@ -56,4 +57,16 @@ export const validateAccountName = (rule, value, callback) => {
     }
   }
   return callback();
+};
+
+export const validateEmail = (rule, value, callback) => {
+  if (value) {
+    if (!validator.isEmail(value)) {
+      callback('Please input a valid email address');
+    } else {
+      callback();
+    }
+  } else {
+    callback();
+  }
 };
