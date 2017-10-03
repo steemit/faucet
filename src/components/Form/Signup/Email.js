@@ -24,12 +24,7 @@ class Email extends React.Component {
   validateRecaptcha = (rule, value, callback) => {
     if (this.props.recaptcha === '') {
       if (window.grecaptcha.getResponse() === '') {
-        try {
-          window.grecaptcha.execute();
-          setTimeout(() => { this.validateRecaptcha(rule, value, callback); }, 500);
-        } catch (err) {
-          // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
-        }
+        callback('Please validate the recaptcha is required');
       } else {
         callback();
       }
@@ -51,10 +46,26 @@ class Email extends React.Component {
     }
   }
 
-  handleSubmit = (e) => {
-    e.preventDefault();
-    if (this.state.submitting) return;
-    this.setState({ submitting: true });
+  // since the recaptcha is executed on submit we need the value
+  // before handling validation otherwise there will be a concurrent value issue
+  executeRecaptchaAndSubmit = () => {
+    if (this.props.recaptcha === '') {
+      if (window.grecaptcha.getResponse() === '') {
+        try {
+          window.grecaptcha.execute();
+          setTimeout(() => { this.executeRecaptchaAndSubmit(); }, 100);
+        } catch (err) {
+          // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
+        }
+      } else {
+        this.handleSubmit();
+      }
+    } else {
+      this.handleSubmit();
+    }
+  }
+
+  handleSubmit = () => {
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${this.props.recaptcha || window.grecaptcha.getResponse()}`)
@@ -95,7 +106,15 @@ class Email extends React.Component {
   render() {
     const { getFieldDecorator } = this.props.form;
     return (
-      <Form onSubmit={this.handleSubmit} className="signup-form">
+      <Form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (this.state.submitting) return;
+          this.setState({ submitting: true });
+          this.executeRecaptchaAndSubmit();
+        }}
+        className="signup-form"
+      >
         <Form.Item
           hasFeedback
         >
@@ -116,6 +135,7 @@ class Email extends React.Component {
           rules: [
             { validator: this.validateRecaptcha },
           ],
+          validateTrigger: '',
         })(
           <ReCAPTCHA
             ref={(el) => { this.captcha = el; }}
