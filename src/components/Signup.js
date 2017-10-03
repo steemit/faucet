@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
 import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
