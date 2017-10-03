@@ -2,6 +2,7 @@
 import React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
+import validator from 'validator';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
@@ -27,6 +28,18 @@ class Email extends React.Component {
         setTimeout(() => { this.validateRecaptcha(rule, value, callback); }, 500);
       } catch (err) {
         // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
+      }
+    } else {
+      callback();
+    }
+  }
+
+  validateEmail = (rule, value, callback) => {
+    if (value) {
+      if (!validator.isEmail(value)) {
+        callback('Please input a valid email address');
+      } else {
+        callback();
       }
     } else {
       callback();
@@ -92,8 +105,8 @@ class Email extends React.Component {
         >
           {getFieldDecorator('email', {
             rules: [
-              { type: 'email', message: 'Please input a valid email address' },
               { required: true, message: 'Please input your email address' },
+              { validator: this.validateEmail },
               { validator: this.validateEmailDomain },
             ],
           })(
