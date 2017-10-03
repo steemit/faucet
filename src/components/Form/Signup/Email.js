@@ -6,6 +6,8 @@ import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
+import RecaptchaItem from '../Recaptcha/RecaptchaItem';
+import { validateEmail } from '../../../utils/validator';
 
 class Email extends React.Component {
   constructor(props) {
@@ -56,7 +58,7 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${this.props.recaptcha || window.grecaptcha.getResponse()}`)
+        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -100,8 +102,8 @@ class Email extends React.Component {
         >
           {getFieldDecorator('email', {
             rules: [
-              { type: 'email', message: 'Please input a valid email address' },
               { required: true, message: 'Please input your email address' },
+              { validator: validateEmail },
               { validator: this.validateEmailDomain },
             ],
           })(
