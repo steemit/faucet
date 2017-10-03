@@ -6,6 +6,7 @@ import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
+import { validateEmail } from '../../../utils/validator';
 
 class Email extends React.Component {
   constructor(props) {
