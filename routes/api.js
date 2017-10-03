@@ -389,22 +389,35 @@ router.get('/create_account', async (req, res) => {
     res.status(400).json({ error: 'Token is required' });
   } else if (!req.query.username) {
     res.status(400).json({ error: 'Username is required' });
-  } else if (!req.query.owner) {
-    res.status(400).json({ error: 'Owner key is required' });
-  } else if (!req.query.active) {
-    res.status(400).json({ error: 'Active key is required' });
-  } else if (!req.query.posting) {
-    res.status(400).json({ error: 'Posting key is required' });
-  } else if (!req.query.memo) {
-    res.status(400).json({ error: 'Memo key is required' });
+  } else if (!req.query.public_keys) {
+    res.status(400).json({ error: 'Public keys are required' });
   } else {
-    const { username, owner, active, posting, memo } = req.query;
     let decoded;
     try {
       decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
       if (decoded.type === 'create_account') {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (user.status === 'approved') {
+          const { username, public_keys } = req.query;
+          const weightThreshold = 1;
+          const accountAuths = [];
+          const publicKeys = JSON.parse(public_keys);
+          const owner = {
+            weight_threshold: weightThreshold,
+            account_auths: accountAuths,
+            key_auths: [[publicKeys.owner, 1]],
+          };
+          const active = {
+            weight_threshold: weightThreshold,
+            account_auths: accountAuths,
+            key_auths: [[publicKeys.active, 1]],
+          };
+          const posting = {
+            weight_threshold: weightThreshold,
+            account_auths: accountAuths,
+            key_auths: [[publicKeys.posting, 1]],
+          };
+
           steem.broadcast.accountCreateWithDelegation(
             process.env.DELEGATOR_ACTIVE_WIF,
             process.env.CREATE_ACCOUNT_FEE,
@@ -414,7 +427,7 @@ router.get('/create_account', async (req, res) => {
             owner,
             active,
             posting,
-            memo,
+            publicKeys.memo,
             JSON.stringify({}),
             [],
             (err) => {

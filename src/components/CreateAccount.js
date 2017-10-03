@@ -58,23 +58,8 @@ class CreateAccount extends Component {
     form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         const publicKeys = steem.auth.generateKeys(values.username, values.password, ['owner', 'active', 'posting', 'memo']);
-        const owner = {
-          weight_threshold: 1,
-          account_auths: [],
-          key_auths: [[publicKeys.owner, 1]],
-        };
-        const active = {
-          weight_threshold: 1,
-          account_auths: [],
-          key_auths: [[publicKeys.active, 1]],
-        };
-        const posting = {
-          weight_threshold: 1,
-          account_auths: [],
-          key_auths: [[publicKeys.posting, 1]],
-        };
 
-        fetch(`/api/create_account?token=${this.props.location.query.token}&username=${values.username}&owner=${owner}&active=${active}&posting=${posting}&memo=${publicKeys.memo}`)
+        fetch(`/api/create_account?token=${this.props.location.query.token}&username=${values.username}&public_keys=${JSON.stringify(publicKeys)}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
