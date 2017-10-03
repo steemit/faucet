@@ -2,11 +2,11 @@
 import React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
-import validator from 'validator';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
 import RecaptchaItem from '../Recaptcha/RecaptchaItem';
+import { validateEmail } from '../../../utils/validator';
 
 class Email extends React.Component {
   constructor(props) {
@@ -34,18 +34,6 @@ class Email extends React.Component {
     }
   }
 
-  validateEmail = (rule, value, callback) => {
-    if (value) {
-      if (!validator.isEmail(value)) {
-        callback('Please input a valid email address');
-      } else {
-        callback();
-      }
-    } else {
-      callback();
-    }
-  }
-
   validateEmailDomain = (rule, value, callback) => {
     if (value) {
       const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
@@ -65,7 +53,7 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${values.email}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
+        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -106,7 +94,7 @@ class Email extends React.Component {
           {getFieldDecorator('email', {
             rules: [
               { required: true, message: 'Please input your email address' },
-              { validator: this.validateEmail },
+              { validator: validateEmail },
               { validator: this.validateEmailDomain },
             ],
           })(
