@@ -93,7 +93,6 @@ class Signup extends Component {
               <h1>Get started</h1>
               <h2>Your username is how you will be known</h2>
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
-              <span className="form-footer-info">Already have an account? <Link to="/">Login</Link></span>
             </div>}
             {step === 'email' &&
             <div>
