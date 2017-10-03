@@ -58,6 +58,7 @@ module.exports = {
       status: {
         type: Sequelize.STRING,
         defaultValue: false,
+      },
       username: {
         type: Sequelize.STRING,
       },
