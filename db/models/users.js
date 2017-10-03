@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => (
     fingerprint: DataTypes.JSON,
     username: DataTypes.STRING,
     username_booked_at: DataTypes.DATE,
+    recaptcha: DataTypes.STRING,
   }, {
     freezeTableName: true,
     underscored: true,

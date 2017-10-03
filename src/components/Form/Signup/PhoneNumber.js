@@ -112,7 +112,7 @@ class PhoneNumber extends React.Component {
             ],
           })(
             <Input
-              prefix={<Icon type="phone" />}
+              prefix={<Icon type="mobile" />}
               placeholder="Phone number"
             />,
           )}

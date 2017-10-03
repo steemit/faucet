@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
 import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
-import RecaptchaItem from '../Recaptcha/RecaptchaItem';
 import { validateEmail } from '../../../utils/validator';
 
 class Email extends React.Component {
@@ -22,12 +22,16 @@ class Email extends React.Component {
   }
 
   validateRecaptcha = (rule, value, callback) => {
-    if (window.grecaptcha.getResponse() === '') {
-      try {
-        window.grecaptcha.execute();
-        setTimeout(() => { this.validateRecaptcha(rule, value, callback); }, 500);
-      } catch (err) {
-        // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
+    if (this.props.recaptcha === '') {
+      if (window.grecaptcha.getResponse() === '') {
+        try {
+          window.grecaptcha.execute();
+          setTimeout(() => { this.validateRecaptcha(rule, value, callback); }, 500);
+        } catch (err) {
+          // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
+        }
+      } else {
+        callback();
       }
     } else {
       callback();
@@ -53,14 +57,18 @@ class Email extends React.Component {
     this.setState({ submitting: true });
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
+        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${this.props.recaptcha || window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
-                this.props.onSubmit(values, data.token);
+                this.props.onSubmit(
+                  values,
+                  data.token,
+                  this.props.recaptcha || window.grecaptcha.getResponse(),
+                );
               }
             }
           })
@@ -109,7 +117,13 @@ class Email extends React.Component {
             { validator: this.validateRecaptcha },
           ],
         })(
-          <RecaptchaItem />,
+          <ReCAPTCHA
+            ref={(el) => { this.captcha = el; }}
+            sitekey={process.env.RECAPTCHA_SITE_KEY}
+            type="image"
+            size="invisible"
+            onChange={() => {}}
+          />,
         )}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
