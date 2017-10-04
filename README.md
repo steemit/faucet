@@ -10,7 +10,3 @@ yarn install
 ```
 yarn start
 ```
-
-## Demo
-
-Test demo app here: https://sc2-signup.herokuapp.com

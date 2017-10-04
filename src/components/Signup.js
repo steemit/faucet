@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
+import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
-import { Steps } from 'antd';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
@@ -19,6 +19,8 @@ class Signup extends Component {
       phoneNumber: '',
       token: '',
       countryCode: '',
+      prefix: '',
+      recaptcha: '',
     };
   }
 
@@ -41,12 +43,13 @@ class Signup extends Component {
     });
   }
 
-  handleSubmitEmail = (values, token) => {
+  handleSubmitEmail = (values, token, recaptcha) => {
     this.setState({
       step: 'phoneNumber',
       stepNumber: 2,
       email: values.email,
       token,
+      recaptcha,
     });
   };
 
@@ -55,6 +58,7 @@ class Signup extends Component {
       step: 'confirmPhoneNumber',
       stepNumber: 3,
       phoneNumber: values.phoneNumber,
+      prefix: values.prefix,
     });
   };
 
@@ -66,89 +70,93 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token, countryCode } = this.state;
+    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
 
     return (
-      <div className="Signup container">
-        <div id="logo">
-          <object data="img/logo.svg" type="image/svg+xml">
-            <img src="img/logo.png" alt="SteemConnect" />
-          </object>
+      <div className="Signup_main">
+        <div className="signup-bg-left" />
+        <div className="signup-bg-right" />
+        <div className="Signup__container">
+          <div className="Signup__form">
+            <div className="Signup__header">
+              <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
+              {step !== 'finish' && <div className="Signup__steps">
+                <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
+                <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
+                <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
+                <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
+              </div>}
+            </div>
+            {step === 'username' &&
+            <div>
+              <h1>Get started</h1>
+              <h2>Your username is how you will be known</h2>
+              <FormSignupUsername onSubmit={this.handleSubmitUsername} />
+            </div>}
+            {step === 'email' &&
+            <div>
+              <h1>Enter email address</h1>
+              <h2>We need to confirm if you really exists</h2>
+              <FormSignupEmail
+                onSubmit={this.handleSubmitEmail}
+                username={this.state.username}
+                recaptcha={this.state.recaptcha}
+              />
+              <Form.Item>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>Go back</Button>
+              </Form.Item>
+            </div>
+            }
+            {step === 'phoneNumber' &&
+            <div>
+              <h1>Enter your phone number</h1>
+              <h2>We need to send you a quick text.</h2>
+              <FormSignupPhoneNumber
+                onSubmit={this.handleSubmitPhoneNumber}
+                token={token}
+                countryCode={countryCode}
+              />
+              <Form.Item>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>Go back</Button>
+              </Form.Item>
+            </div>
+            }
+            {step === 'confirmPhoneNumber' &&
+            <div>
+              <h1>Enter confirmation code</h1>
+              <h2>
+                We have sms you the code to +{prefix.split('_')[0]}&nbsp;{phoneNumber}&nbsp;
+                <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>Edit</a><br />
+                Please enter the code below to confirm it.
+              </h2>
+              <FormSignupConfirmPhoneNumber
+                onSubmit={this.handleSubmitConfirmPhoneNumber}
+                token={token}
+                phoneNumber={phoneNumber}
+                prefix={prefix}
+              />
+              <Form.Item>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>Go back</Button>
+              </Form.Item>
+            </div>
+            }
+            {step === 'finish' &&
+            <div>
+              <h1>Almost there,</h1>
+              <p>{"You're few steps aways from getting to the top of the list. Check your email and click the email validation link."}</p>
+              <p>{"After validating your sign up request with us we'll look it over for approval. As soon as your turn is up and you're approved, you'll be sent a link to finalize your account!"}</p>
+              <p>{"You'll be among the earliest members of the Steem community!"}</p>
+            </div>
+            }
+          </div>
+          <div className="Signup__icons">
+            {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
+            {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
+            {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
+            {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
+            {step === 'finish' && <object data="img/signup-email-confirmation.svg" type="image/svg+xml" id="signup-email-confirmation" aria-label="signup-email-confirmation" />}
+          </div>
         </div>
-        <div className="Signup__steps">
-          <Steps progressDot current={stepNumber}>
-            <Steps.Step />
-            <Steps.Step />
-            <Steps.Step />
-            <Steps.Step />
-            <Steps.Step />
-          </Steps>
-        </div>
-        {step === 'username' &&
-        <div>
-          <h1>Username</h1>
-          <FormSignupUsername onSubmit={this.handleSubmitUsername} />
-        </div>}
-        {step === 'email' &&
-          <div>
-            <h1>Please provide your email address to continue</h1>
-            <p>
-              We need your email address to ensure that we can contact you to verify account
-              ownership in the event that your account is ever compromised.
-            </p>
-            <p>
-              Please make sure that you enter a valid email so that you receive the confirmation
-              link.
-            </p>
-            <FormSignupEmail onSubmit={this.handleSubmitEmail} username={this.state.username} />
-          </div>
-        }
-        {step === 'phoneNumber' &&
-          <div>
-            <h1>Almost there!</h1>
-            <p>We need to send you a quick text.</p>
-            <p>
-              With each Steem account comes a free initial grant of Steem Power! Phone verification
-              helps cut down on spam accounts.
-            </p>
-            <p>
-              <em>
-                Your phone number will not be used for any other purpose other than account
-                verification and (potentially) account recovery should your account ever be
-                compromised.
-              </em>
-            </p>
-            <FormSignupPhoneNumber
-              onSubmit={this.handleSubmitPhoneNumber}
-              token={token}
-              countryCode={countryCode}
-            />
-          </div>
-        }
-        {step === 'confirmPhoneNumber' &&
-          <div>
-            <h1>Confirm your phone number</h1>
-            <p>
-              Thank you for providing your phone number ({this.state.phoneNumber}).
-              <br />{"To continue please enter the SMS code we've sent you."}
-            </p>
-            <FormSignupConfirmPhoneNumber
-              onSubmit={this.handleSubmitConfirmPhoneNumber}
-              token={token}
-            />
-            <p>
-              Need a new code ? <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 1 })}>Click here</a>
-            </p>
-          </div>
-        }
-        {step === 'finish' &&
-          <div>
-            <h1>Thanks for confirming your phone number!</h1>
-            <p>{"You're few steps aways from getting to the top of the list. Check your email and click the email validation link."}</p>
-            <p>{"After validating your sign up request with us we'll look it over for approval. As soon as your turn is up and you're approved, you'll be sent a link to finalize your account!"}</p>
-            <p>{"You'll be among the earliest members of the Steem community!"}</p>
-          </div>
-        }
       </div>
     );
   }
