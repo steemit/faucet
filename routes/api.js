@@ -3,7 +3,6 @@ const fetch = require('isomorphic-fetch');
 const steem = require('steem');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
-const steem = require('steem');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
