@@ -59,6 +59,15 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: false,
       },
+      username: {
+        type: Sequelize.STRING,
+      },
+      username_booked_at: {
+        type: Sequelize.DATE,
+      },
+      recaptcha: {
+        type: Sequelize.STRING,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),

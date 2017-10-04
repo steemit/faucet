@@ -3,6 +3,7 @@ const fetch = require('isomorphic-fetch');
 const steem = require('steem');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const steem = require('steem');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
@@ -60,7 +61,9 @@ const sendConfirmationEmail = async (req, res) => {
 
 router.get('/request_email', async (req, res) => {
   const errors = [];
-  if (!req.query.email) {
+  if (!req.query.recaptcha) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is required' });
+  } else if (!req.query.email) {
     errors.push({ field: 'email', error: 'Email is required' });
   } else if (!validator.isEmail(req.query.email)) {
     errors.push({ field: 'email', error: 'Please provide a valid email' });
@@ -78,16 +81,20 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  if (!req.query.recaptcha) {
-    errors.push({ field: 'recaptcha', error: 'Recaptcha is required' });
-  } else {
+  const recaptchaCount = await req.db.users.count({
+    where: {
+      email: req.query.email,
+      recaptcha: req.query.recaptcha,
+    },
+  });
+
+  if (recaptchaCount === 0) {
     const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
     const body = await response.json();
     if (!body.success) {
       errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
     }
   }
-
   if (errors.length === 0) {
     const userExist = await req.db.users.count({
       where: {
@@ -108,8 +115,17 @@ router.get('/request_email', async (req, res) => {
         created_at: new Date(),
         updated_at: null,
         fingerprint: JSON.parse(req.query.fingerprint),
+        username: req.query.username,
+        username_booked_at: new Date(),
+        recaptcha: req.query.recaptcha,
       }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
+      req.db.users.update({
+        username: req.query.username,
+        username_booked_at: new Date(),
+        recaptcha: req.query.recaptcha,
+      }, { where: { email: req.query.email } });
+
       await sendConfirmationEmail(req, res);
     }
   } else {
@@ -473,6 +489,22 @@ router.get('/reject_account', async (req, res) => {
     const errors = [{ field: 'email', error: 'Failed to send reject account email' }];
     res.status(500).json({ errors });
   }
+});
+
+router.get('/check_username', async (req, res) => {
+  const username = req.query.username;
+  const accounts = await steem.api.getAccountsAsync([req.query.username]);
+  if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
+    res.json({ error: 'Username already used' });
+  }
+
+  const user = await req.db.users.findOne({ where: { username }, order: 'username_booked_at DESC' });
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  if (user && (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()) {
+    res.json({ error: 'Username reserved' });
+  }
+
+  res.json({ success: true });
 });
 
 module.exports = router;
