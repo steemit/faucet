@@ -4,9 +4,8 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
-import badDomains from '../../../../bad-domains';
 import fingerprint from '../../../../helpers/fingerprint';
-import { validateEmail } from '../../../utils/validator';
+import { validateEmail, validateEmailDomain } from '../../../utils/validator';
 
 class Email extends React.Component {
   constructor(props) {
@@ -25,19 +24,6 @@ class Email extends React.Component {
     if (this.props.recaptcha === '') {
       if (window.grecaptcha.getResponse() === '') {
         callback('Please validate the recaptcha is required');
-      } else {
-        callback();
-      }
-    } else {
-      callback();
-    }
-  }
-
-  validateEmailDomain = (rule, value, callback) => {
-    if (value) {
-      const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
-      if (domain && badDomains.includes(domain)) {
-        callback('This domain name is blacklisted, please provide another email');
       } else {
         callback();
       }
@@ -122,7 +108,7 @@ class Email extends React.Component {
             rules: [
               { required: true, message: 'Please input your email address' },
               { validator: validateEmail },
-              { validator: this.validateEmailDomain },
+              { validator: validateEmailDomain },
             ],
           })(
             <Input
