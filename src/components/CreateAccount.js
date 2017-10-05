@@ -24,6 +24,8 @@ class CreateAccount extends Component {
       step: 'loading',
       error: '',
       submitting: false,
+      defaultUsername: '',
+      reservedUsername: '',
     };
   }
 
@@ -37,7 +39,7 @@ class CreateAccount extends Component {
         .then(parseJSON)
         .then((data) => {
           if (data.success) {
-            this.setState({ step: 'form' });
+            this.setState({ step: 'form', defaultUsername: data.username, reservedUsername: data.reservedUsername });
           } else {
             this.setState({ step: 'error', error: data.error });
           }
@@ -80,7 +82,7 @@ class CreateAccount extends Component {
   }
 
   render() {
-    const { step, error } = this.state;
+    const { step, error, defaultUsername, reservedUsername } = this.state;
     const { getFieldDecorator } = this.props.form;
 
     return (
@@ -103,10 +105,12 @@ class CreateAccount extends Component {
                   { validator: validateAccountName },
                   { validator: accountNotExist },
                 ],
+                initialValue: defaultUsername,
               })(
                 <Input prefix={<Icon type="user" size="large" />} placeholder="Username" id="username" />,
               )}
             </Form.Item>
+            {defaultUsername === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
             <Form.Item>
               {getFieldDecorator('password', {
                 rules: [{
