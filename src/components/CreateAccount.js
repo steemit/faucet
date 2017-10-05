@@ -1,10 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import steem from 'steem';
 import fetch from 'isomorphic-fetch';
-import { Button, Form, Icon, Input } from 'antd';
-import createSuggestedPassword from '../utils/auth';
+import FormSignupUsername from './Form/Signup/Username';
+import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import { accountNotExist, validateAccountName } from '../utils/validator';
 import Loading from '../widgets/Loading';
 
 class CreateAccount extends Component {
@@ -15,7 +14,6 @@ class CreateAccount extends Component {
 
   static propTypes = {
     location: PropTypes.shape(),
-    form: PropTypes.shape(),
   }
 
   constructor(props) {
@@ -24,8 +22,7 @@ class CreateAccount extends Component {
       step: 'loading',
       stepNumber: 0,
       error: '',
-      submitting: false,
-      defaultUsername: '',
+      username: '',
       reservedUsername: '',
     };
   }
@@ -40,7 +37,12 @@ class CreateAccount extends Component {
         .then(parseJSON)
         .then((data) => {
           if (data.success) {
-            this.setState({ step: 'form', defaultUsername: data.username, reservedUsername: data.reservedUsername });
+            this.setState({
+              step: data.username === '' ? 'username' : 'password',
+              stepNumber: data.username === '' ? 0 : 1,
+              username: data.username,
+              reservedUsername: data.reservedUsername,
+            });
           } else {
             this.setState({ step: 'error', error: data.error });
           }
@@ -53,38 +55,37 @@ class CreateAccount extends Component {
     }
   }
 
-  handleSubmit = async (e) => {
-    e.preventDefault();
-    const { form } = this.props;
-    if (this.state.submitting) return;
-    this.setState({ submitting: true });
-    form.validateFieldsAndScroll((err, values) => {
-      if (!err) {
-        const publicKeys = steem.auth.generateKeys(values.username, values.password, ['owner', 'active', 'posting', 'memo']);
-
-        fetch(`/api/create_account?token=${this.props.location.query.token}&username=${values.username}&public_keys=${JSON.stringify(publicKeys)}`)
-          .then(checkStatus)
-          .then(parseJSON)
-          .then((data) => {
-            if (data.success) {
-              this.setState({ submitting: false, step: 'created' });
-            } else {
-              this.setState({ submitting: false, step: 'error', error: data.error });
-            }
-          })
-          .catch((error) => {
-            error.response.json().then((data) => {
-              this.setState({ submitting: false, step: 'error', error: data.error });
-            });
-          });
-      }
-      return true;
+  handleSubmitUsername = (values) => {
+    this.setState({
+      step: 'password',
+      stepNumber: 1,
+      username: values.username,
     });
   }
 
+  handleSubmit = async (values) => {
+    const { username } = this.state;
+    const publicKeys = steem.auth.generateKeys(username, values.password, ['owner', 'active', 'posting', 'memo']);
+
+    fetch(`/api/create_account?token=${this.props.location.query.token}&username=${username}&public_keys=${JSON.stringify(publicKeys)}`)
+      .then(checkStatus)
+      .then(parseJSON)
+      .then((data) => {
+        if (data.success) {
+          this.setState({ step: 'created' });
+        } else {
+          this.setState({ step: 'error', error: data.error });
+        }
+      })
+      .catch((error) => {
+        error.response.json().then((data) => {
+          this.setState({ step: 'error', error: data.error });
+        });
+      });
+  }
+
   render() {
-    const { step, stepNumber, error, defaultUsername, reservedUsername } = this.state;
-    const { getFieldDecorator } = this.props.form;
+    const { step, stepNumber, error, username, reservedUsername } = this.state;
 
     return (
       <div className="Signup_main">
@@ -94,50 +95,34 @@ class CreateAccount extends Component {
           <div className="Signup__form">
             <div className="Signup__header">
               <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
-              {step !== 'created' && <div className="Signup__steps">
+              {step !== 'created' && step !== 'error' && <div className="Signup__steps">
                 <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
               </div>}
             </div>
-            {step === 'loading' && <Loading />}
+            {step === 'loading' && <div className="align-center"><Loading /></div>}
             {step === 'error' &&
             <div>
               <h1>Oops!</h1>
               <p>{error}</p>
             </div>
             }
-            {step === 'form' &&
+            {step === 'username' &&
             <div>
-              <h1>Create account</h1>
-              <Form onSubmit={this.handleSubmit} className="signup-form">
-                <Form.Item>
-                  {getFieldDecorator('username', {
-                    rules: [
-                      { required: true, message: 'username is required' },
-                      { validator: validateAccountName },
-                      { validator: accountNotExist },
-                    ],
-                    initialValue: defaultUsername,
-                  })(
-                    <Input prefix={<Icon type="user" size="large" />} placeholder="Username" id="username" />,
-                  )}
-                </Form.Item>
-                {defaultUsername === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
-                <Form.Item>
-                  {getFieldDecorator('password', {
-                    rules: [{
-                      required: true, message: 'password is required',
-                    }],
-                    initialValue: createSuggestedPassword(),
-                  })(
-                    <Input prefix={<Icon type="lock" size="large" />} placeholder="Password" id="password" />,
-                  )}
-                </Form.Item>
-                <Form.Item>
-                  <Button type="primary" htmlType="submit">Create Account</Button>
-                </Form.Item>
-              </Form>
+              <h1>Choose username</h1>
+              <h2>Choose it carefully as you cannot change it later</h2>
+              {username === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
+              <FormSignupUsername onSubmit={this.handleSubmitUsername} />
+            </div>}
+            {step === 'password' &&
+            <div>
+              <h1>Save password</h1>
+              <h2>
+                If you ever lose your password, your account will be irreversibly lost.
+                We do not have your password and cannot help you recover it.
+              </h2>
+              <FormCreateAccountPassword onSubmit={this.handleSubmit} />
             </div>
             }
             {step === 'created' &&
@@ -158,4 +143,4 @@ class CreateAccount extends Component {
   }
 }
 
-export default Form.create()(CreateAccount);
+export default CreateAccount;
