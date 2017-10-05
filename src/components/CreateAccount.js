@@ -134,8 +134,8 @@ class CreateAccount extends Component {
             </div>}
           </div>
           <div className="Signup__icons">
-            {step === 'form' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
-            {step === 'created' && <object data="img/signup-email-confirmation.svg" type="image/svg+xml" id="signup-email-confirmation" aria-label="signup-email-confirmation" />}
+            {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
+            {step === 'password' && <object data="img/signup-password.svg" type="image/svg+xml" id="signup-password" aria-label="signup-password" />}
           </div>
         </div>
       </div>
