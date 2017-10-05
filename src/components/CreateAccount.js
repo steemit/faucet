@@ -22,6 +22,7 @@ class CreateAccount extends Component {
     super(props);
     this.state = {
       step: 'loading',
+      stepNumber: 0,
       error: '',
       submitting: false,
       defaultUsername: '',
@@ -82,58 +83,76 @@ class CreateAccount extends Component {
   }
 
   render() {
-    const { step, error, defaultUsername, reservedUsername } = this.state;
+    const { step, stepNumber, error, defaultUsername, reservedUsername } = this.state;
     const { getFieldDecorator } = this.props.form;
 
     return (
-      <div className="container">
-        <h1>Create Account</h1>
-        {step === 'loading' && <Loading />}
-        {step === 'error' &&
-        <div>
-          <h1>Oops!</h1>
-          <p>{error}</p>
+      <div className="Signup_main">
+        <div className="signup-bg-left" />
+        <div className="signup-bg-right" />
+        <div className="Signup__container">
+          <div className="Signup__form">
+            <div className="Signup__header">
+              <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
+              {step !== 'created' && <div className="Signup__steps">
+                <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
+                <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
+                <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
+              </div>}
+            </div>
+            {step === 'loading' && <Loading />}
+            {step === 'error' &&
+            <div>
+              <h1>Oops!</h1>
+              <p>{error}</p>
+            </div>
+            }
+            {step === 'form' &&
+            <div>
+              <h1>Create account</h1>
+              <Form onSubmit={this.handleSubmit} className="signup-form">
+                <Form.Item>
+                  {getFieldDecorator('username', {
+                    rules: [
+                      { required: true, message: 'username is required' },
+                      { validator: validateAccountName },
+                      { validator: accountNotExist },
+                    ],
+                    initialValue: defaultUsername,
+                  })(
+                    <Input prefix={<Icon type="user" size="large" />} placeholder="Username" id="username" />,
+                  )}
+                </Form.Item>
+                {defaultUsername === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
+                <Form.Item>
+                  {getFieldDecorator('password', {
+                    rules: [{
+                      required: true, message: 'password is required',
+                    }],
+                    initialValue: createSuggestedPassword(),
+                  })(
+                    <Input prefix={<Icon type="lock" size="large" />} placeholder="Password" id="password" />,
+                  )}
+                </Form.Item>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit">Create Account</Button>
+                </Form.Item>
+              </Form>
+            </div>
+            }
+            {step === 'created' &&
+            <div>
+              Your account has been created! Enjoy.
+              <br />
+              <br />
+              SteemConnect
+            </div>}
+          </div>
+          <div className="Signup__icons">
+            {step === 'form' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
+            {step === 'created' && <object data="img/signup-email-confirmation.svg" type="image/svg+xml" id="signup-email-confirmation" aria-label="signup-email-confirmation" />}
+          </div>
         </div>
-        }
-        {step === 'form' &&
-        <div>
-          <Form onSubmit={this.handleSubmit} className="FormGenerateLink">
-            <Form.Item>
-              {getFieldDecorator('username', {
-                rules: [
-                  { required: true, message: 'username is required' },
-                  { validator: validateAccountName },
-                  { validator: accountNotExist },
-                ],
-                initialValue: defaultUsername,
-              })(
-                <Input prefix={<Icon type="user" size="large" />} placeholder="Username" id="username" />,
-              )}
-            </Form.Item>
-            {defaultUsername === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
-            <Form.Item>
-              {getFieldDecorator('password', {
-                rules: [{
-                  required: true, message: 'password is required',
-                }],
-                initialValue: createSuggestedPassword(),
-              })(
-                <Input prefix={<Icon type="lock" size="large" />} placeholder="Password" id="password" />,
-              )}
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">Create Account</Button>
-            </Form.Item>
-          </Form>
-        </div>
-        }
-        {step === 'created' &&
-        <div>
-          Your account has been created! Enjoy.
-          <br />
-          <br />
-          SteemConnect
-        </div>}
       </div>
     );
   }
