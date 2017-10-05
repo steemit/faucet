@@ -21,13 +21,21 @@ class Email extends React.Component {
     this.setState({ fingerprint: JSON.stringify(fingerprint()) });
   }
 
-  validateRecaptcha = (rule, value, callback) => {
-    if (this.props.recaptcha === '') {
-      if (window.grecaptcha.getResponse() === '') {
-        callback('Please validate the recaptcha is required');
-      } else {
-        callback();
+  // eslint-disable-next-line class-methods-use-this
+  componentWillUnmount() {
+    for (let i = document.getElementsByTagName('script').length - 1; i >= 0; i -= 1) {
+      const scriptNode = document.getElementsByTagName('script')[i];
+      if (scriptNode.src.includes('recaptcha')) {
+        scriptNode.parentNode.removeChild(scriptNode);
       }
+    }
+    delete window.grecaptcha;
+  }
+
+  validateRecaptcha = (rule, value, callback) => {
+    if (window.grecaptcha.getResponse() === '') {
+      window.grecaptcha.execute();
+      callback('Please validate the recaptcha is required');
     } else {
       callback();
     }
@@ -49,16 +57,12 @@ class Email extends React.Component {
   // since the recaptcha is executed on submit we need the value
   // before handling validation otherwise there will be a concurrent value issue
   executeRecaptchaAndSubmit = () => {
-    if (this.props.recaptcha === '') {
-      if (window.grecaptcha.getResponse() === '') {
-        try {
-          window.grecaptcha.execute();
-          setTimeout(() => { this.executeRecaptchaAndSubmit(); }, 100);
-        } catch (err) {
-          // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
-        }
-      } else {
-        this.handleSubmit();
+    if (window.grecaptcha.getResponse() === '') {
+      try {
+        window.grecaptcha.execute();
+        setTimeout(() => { this.executeRecaptchaAndSubmit(); }, 100);
+      } catch (err) {
+        // Do nothing, it's here to prevent the exception where the recpatcha isn't mounted yet.
       }
     } else {
       this.handleSubmit();
@@ -68,7 +72,7 @@ class Email extends React.Component {
   handleSubmit = () => {
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${this.props.recaptcha || window.grecaptcha.getResponse()}`)
+        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -78,7 +82,6 @@ class Email extends React.Component {
                 this.props.onSubmit(
                   values,
                   data.token,
-                  this.props.recaptcha || window.grecaptcha.getResponse(),
                 );
               }
             }
