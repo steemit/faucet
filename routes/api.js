@@ -81,7 +81,6 @@ router.get('/request_email', async (req, res) => {
 
   const recaptchaCount = await req.db.users.count({
     where: {
-      email: req.query.email,
       recaptcha: req.query.recaptcha,
     },
   });
