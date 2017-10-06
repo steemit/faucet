@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
@@ -89,7 +90,7 @@ class Signup extends Component {
             </div>
             {step === 'username' &&
             <div>
-              <h1>Get started</h1>
+              <h1><FormattedMessage id="get_started" /></h1>
               <h2>Your username is how you will be known</h2>
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
