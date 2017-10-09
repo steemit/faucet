@@ -11,7 +11,10 @@ const db = require('./db/models');
 const twilio = require('./helpers/twilio');
 const geoip = require('./helpers/maxmind');
 
-steem.api.setOptions({ url: 'wss://steemd-int.steemit.com' });
+if (process.env.STEEMJS_URL) {
+  steem.api.setOptions({ url: process.env.STEEMJS_URL });
+}
+
 http.globalAgent.maxSockets = 100;
 https.globalAgent.maxSockets = 100;
 const app = express();
