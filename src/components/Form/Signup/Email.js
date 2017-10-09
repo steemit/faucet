@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
@@ -32,9 +33,10 @@ class Email extends React.Component {
   }
 
   validateRecaptcha = (rule, value, callback) => {
+    const { intl } = this.props;
     if (window.grecaptcha.getResponse() === '') {
       window.grecaptcha.execute();
-      callback('Please validate the recaptcha is required');
+      callback(intl.formatMessage({ id: 'error_recaptcha_required' }));
     } else {
       callback();
     }
@@ -93,7 +95,7 @@ class Email extends React.Component {
   };
 
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { form: { getFieldDecorator }, intl } = this.props;
     return (
       <Form
         onSubmit={(e) => {
@@ -109,14 +111,14 @@ class Email extends React.Component {
         >
           {getFieldDecorator('email', {
             rules: [
-              { required: true, message: 'Please input your email address' },
+              { required: true, message: intl.formatMessage({ id: 'error_email_required' }) },
               { validator: validateEmail },
               { validator: validateEmailDomain },
             ],
           })(
             <Input
               prefix={<Icon type="mail" />}
-              placeholder="E-mail"
+              placeholder={intl.formatMessage({ id: 'email' })}
             />,
           )}
         </Form.Item>
@@ -135,11 +137,11 @@ class Email extends React.Component {
           />,
         )}
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
       </Form>
     );
   }
 }
 
-export default Form.create()(Email);
+export default Form.create()(injectIntl(Email));

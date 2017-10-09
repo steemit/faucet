@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Select, Button } from 'antd';
 import _ from 'lodash';
 import fetch from 'isomorphic-fetch';
@@ -73,16 +74,16 @@ class PhoneNumber extends React.Component {
   };
 
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { form: { getFieldDecorator }, intl } = this.props;
 
     const prefixSelector = getFieldDecorator('prefix', {
       rules: [
-        { required: true, message: 'Please select your country code' },
+        { required: true, message: intl.formatMessage({ id: 'error_country_code_required' }) },
       ],
       initialValue: this.getPrefixDefaultValue(),
     })(
       <Select
-        placeholder="Country code"
+        placeholder={intl.formatMessage({ id: 'country_code' })}
         showSearch
         optionFilterProp="children"
         filterOption={(input, option) =>
@@ -107,22 +108,22 @@ class PhoneNumber extends React.Component {
         <Form.Item>
           {getFieldDecorator('phoneNumber', {
             rules: [
-              { required: true, message: 'Please input your phone number' },
-              { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: 'Phone number is not valid' },
+              { required: true, message: intl.formatMessage({ id: 'error_phone_required' }) },
+              { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: intl.formatMessage({ id: 'error_phone_format' }) },
             ],
           })(
             <Input
               prefix={<Icon type="mobile" />}
-              placeholder="Phone number"
+              placeholder={intl.formatMessage({ id: 'phone_number' })}
             />,
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
       </Form>
     );
   }
 }
 
-export default Form.create()(PhoneNumber);
+export default Form.create()(injectIntl(PhoneNumber));
