@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
@@ -51,7 +52,7 @@ class Username extends React.Component {
   };
 
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { form: { getFieldDecorator }, intl } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form username-step">
         <Form.Item
@@ -59,24 +60,24 @@ class Username extends React.Component {
         >
           {getFieldDecorator('username', {
             rules: [
-              { required: true, message: 'Please input your username' },
+              { required: true, message: intl.formatMessage({ id: 'error_username_required' }) },
               { validator: validateAccountName },
               { validator: this.validateUsername },
             ],
           })(
             <Input
               prefix={<Icon type="user" />}
-              placeholder="Username"
+              placeholder={intl.formatMessage({ id: 'username' })}
             />,
           )}
         </Form.Item>
-        {this.state.username !== '' && <span className="username-available">Good new <strong>{this.state.username}</strong> is available</span>}
+        {this.state.username !== '' && <span className="username-available"><FormattedMessage id="username_available" values={{ username: <strong>{this.state.username}</strong> }} /></span>}
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
       </Form>
     );
   }
 }
 
-export default Form.create()(Username);
+export default Form.create()(injectIntl(Username));

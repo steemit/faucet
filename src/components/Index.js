@@ -1,8 +1,9 @@
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 
 const Index = () => (
   <div className="Sign">
-    <h1>SteemConnect Signup</h1>
+    <h1><FormattedMessage id="steemconnect_signup" /></h1>
   </div>
 );
 
