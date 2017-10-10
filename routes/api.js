@@ -387,8 +387,14 @@ router.get('/confirm_account', async (req, res) => {
           res.status(400).json({ error: 'Account verification is not done' });
         } else if (user.status === 'created') {
           res.status(400).json({ error: 'Account already created' });
+        } else if (user.status === 'approved') {
+          const accounts = await steem.api.getAccountsAsync([user.username]);
+          if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
+            res.json({ success: true, username: '', reservedUsername: user.username });
+          }
+          res.json({ success: true, username: user.username, reservedUsername: '' });
         } else {
-          res.json({ success: true });
+          res.status(400).json({ error: 'Account verification is not done' });
         }
       } else {
         res.status(400).json({ error: 'Invalid token' });
