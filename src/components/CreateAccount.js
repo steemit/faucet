@@ -5,6 +5,7 @@ import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import Loading from '../widgets/Loading';
+import './CreateAccount.less';
 
 class CreateAccount extends Component {
   static defaultProps = {
