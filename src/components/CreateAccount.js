@@ -148,15 +148,14 @@ class CreateAccount extends Component {
             </div>}
             {step === 'created' &&
             <div>
-              Your account has been created! Enjoy.
-              <br />
-              <br />
-              SteemConnect
+              <h1>Welcome ${username}</h1>
+              <h2>You can now enjoy Steem and all its features.</h2>
             </div>}
           </div>
           <div className="Signup__icons">
             {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
             {(step === 'password' || step === 'password_confirm') && <object data="img/signup-password.svg" type="image/svg+xml" id="signup-password" aria-label="signup-password" />}
+            {step === 'created' && <object data="img/signup-create-account.svg" type="image/svg+xml" id="signup-create-account" aria-label="signup-create-account" />}
           </div>
         </div>
       </div>
