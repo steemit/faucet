@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import Loading from '../widgets/Loading';
 
-export default class Index extends Component {
+class Index extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -14,9 +15,10 @@ export default class Index extends Component {
   }
 
   componentWillMount() {
+    const { intl } = this.props;
     const token = this.props.location.query.token;
     if (!token) {
-      this.setState({ status: 'error', error: 'The token is required.' });
+      this.setState({ status: 'error', error: intl.formatMessage({ id: 'error_token_required' }) });
     } else {
       fetch(`/api/confirm_email?token=${this.props.location.query.token}`)
         .then(checkStatus)
@@ -43,17 +45,19 @@ export default class Index extends Component {
         {status === 'loading' && <Loading />}
         {status === 'error' &&
           <div>
-            <h1>Oops!</h1>
+            <h1><FormattedMessage id="oops" /></h1>
             <p>{error}</p>
           </div>
         }
         {status === 'success' &&
           <div>
-            <h1>Thank you!</h1>
-            <p>Your email address has been verified.</p>
+            <h1><FormattedMessage id="thank_you" /></h1>
+            <p><FormattedMessage id="email_verified" /></p>
           </div>
         }
       </div>
     );
   }
 }
+
+export default injectIntl(Index);

@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { message, Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
@@ -50,14 +51,14 @@ class ConfirmPhoneNumber extends React.Component {
   };
 
   resendCode = () => {
-    const { token, phoneNumber, prefix } = this.props;
+    const { token, phoneNumber, prefix, intl } = this.props;
     fetch(`/api/request_sms?token=${token}&phoneNumber=${phoneNumber}&prefix=${prefix}`)
       .then(checkStatus)
       .then(parseJSON)
       .then((data) => {
         this.setState({ submitting: false });
         if (data.success) {
-          message.success('New code sent.');
+          message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
         }
       })
       .catch((error) => {
@@ -68,7 +69,7 @@ class ConfirmPhoneNumber extends React.Component {
   }
 
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { form: { getFieldDecorator }, intl } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form confirm-phone">
         <Form.Item
@@ -76,22 +77,22 @@ class ConfirmPhoneNumber extends React.Component {
         >
           {getFieldDecorator('code', {
             rules: [{
-              required: true, message: 'Please input the code you have received.!',
+              required: true, message: intl.formatMessage({ id: 'error_confirmation_code_required' }),
             }],
           })(
             <Input
               prefix={<Icon type="key" />}
-              suffix={<a href={undefined} onClick={this.resendCode}>Resend</a>}
-              placeholder="Confirmation code"
+              suffix={<a href={undefined} onClick={this.resendCode}><FormattedMessage id="resend" /></a>}
+              placeholder={intl.formatMessage({ id: 'confirmation_code' })}
             />,
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
       </Form>
     );
   }
 }
 
-export default Form.create()(ConfirmPhoneNumber);
+export default Form.create()(injectIntl(ConfirmPhoneNumber));
