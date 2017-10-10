@@ -35,6 +35,17 @@ class Password extends React.Component {
     return false;
   }
 
+  passwordEquals = (rule, value, callback) => {
+    const { init, password } = this.props;
+    if (init) {
+      callback();
+    } else if (password !== value) {
+      callback('Passwords don\'t match');
+    } else {
+      callback();
+    }
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
     if (this.state.submitting) return;
@@ -49,15 +60,16 @@ class Password extends React.Component {
   };
 
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { form: { getFieldDecorator }, init } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form password-step">
         <Form.Item>
           {getFieldDecorator('password', {
-            rules: [{
-              required: true, message: 'password is required',
-            }],
-            initialValue: createSuggestedPassword(),
+            rules: [
+              { required: true, message: 'password is required' },
+              { validator: this.passwordEquals },
+            ],
+            initialValue: init ? createSuggestedPassword() : '',
           })(
             <Input
               prefix={<Icon type="lock" size="large" />}
@@ -74,9 +86,10 @@ class Password extends React.Component {
             />,
           )}
         </Form.Item>
+        {init &&
         <Form.Item>
           <a href={undefined} className="new-password" onClick={() => { this.props.form.setFieldsValue({ password: createSuggestedPassword() }); }}>Generate new password</a>
-        </Form.Item>
+        </Form.Item>}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
         </Form.Item>
