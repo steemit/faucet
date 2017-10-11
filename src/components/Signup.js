@@ -75,17 +75,19 @@ class Signup extends Component {
       <div className="Signup_main">
         <div className="signup-bg-left" />
         <div className="signup-bg-right" />
+        <div className="Signup__header">
+          <div className="Signup__header-content">
+            <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
+            {step !== 'finish' && <div className="Signup__steps">
+              <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
+              <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
+              <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
+              <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
+            </div>}
+          </div>
+        </div>
         <div className="Signup__container">
           <div className="Signup__form">
-            <div className="Signup__header">
-              <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
-              {step !== 'finish' && <div className="Signup__steps">
-                <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
-                <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
-                <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
-                <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
-              </div>}
-            </div>
             {step === 'username' &&
             <div>
               <h1><FormattedMessage id="get_started" /></h1>
