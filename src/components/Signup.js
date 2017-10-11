@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
@@ -20,7 +21,6 @@ class Signup extends Component {
       token: '',
       countryCode: '',
       prefix: '',
-      recaptcha: '',
     };
   }
 
@@ -43,13 +43,12 @@ class Signup extends Component {
     });
   }
 
-  handleSubmitEmail = (values, token, recaptcha) => {
+  handleSubmitEmail = (values, token) => {
     this.setState({
       step: 'phoneNumber',
       stepNumber: 2,
       email: values.email,
       token,
-      recaptcha,
     });
   };
 
@@ -89,45 +88,57 @@ class Signup extends Component {
             </div>
             {step === 'username' &&
             <div>
-              <h1>Get started</h1>
-              <h2>Your username is how you will be known</h2>
+              <h1><FormattedMessage id="get_started" /></h1>
+              <h2><FormattedMessage id="username_know" /></h2>
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
             {step === 'email' &&
             <div>
-              <h1>Enter email address</h1>
-              <h2>We need to confirm if you really exists</h2>
+              <h1><FormattedMessage id="enter_email" /></h1>
+              <h2><FormattedMessage id="confirm_existence" /></h2>
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={this.state.username}
-                recaptcha={this.state.recaptcha}
               />
               <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>Go back</Button>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>
+                  <FormattedMessage id="go_back" />
+                </Button>
               </Form.Item>
             </div>
             }
             {step === 'phoneNumber' &&
             <div>
-              <h1>Enter your phone number</h1>
-              <h2>We need to send you a quick text.</h2>
+              <h1><FormattedMessage id="enter_phone" /></h1>
+              <h2><FormattedMessage id="send_sms" /></h2>
               <FormSignupPhoneNumber
                 onSubmit={this.handleSubmitPhoneNumber}
                 token={token}
                 countryCode={countryCode}
               />
               <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>Go back</Button>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>
+                  <FormattedMessage id="go_back" />
+                </Button>
               </Form.Item>
             </div>
             }
             {step === 'confirmPhoneNumber' &&
             <div>
-              <h1>Enter confirmation code</h1>
+              <h1><FormattedMessage id="enter_confirmation_code" /></h1>
               <h2>
-                We have sms you the code to +{prefix.split('_')[0]}&nbsp;{phoneNumber}&nbsp;
-                <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>Edit</a><br />
-                Please enter the code below to confirm it.
+                <FormattedMessage
+                  id="sms_code"
+                  values={{
+                    prefix: prefix.split('_')[0],
+                    phoneNumber,
+                    editLink: <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
+                      <FormattedMessage id="edit" />
+                    </a>,
+                  }}
+                />
+                <br />
+                <FormattedMessage id="please_confirm" />
               </h2>
               <FormSignupConfirmPhoneNumber
                 onSubmit={this.handleSubmitConfirmPhoneNumber}
@@ -136,16 +147,18 @@ class Signup extends Component {
                 prefix={prefix}
               />
               <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>Go back</Button>
+                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
+                  <FormattedMessage id="go_back" />
+                </Button>
               </Form.Item>
             </div>
             }
             {step === 'finish' &&
             <div>
-              <h1>Almost there,</h1>
-              <p>{"You're few steps aways from getting to the top of the list. Check your email and click the email validation link."}</p>
-              <p>{"After validating your sign up request with us we'll look it over for approval. As soon as your turn is up and you're approved, you'll be sent a link to finalize your account!"}</p>
-              <p>{"You'll be among the earliest members of the Steem community!"}</p>
+              <h1><FormattedMessage id="almost_there" /></h1>
+              <p><FormattedMessage id="finish_text_1" /></p>
+              <p><FormattedMessage id="finish_text_2" /></p>
+              <p><FormattedMessage id="finish_text_3" /></p>
             </div>
             }
           </div>

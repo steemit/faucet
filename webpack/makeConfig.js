@@ -25,8 +25,8 @@ function makePlugins(options) {
         SENTRY_PUBLIC_DSN: isDevelopment
           ? null
           : JSON.stringify(process.env.SENTRY_PUBLIC_DSN),
-        WS: JSON.stringify(
-          process.env.WS ||
+        STEEMJS_URL: JSON.stringify(
+          process.env.STEEMJS_URL ||
           'wss://steemd.steemit.com',
         ),
         IS_BROWSER: JSON.stringify(true),

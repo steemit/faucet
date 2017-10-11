@@ -80,20 +80,12 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  const recaptchaCount = await req.db.users.count({
-    where: {
-      email: req.query.email,
-      recaptcha: req.query.recaptcha,
-    },
-  });
-
-  if (recaptchaCount === 0) {
-    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
-    const body = await response.json();
-    if (!body.success) {
-      errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
-    }
+  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+  const body = await response.json();
+  if (!body.success) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
   }
+
   if (errors.length === 0) {
     const userExist = await req.db.users.count({
       where: {
@@ -116,13 +108,11 @@ router.get('/request_email', async (req, res) => {
         fingerprint: JSON.parse(req.query.fingerprint),
         username: req.query.username,
         username_booked_at: new Date(),
-        recaptcha: req.query.recaptcha,
       }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
       req.db.users.update({
         username: req.query.username,
         username_booked_at: new Date(),
-        recaptcha: req.query.recaptcha,
       }, { where: { email: req.query.email } });
 
       await sendConfirmationEmail(req, res);
