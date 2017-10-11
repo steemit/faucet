@@ -54,7 +54,7 @@ class Username extends React.Component {
   render() {
     const { form: { getFieldDecorator }, intl } = this.props;
     return (
-      <Form onSubmit={this.handleSubmit} className="signup-form username-step">
+      <Form onSubmit={this.handleSubmit} className="signup-form">
         <Form.Item
           hasFeedback
         >
