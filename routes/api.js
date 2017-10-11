@@ -268,9 +268,14 @@ const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
   if (user && user.email_is_verified && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
-    const result = await fetch(`${req.protocol}://${req.get('host')}/api/check`)
-      .then(checkStatus)
-      .then(res => res.text());
+    let result;
+    try {
+      result = await fetch(`${req.protocol}://${req.get('host')}/api/check`)
+        .then(checkStatus)
+        .then(res => res.text());
+    } catch (err) {
+      result = 'manual_review';
+    }
 
     if (result === 'rejected') {
       await rejectAccount(req, email);
@@ -346,7 +351,6 @@ router.get('/confirm_email', async (req, res) => {
     try {
       decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
       if (decoded.type === 'confirm_email') {
-        console.log(decoded.email);
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (!user) {
           res.status(400).json({ error: 'Email doesn\'t exist' });
@@ -512,10 +516,5 @@ router.get('/check_username', async (req, res) => {
 
   res.json({ success: true });
 });
-
-router.get('/test', (req, res) => {
-  console.log(req.protocol);
-  console.log(req.get('host'));
-})
 
 module.exports = router;
