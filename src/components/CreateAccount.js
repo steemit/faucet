@@ -5,6 +5,7 @@ import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import Loading from '../widgets/Loading';
+import './CreateAccount.less';
 
 class CreateAccount extends Component {
   static defaultProps = {
@@ -23,6 +24,7 @@ class CreateAccount extends Component {
       stepNumber: 0,
       error: '',
       username: '',
+      password: '',
       reservedUsername: '',
     };
   }
@@ -63,9 +65,17 @@ class CreateAccount extends Component {
     });
   }
 
-  handleSubmit = async (values) => {
-    const { username } = this.state;
-    const publicKeys = steem.auth.generateKeys(username, values.password, ['owner', 'active', 'posting', 'memo']);
+  handleSubmitPassword = (values) => {
+    this.setState({
+      step: 'password_confirm',
+      stepNumber: 2,
+      password: values.password,
+    });
+  }
+
+  handleSubmit = () => {
+    const { username, password } = this.state;
+    const publicKeys = steem.auth.generateKeys(username, password, ['owner', 'active', 'posting', 'memo']);
 
     fetch(`/api/create_account?token=${this.props.location.query.token}&username=${username}&public_keys=${JSON.stringify(publicKeys)}`)
       .then(checkStatus)
@@ -85,7 +95,7 @@ class CreateAccount extends Component {
   }
 
   render() {
-    const { step, stepNumber, error, username, reservedUsername } = this.state;
+    const { step, stepNumber, error, username, reservedUsername, password } = this.state;
 
     return (
       <div className="Signup_main">
@@ -96,9 +106,10 @@ class CreateAccount extends Component {
             <div className="Signup__header">
               <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
               {step !== 'created' && step !== 'error' && <div className="Signup__steps">
-                <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
+                {username === '' && <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />}
                 <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
+                <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
               </div>}
             </div>
             {step === 'loading' && <div className="align-center"><Loading /></div>}
@@ -122,20 +133,29 @@ class CreateAccount extends Component {
                 If you ever lose your password, your account will be irreversibly lost.
                 We do not have your password and cannot help you recover it.
               </h2>
-              <FormCreateAccountPassword onSubmit={this.handleSubmit} />
+              <FormCreateAccountPassword onSubmit={this.handleSubmitPassword} init />
             </div>
             }
+            {step === 'password_confirm' &&
+            <div>
+              <h1>Confirm account</h1>
+              <h2>
+                {"You can't change your username once you set it. "}
+                {`Are you sure you want to set ${username} as your username?`}
+              </h2>
+              <h2>Please type your password to confirm it.</h2>
+              <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
+            </div>}
             {step === 'created' &&
             <div>
-              Your account has been created! Enjoy.
-              <br />
-              <br />
-              SteemConnect
+              <h1>Welcome ${username}</h1>
+              <h2>You can now enjoy Steem and all its features.</h2>
             </div>}
           </div>
           <div className="Signup__icons">
             {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
-            {step === 'password' && <object data="img/signup-password.svg" type="image/svg+xml" id="signup-password" aria-label="signup-password" />}
+            {(step === 'password' || step === 'password_confirm') && <object data="img/signup-password.svg" type="image/svg+xml" id="signup-password" aria-label="signup-password" />}
+            {step === 'created' && <object data="img/signup-create-account.svg" type="image/svg+xml" id="signup-create-account" aria-label="signup-create-account" />}
           </div>
         </div>
       </div>
