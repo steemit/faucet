@@ -80,20 +80,12 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  const recaptchaCount = await req.db.users.count({
-    where: {
-      email: req.query.email,
-      recaptcha: req.query.recaptcha,
-    },
-  });
-
-  if (recaptchaCount === 0) {
-    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
-    const body = await response.json();
-    if (!body.success) {
-      errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
-    }
+  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+  const body = await response.json();
+  if (!body.success) {
+    errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
   }
+
   if (errors.length === 0) {
     const userExist = await req.db.users.count({
       where: {
@@ -116,13 +108,11 @@ router.get('/request_email', async (req, res) => {
         fingerprint: JSON.parse(req.query.fingerprint),
         username: req.query.username,
         username_booked_at: new Date(),
-        recaptcha: req.query.recaptcha,
       }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
       req.db.users.update({
         username: req.query.username,
         username_booked_at: new Date(),
-        recaptcha: req.query.recaptcha,
       }, { where: { email: req.query.email } });
 
       await sendConfirmationEmail(req, res);
@@ -268,9 +258,14 @@ const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
   if (user && user.email_is_verified && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
-    const result = await fetch('http://localhost:3000/api/check')
-      .then(checkStatus)
-      .then(res => res.text());
+    let result;
+    try {
+      result = await fetch(`${req.protocol}://${req.get('host')}/api/check`)
+        .then(checkStatus)
+        .then(res => res.text());
+    } catch (err) {
+      result = 'manual_review';
+    }
 
     if (result === 'rejected') {
       await rejectAccount(req, email);
