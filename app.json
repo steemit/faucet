@@ -56,7 +56,7 @@
       "required": true
     },
     "CREATE_ACCOUNT_FEE": "0.5 STEEM",
-    "CREATE_ACCOUNT_DELEGATION": "150250.000000 VESTS"
+    "CREATE_ACCOUNT_DELEGATION": "57000.000000 VESTS"
   },
   "formation": {
   },
