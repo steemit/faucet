@@ -33,6 +33,6 @@
   "success_new_code_sent": "New code sent",
   "thank_you": "Thank you!",
   "username": "Username",
-  "username_available": "Good news! The {username} is available.",
+  "username_available": "Good news! The username {username} is available.",
   "username_know": "Your username is how you will be known"
 }
