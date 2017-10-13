@@ -89,13 +89,13 @@ class Signup extends Component {
             {step === 'username' &&
             <div>
               <h1><FormattedMessage id="get_started" /></h1>
-              <h2><FormattedMessage id="username_know" /></h2>
+              <p><FormattedMessage id="username_know" /></p>
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
             {step === 'email' &&
             <div>
               <h1><FormattedMessage id="enter_email" /></h1>
-              <h2><FormattedMessage id="confirm_existence" /></h2>
+              <p><FormattedMessage id="confirm_existence" /></p>
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={this.state.username}
@@ -110,7 +110,7 @@ class Signup extends Component {
             {step === 'phoneNumber' &&
             <div>
               <h1><FormattedMessage id="enter_phone" /></h1>
-              <h2><FormattedMessage id="send_sms" /></h2>
+              <p><FormattedMessage id="send_sms" /></p>
               <FormSignupPhoneNumber
                 onSubmit={this.handleSubmitPhoneNumber}
                 token={token}
@@ -126,7 +126,7 @@ class Signup extends Component {
             {step === 'confirmPhoneNumber' &&
             <div>
               <h1><FormattedMessage id="enter_confirmation_code" /></h1>
-              <h2>
+              <p>
                 <FormattedMessage
                   id="sms_code"
                   values={{
@@ -139,7 +139,7 @@ class Signup extends Component {
                 />
                 <br />
                 <FormattedMessage id="please_confirm" />
-              </h2>
+              </p>
               <FormSignupConfirmPhoneNumber
                 onSubmit={this.handleSubmitConfirmPhoneNumber}
                 token={token}
