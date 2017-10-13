@@ -73,7 +73,14 @@ class Username extends React.Component {
             />,
           )}
         </Form.Item>
-        {this.state.username !== '' && <span className="username-available"><FormattedMessage id="username_available" values={{ username: <strong>{this.state.username}</strong> }} /></span>}
+        {this.state.username !== '' &&
+          <p>
+            <FormattedMessage
+              id="username_available"
+              values={{ username: <strong>{this.state.username}</strong> }}
+            />
+          </p>
+        }
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
