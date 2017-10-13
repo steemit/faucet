@@ -60,6 +60,7 @@ class Username extends React.Component {
           hasFeedback
         >
           {getFieldDecorator('username', {
+            validateFirst: true,
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_username_required' }) },
               { validator: validateAccountName },
