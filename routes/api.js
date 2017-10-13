@@ -496,15 +496,15 @@ router.get('/check_username', async (req, res) => {
   const accounts = await steem.api.getAccountsAsync([req.query.username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
     res.json({ error: 'Username already used' });
+  } else {
+    const user = await req.db.users.findOne({ where: { username }, order: 'username_booked_at DESC' });
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    if (user && (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()) {
+      res.json({ error: 'Username reserved' });
+    } else {
+      res.json({ success: true });
+    }
   }
-
-  const user = await req.db.users.findOne({ where: { username }, order: 'username_booked_at DESC' });
-  const oneWeek = 7 * 24 * 60 * 60 * 1000;
-  if (user && (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()) {
-    res.json({ error: 'Username reserved' });
-  }
-
-  res.json({ success: true });
 });
 
 module.exports = router;
