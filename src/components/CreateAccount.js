@@ -11,11 +11,11 @@ class CreateAccount extends Component {
   static defaultProps = {
     location: PropTypes.shape(),
     form: PropTypes.shape(),
-  }
+  };
 
   static propTypes = {
     location: PropTypes.shape(),
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -122,34 +122,34 @@ class CreateAccount extends Component {
             {step === 'username' &&
             <div>
               <h1>Choose username</h1>
-              <h2>Choose it carefully as you cannot change it later</h2>
+              <p>Choose it carefully as you cannot change it later</p>
               {username === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
             {step === 'password' &&
             <div>
               <h1>Save password</h1>
-              <h2>
+              <p>
                 If you ever lose your password, your account will be irreversibly lost.
                 We do not have your password and cannot help you recover it.
-              </h2>
+              </p>
               <FormCreateAccountPassword onSubmit={this.handleSubmitPassword} init />
             </div>
             }
             {step === 'password_confirm' &&
             <div>
               <h1>Confirm account</h1>
-              <h2>
+              <p>
                 {"You can't change your username once you set it. "}
                 {`Are you sure you want to set ${username} as your username?`}
-              </h2>
-              <h2>Please type your password to confirm it.</h2>
+              </p>
+              <p>Please type your password to confirm it.</p>
               <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
             </div>}
             {step === 'created' &&
             <div>
               <h1>Welcome ${username}</h1>
-              <h2>You can now enjoy Steem and all its features.</h2>
+              <p>You can now enjoy Steem and all its features.</p>
             </div>}
           </div>
           <div className="Signup__icons">
