@@ -26,6 +26,7 @@ class Username extends React.Component {
           .then(parseJSON)
           .then((data) => {
             if (data.error) {
+              this.setState({ username: '' });
               callback(data.error);
             } else {
               this.setState({ username: value });
