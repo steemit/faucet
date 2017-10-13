@@ -77,7 +77,12 @@ class Username extends React.Component {
             />,
           )}
         </Form.Item>
-        {getFieldValue('username') && !getFieldError('username') && !isFieldValidating('username') && <span className="username-available"><FormattedMessage id="username_available" values={{ username: <strong>{getFieldValue('username')}</strong> }} /></span>}
+        {getFieldValue('username') &&
+        !getFieldError('username') &&
+        !isFieldValidating('username') &&
+        <span className="username-available">
+          <FormattedMessage id="username_available" values={{ username: <strong>{getFieldValue('username')}</strong> }} />
+        </span>}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
