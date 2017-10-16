@@ -90,7 +90,11 @@ class Signup extends Component {
             <div>
               <h1><FormattedMessage id="get_started" /></h1>
               <p><FormattedMessage id="username_know" /></p>
-              <FormSignupUsername onSubmit={this.handleSubmitUsername} />
+              <FormSignupUsername
+                onSubmit={this.handleSubmitUsername}
+                username={this.state.username}
+                email={this.state.email}
+              />
             </div>}
             {step === 'email' &&
             <div>
@@ -99,6 +103,7 @@ class Signup extends Component {
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={this.state.username}
+                email={this.state.email}
               />
               <Form.Item>
                 <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>
@@ -115,6 +120,8 @@ class Signup extends Component {
                 onSubmit={this.handleSubmitPhoneNumber}
                 token={token}
                 countryCode={countryCode}
+                prefix={prefix}
+                phoneNumber={phoneNumber}
               />
               <Form.Item>
                 <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>

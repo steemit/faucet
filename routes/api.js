@@ -499,7 +499,11 @@ router.get('/check_username', async (req, res) => {
   } else {
     const user = await req.db.users.findOne({ where: { username }, order: 'username_booked_at DESC' });
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    if (user && (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()) {
+    if (
+      user &&
+      (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime() &&
+      user.email !== req.query.email
+    ) {
       res.json({ error: 'Username reserved' });
     } else {
       res.json({ success: true });
