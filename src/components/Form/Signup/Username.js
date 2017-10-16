@@ -26,7 +26,6 @@ class Username extends React.Component {
           .then(parseJSON)
           .then((data) => {
             if (data.error) {
-              this.setState({ username: '' });
               callback(data.error);
             } else {
               this.setState({ username: value });
@@ -53,7 +52,12 @@ class Username extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: {
+      getFieldDecorator,
+      getFieldError,
+      isFieldValidating,
+      getFieldValue,
+    }, intl } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form username-step">
         <Form.Item
@@ -73,11 +77,14 @@ class Username extends React.Component {
             />,
           )}
         </Form.Item>
-        {this.state.username !== '' &&
+        {
+          getFieldValue('username') &&
+          !getFieldError('username') &&
+          !isFieldValidating('username') &&
           <p>
             <FormattedMessage
               id="username_available"
-              values={{ username: <strong>{this.state.username}</strong> }}
+              values={{ username: <strong>{getFieldValue('username')}</strong> }}
             />
           </p>
         }
