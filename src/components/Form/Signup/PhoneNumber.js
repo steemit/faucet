@@ -23,7 +23,7 @@ class PhoneNumber extends React.Component {
         return `${country.prefix}_${country.iso}`;
       }
     }
-    return '';
+    return undefined;
   }
 
   handleSubmit = (e) => {
@@ -83,7 +83,7 @@ class PhoneNumber extends React.Component {
       initialValue: this.getPrefixDefaultValue(),
     })(
       <Select
-        placeholder={intl.formatMessage({ id: 'country_code' })}
+        placeholder={intl.formatMessage({ id: 'country_code_select' })}
         showSearch
         optionFilterProp="children"
         filterOption={(input, option) =>
