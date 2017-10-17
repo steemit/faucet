@@ -448,7 +448,7 @@ router.get('/create_account', async (req, res) => {
             [],
             (err) => {
               if (err) {
-                res.status(400).json({ error: 'An error occurred while creating the account' });
+                res.status(500).json({ error: 'An error occurred while creating the account' });
               } else {
                 req.db.users.update({
                   username: req.query.username,
