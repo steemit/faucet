@@ -55,8 +55,12 @@
     "DELEGATOR_USERNAME": {
       "required": true
     },
-    "CREATE_ACCOUNT_FEE": "0.5 STEEM",
-    "CREATE_ACCOUNT_DELEGATION": "57000.000000 VESTS"
+    "CREATE_ACCOUNT_FEE": {
+      "required": true
+    },
+    "CREATE_ACCOUNT_DELEGATION": {
+      "required": true
+    }
   },
   "formation": {
   },
