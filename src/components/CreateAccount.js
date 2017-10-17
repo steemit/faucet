@@ -148,7 +148,7 @@ class CreateAccount extends Component {
             </div>}
             {step === 'created' &&
             <div>
-              <h1>Welcome ${username}</h1>
+              <h1>Welcome {username}</h1>
               <p>You can now enjoy Steem and all its features.</p>
             </div>}
           </div>
