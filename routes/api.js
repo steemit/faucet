@@ -497,7 +497,7 @@ router.get('/check_username', async (req, res) => {
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
     res.json({ error: 'Username already used' });
   } else {
-    const user = await req.db.users.findOne({ where: { username }, order: 'username_booked_at DESC' });
+    const user = await req.db.users.findOne({ where: { username, email_is_verified: true }, order: 'username_booked_at DESC' });
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     if (
       user &&
