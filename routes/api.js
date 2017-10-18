@@ -319,7 +319,7 @@ router.get('/confirm_sms', async (req, res) => {
             phone_code_attempts: user.phone_code_attempts + 1,
           }, { where: { email: decoded.email } });
           await sendAccountInformation(req, decoded.email);
-          res.json({ success: true });
+          res.json({ success: true, completed: user.email_is_verified });
         }
       } else {
         errors.push({ field: 'code', error: 'Unknown user' });
@@ -342,16 +342,26 @@ router.get('/confirm_email', async (req, res) => {
       decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
       if (decoded.type === 'confirm_email') {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        const token = jwt.sign({
+          type: 'signup',
+          email: decoded.email,
+        }, process.env.JWT_SECRET);
         if (!user) {
           res.status(400).json({ error: 'Email doesn\'t exist' });
-        } else if (user.email_is_verified) {
-          res.status(400).json({ error: 'Email already verified' });
         } else {
-          await req.db.users.update({
-            email_is_verified: true,
-          }, { where: { email: decoded.email } });
-          await sendAccountInformation(req, decoded.email);
-          res.json({ success: true });
+          if (!user.email_is_verified) {
+            await req.db.users.update({
+              email_is_verified: true,
+            }, { where: { email: decoded.email } });
+            await sendAccountInformation(req, decoded.email);
+          }
+          res.json({
+            success: true,
+            completed: user.phone_number_is_verified,
+            email: user.email,
+            username: user.username,
+            token,
+          });
         }
       } else {
         res.status(400).json({ error: 'Invalid token' });

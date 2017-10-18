@@ -26,7 +26,7 @@ class ConfirmPhoneNumber extends React.Component {
             this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
-                this.props.onSubmit(values, data.token);
+                this.props.onSubmit(data.completed);
               }
             }
           })
