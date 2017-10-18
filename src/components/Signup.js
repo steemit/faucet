@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
@@ -10,17 +10,32 @@ import { checkStatus, parseJSON } from '../utils/fetch';
 import './Signup.less';
 
 class Signup extends Component {
+  static propTypes = {
+    location: PropTypes.shape({
+      query: PropTypes.shape({
+        username: PropTypes.string,
+        email: PropTypes.string,
+        token: PropTypes.string,
+      }),
+    }),
+  }
+
+  static defaultProps = {
+    location: null,
+  }
+
   constructor(props) {
     super(props);
     this.state = {
-      step: 'username',
-      stepNumber: 0,
-      username: '',
-      email: '',
+      step: this.initStep().step,
+      stepNumber: this.initStep().stepNumber,
+      username: props.location.query.username || '',
+      email: props.location.query.email || '',
       phoneNumber: '',
-      token: '',
+      token: props.location.query.token || '',
       countryCode: '',
       prefix: '',
+      completed: false,
     };
   }
 
@@ -33,6 +48,17 @@ class Signup extends Component {
           this.setState({ countryCode: data.location.country.iso_code });
         }
       });
+  }
+
+  initStep = () => {
+    if (
+      this.props.location.query.email &&
+      this.props.location.query.username &&
+      this.props.location.query.token
+    ) {
+      return { step: 'phoneNumber', stepNumber: 2 };
+    }
+    return { step: 'username', stepNumber: 0 };
   }
 
   handleSubmitUsername = (values) => {
@@ -61,15 +87,16 @@ class Signup extends Component {
     });
   };
 
-  handleSubmitConfirmPhoneNumber = () => {
+  handleSubmitConfirmPhoneNumber = (completed) => {
     this.setState({
       step: 'finish',
       stepNumber: 4,
+      completed,
     });
   };
 
   render() {
-    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
+    const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
 
     return (
       <div className="Signup_main">
@@ -90,7 +117,11 @@ class Signup extends Component {
             <div>
               <h1><FormattedMessage id="get_started" /></h1>
               <p><FormattedMessage id="username_know" /></p>
-              <FormSignupUsername onSubmit={this.handleSubmitUsername} />
+              <FormSignupUsername
+                onSubmit={this.handleSubmitUsername}
+                username={this.state.username}
+                email={this.state.email}
+              />
             </div>}
             {step === 'email' &&
             <div>
@@ -99,6 +130,7 @@ class Signup extends Component {
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={this.state.username}
+                email={this.state.email}
               />
               <Form.Item>
                 <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>
@@ -115,6 +147,8 @@ class Signup extends Component {
                 onSubmit={this.handleSubmitPhoneNumber}
                 token={token}
                 countryCode={countryCode}
+                prefix={prefix}
+                phoneNumber={phoneNumber}
               />
               <Form.Item>
                 <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>
@@ -156,7 +190,7 @@ class Signup extends Component {
             {step === 'finish' &&
             <div>
               <h1><FormattedMessage id="almost_there" /></h1>
-              <p><FormattedMessage id="finish_text_1" /></p>
+              {!completed && <p><FormattedMessage id="finish_text_1" /></p>}
               <p><FormattedMessage id="finish_text_2" /></p>
               <p><FormattedMessage id="finish_text_3" /></p>
             </div>

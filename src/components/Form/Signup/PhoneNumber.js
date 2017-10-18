@@ -74,13 +74,13 @@ class PhoneNumber extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: { getFieldDecorator }, intl, prefix, phoneNumber } = this.props;
 
     const prefixSelector = getFieldDecorator('prefix', {
       rules: [
         { required: true, message: intl.formatMessage({ id: 'error_country_code_required' }) },
       ],
-      initialValue: this.getPrefixDefaultValue(),
+      initialValue: prefix || this.getPrefixDefaultValue(),
     })(
       <Select
         placeholder={intl.formatMessage({ id: 'country_code_select' })}
@@ -111,6 +111,7 @@ class PhoneNumber extends React.Component {
               { required: true, message: intl.formatMessage({ id: 'error_phone_required' }) },
               { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: intl.formatMessage({ id: 'error_phone_format' }) },
             ],
+            initialValue: phoneNumber,
           })(
             <Input
               prefix={<Icon type="mobile" />}

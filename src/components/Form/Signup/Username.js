@@ -21,7 +21,7 @@ class Username extends React.Component {
         window.clearTimeout(window.usernameTimeout);
       }
       window.usernameTimeout = setTimeout(() => {
-        fetch(`/api/check_username?username=${value}`)
+        fetch(`/api/check_username?username=${value}&email=${this.props.email}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
@@ -57,7 +57,8 @@ class Username extends React.Component {
       getFieldError,
       isFieldValidating,
       getFieldValue,
-    }, intl } = this.props;
+    }, intl,
+    username } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form username-step">
         <Form.Item
@@ -70,6 +71,7 @@ class Username extends React.Component {
               { validator: validateAccountName },
               { validator: this.validateUsername },
             ],
+            initialValue: username,
           })(
             <Input
               prefix={<Icon type="user" />}
