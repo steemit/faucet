@@ -86,6 +86,7 @@ class Email extends React.Component {
                   },
                 });
               }
+              window.grecaptcha.reset();
             });
           });
       } else {
@@ -95,7 +96,7 @@ class Email extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: { getFieldDecorator }, intl, email } = this.props;
     return (
       <Form
         onSubmit={(e) => {
@@ -115,6 +116,7 @@ class Email extends React.Component {
               { validator: validateEmail },
               { validator: validateEmailDomain },
             ],
+            initialValue: email,
           })(
             <Input
               prefix={<Icon type="mail" />}
