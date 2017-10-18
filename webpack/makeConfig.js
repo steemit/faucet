@@ -70,7 +70,7 @@ function makeStyleLoaders(options) {
         loaders: [
           'style',
           'css?sourceMap?importLoaders=1',
-          'postcss-loader?browsers=last 2 version',
+          'postcss-loader?sourceMap&browsers=last 2 version',
           'sass?sourceMap&sourceMapContents',
           'less-loader',
         ],
