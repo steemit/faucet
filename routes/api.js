@@ -348,19 +348,13 @@ router.get('/confirm_email', async (req, res) => {
         }, process.env.JWT_SECRET);
         if (!user) {
           res.status(400).json({ error: 'Email doesn\'t exist' });
-        } else if (user.email_is_verified) {
-          res.status(400).json({
-            error: 'Email already verified',
-            completed: user.phone_number_is_verified,
-            email: user.email,
-            username: user.username,
-            token,
-          });
         } else {
-          await req.db.users.update({
-            email_is_verified: true,
-          }, { where: { email: decoded.email } });
-          await sendAccountInformation(req, decoded.email);
+          if (!user.email_is_verified) {
+            await req.db.users.update({
+              email_is_verified: true,
+            }, { where: { email: decoded.email } });
+            await sendAccountInformation(req, decoded.email);
+          }
           res.json({
             success: true,
             completed: user.phone_number_is_verified,
