@@ -60,7 +60,7 @@ class Username extends React.Component {
     }, intl,
     username } = this.props;
     return (
-      <Form onSubmit={this.handleSubmit} className="signup-form username-step">
+      <Form onSubmit={this.handleSubmit} className="signup-form">
         <Form.Item
           hasFeedback
         >
@@ -90,9 +90,11 @@ class Username extends React.Component {
             />
           </p>
         }
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-        </Form.Item>
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
+          </Form.Item>
+        </div>
       </Form>
     );
   }

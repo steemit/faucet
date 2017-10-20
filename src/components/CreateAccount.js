@@ -112,22 +112,24 @@ class CreateAccount extends Component {
                 <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
               </div>}
             </div>
-            {step === 'loading' && <div className="align-center"><Loading /></div>}
-            {step === 'error' &&
-            <div>
-              <h1>Oops!</h1>
-              <p>{error}</p>
+            <div className="form-content">
+              {step === 'loading' && <div className="align-center"><Loading /></div>}
+              {step === 'error' &&
+              <div>
+                <h1>Oops!</h1>
+                <p>{error}</p>
+              </div>
+              }
             </div>
-            }
             {step === 'username' &&
-            <div>
+            <div className="form-content">
               <h1>Choose username</h1>
               <p>Choose it carefully as you cannot change it later</p>
               {username === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
             {step === 'password' &&
-            <div>
+            <div className="form-content">
               <h1>Save password</h1>
               <p>
                 If you ever lose your password, your account will be irreversibly lost.
@@ -137,7 +139,7 @@ class CreateAccount extends Component {
             </div>
             }
             {step === 'password_confirm' &&
-            <div>
+            <div className="form-content">
               <h1>Confirm account</h1>
               <p>
                 {"You can't change your username once you set it. "}
@@ -147,7 +149,7 @@ class CreateAccount extends Component {
               <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
             </div>}
             {step === 'created' &&
-            <div>
+            <div className="form-content">
               <h1>Welcome {username}</h1>
               <p>You can now enjoy Steem and all its features.</p>
             </div>}

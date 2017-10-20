@@ -64,8 +64,8 @@ class Index extends Component {
             <div className="Signup__header">
               <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
             </div>
-            <div>
-              {status === 'loading' && <Loading />}
+            <div className="form-content">
+              {status === 'loading' && <div className="align-center"><Loading /></div>}
               {status === 'error' &&
                 <div>
                   <h1><FormattedMessage id="oops" /></h1>

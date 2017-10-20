@@ -90,9 +90,11 @@ class Password extends React.Component {
         <Form.Item>
           <a href={undefined} className="new-password" onClick={() => { this.props.form.setFieldsValue({ password: createSuggestedPassword() }); }}>Generate new password</a>
         </Form.Item>}
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
-        </Form.Item>
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
+          </Form.Item>
+        </div>
       </Form>
     );
   }

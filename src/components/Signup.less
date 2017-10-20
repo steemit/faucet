@@ -39,12 +39,16 @@
 
   .Signup__form, .Signup__icons {
     max-width: 500px;
+    min-height: 600px;
     width: 100%;
     padding: 50px 60px 50px 50px;
   }
 
   .Signup__icons {
     text-align: center;
+    display: flex;
+    align-content: center;
+    align-items: center;
 
     @media (max-width: @screen-md) {
       display: none;
@@ -55,11 +59,13 @@
     display: flex;
     justify-content: space-between;
     min-height: 50px;
-    margin-bottom: 80px;
+    flex: 1;
+    align-items: flex-start;
 
     .Signup__steps {
       display: flex;
       align-items: center;
+      margin-top: 15px;
 
       .Signup__steps-step {
         width: 10px;
@@ -90,6 +96,23 @@
   }
 
   .Signup__form {
+    min-height: 600px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    .form-actions {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      max-width: 390px;
+    }
+
+    .form-content {
+      max-height: 100%;
+      flex: 1;
+    }
+
     .ant-input {
       color: rgba(51, 51, 51, 0.5);
     }
@@ -202,10 +225,6 @@
   }
 }
 
-.username-step {
-  margin-bottom: 115px;
-}
-
 #signup-username {
   width: 392px;
   height: auto;
@@ -219,7 +238,6 @@
 #signup-email {
   width: 300px;
   height: auto;
-  margin-top: 70px;
 }
 
 #signup-email-confirmation {

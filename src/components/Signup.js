@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { Form, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
@@ -61,6 +60,10 @@ class Signup extends Component {
     return { step: 'username', stepNumber: 0 };
   }
 
+  goBack = (step, stepNumber) => {
+    this.setState({ step, stepNumber });
+  }
+
   handleSubmitUsername = (values) => {
     this.setState({
       step: 'email',
@@ -114,7 +117,7 @@ class Signup extends Component {
               </div>}
             </div>
             {step === 'username' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="get_started" /></h1>
               <p><FormattedMessage id="username_know" /></p>
               <FormSignupUsername
@@ -124,23 +127,19 @@ class Signup extends Component {
               />
             </div>}
             {step === 'email' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="enter_email" /></h1>
               <p><FormattedMessage id="confirm_existence" /></p>
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={this.state.username}
                 email={this.state.email}
+                goBack={this.goBack}
               />
-              <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>
-                  <FormattedMessage id="go_back" />
-                </Button>
-              </Form.Item>
             </div>
             }
             {step === 'phoneNumber' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="enter_phone" /></h1>
               <p><FormattedMessage id="send_sms" /></p>
               <FormSignupPhoneNumber
@@ -149,16 +148,12 @@ class Signup extends Component {
                 countryCode={countryCode}
                 prefix={prefix}
                 phoneNumber={phoneNumber}
+                goBack={this.goBack}
               />
-              <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>
-                  <FormattedMessage id="go_back" />
-                </Button>
-              </Form.Item>
             </div>
             }
             {step === 'confirmPhoneNumber' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="enter_confirmation_code" /></h1>
               <p>
                 <FormattedMessage
@@ -179,16 +174,12 @@ class Signup extends Component {
                 token={token}
                 phoneNumber={phoneNumber}
                 prefix={prefix}
+                goBack={this.goBack}
               />
-              <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
-                  <FormattedMessage id="go_back" />
-                </Button>
-              </Form.Item>
             </div>
             }
             {step === 'finish' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="almost_there" /></h1>
               {!completed && <p><FormattedMessage id="finish_text_1" /></p>}
               <p><FormattedMessage id="finish_text_2" /></p>
