@@ -127,7 +127,7 @@ class Signup extends Component {
               />
             </div>}
             {step === 'email' &&
-            <div className="form-content">
+            <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_email" /></h1>
               <p><FormattedMessage id="confirm_existence" /></p>
               <FormSignupEmail
@@ -139,7 +139,7 @@ class Signup extends Component {
             </div>
             }
             {step === 'phoneNumber' &&
-            <div className="form-content">
+            <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_phone" /></h1>
               <p><FormattedMessage id="send_sms" /></p>
               <FormSignupPhoneNumber
@@ -153,7 +153,7 @@ class Signup extends Component {
             </div>
             }
             {step === 'confirmPhoneNumber' &&
-            <div className="form-content">
+            <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_confirmation_code" /></h1>
               <p>
                 <FormattedMessage

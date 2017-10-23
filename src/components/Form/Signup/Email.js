@@ -144,7 +144,7 @@ class Email extends React.Component {
           </Form.Item>
           {goBack &&
           <Form.Item>
-            <Button htmlType="button" className="back" onClick={() => goBack('email', 1)}>
+            <Button htmlType="button" className="back" onClick={() => goBack('username', 0)}>
               <FormattedMessage id="go_back" />
             </Button>
           </Form.Item>}
