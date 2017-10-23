@@ -112,7 +112,7 @@ class CreateAccount extends Component {
                 <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
               </div>}
             </div>
-            <div className="form-content">
+            {(step === 'loading' || step === 'error') && <div className="form-content">
               {step === 'loading' && <div className="align-center"><Loading /></div>}
               {step === 'error' &&
               <div>
@@ -120,7 +120,7 @@ class CreateAccount extends Component {
                 <p>{error}</p>
               </div>
               }
-            </div>
+            </div>}
             {step === 'username' &&
             <div className="form-content">
               <h1>Choose username</h1>
