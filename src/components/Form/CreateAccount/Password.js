@@ -73,7 +73,7 @@ class Password extends React.Component {
           })(
             <Input
               prefix={<Icon type="lock" size="large" />}
-              suffix={
+              suffix={init &&
                 <a
                   href={undefined}
                   onClick={() => { this.copyToClipboard(this.props.form.getFieldValue('password')); }}
@@ -83,6 +83,7 @@ class Password extends React.Component {
               }
               placeholder="Password"
               id="password"
+              readOnly={init}
             />,
           )}
         </Form.Item>
