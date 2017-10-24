@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { message, Form, Icon, Input, Button } from 'antd';
 import createSuggestedPassword from '../../../utils/auth';
 
@@ -24,7 +25,7 @@ class Password extends React.Component {
       textarea.select();
       try {
         const res = document.execCommand('copy');
-        message.success('Password copied to clipboard');
+        message.success(this.props.intl.formatMessage({ id: 'password_copied' }));
         return res;
       } catch (ex) {
         return false;
@@ -60,13 +61,13 @@ class Password extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, init } = this.props;
+    const { form: { getFieldDecorator }, init, intl } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form password-step">
         <Form.Item>
           {getFieldDecorator('password', {
             rules: [
-              { required: true, message: 'password is required' },
+              { required: true, message: intl.formatMessage({ id: 'error_password_required' }) },
               { validator: this.passwordEquals },
             ],
             initialValue: init ? createSuggestedPassword() : '',
@@ -78,24 +79,32 @@ class Password extends React.Component {
                   href={undefined}
                   onClick={() => { this.copyToClipboard(this.props.form.getFieldValue('password')); }}
                 >
-                  Copy
+                  <FormattedMessage id="copy" />
                 </a>
               }
-              placeholder="Password"
+              placeholder={intl.formatMessage({ id: 'password' })}
               id="password"
             />,
           )}
         </Form.Item>
         {init &&
         <Form.Item>
-          <a href={undefined} className="new-password" onClick={() => { this.props.form.setFieldsValue({ password: createSuggestedPassword() }); }}>Generate new password</a>
+          <a
+            href={undefined}
+            className="new-password"
+            onClick={() => {
+              this.props.form.setFieldsValue({ password: createSuggestedPassword() });
+            }}
+          >
+            <FormattedMessage id="generate_new_password" />
+          </a>
         </Form.Item>}
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}>Continue</Button>
+          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
         </Form.Item>
       </Form>
     );
   }
 }
 
-export default Form.create()(Password);
+export default Form.create()(injectIntl(Password));
