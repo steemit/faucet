@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import { FormattedMessage } from 'react-intl';
 import steem from 'steem';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
@@ -116,48 +117,43 @@ class CreateAccount extends Component {
               {step === 'loading' && <div className="align-center"><Loading /></div>}
               {step === 'error' &&
               <div>
-                <h1>Oops!</h1>
+                <h1><FormattedMessage id="oops" /></h1>
                 <p>{error}</p>
               </div>
               }
             </div>}
             {step === 'username' &&
             <div className="form-content">
-              <h1>Choose username</h1>
-              <p>Choose it carefully as you cannot change it later</p>
-              {username === '' && <span className="username-taken">The username you chose <b>{reservedUsername}</b> has already been taken, please choose another one.</span>}
+              <h1><FormattedMessage id="choose_username" /></h1>
+              <p><FormattedMessage id="choose_carefully" /></p>
+              {username === '' && <span className="username-taken"><FormattedMessage id="error_username_taken" values={{ username: <b>{reservedUsername}</b> }} /></span>}
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
             {step === 'password' &&
             <div className="form-content">
-              <h1>Save password</h1>
-              <p>
-                If you ever lose your password, your account will be irreversibly lost.
-                We do not have your password and cannot help you recover it.
-              </p>
+              <h1><FormattedMessage id="save_password" /></h1>
+              <p><FormattedMessage id="save_password_text" /></p>
               <FormCreateAccountPassword onSubmit={this.handleSubmitPassword} init />
             </div>
             }
             {step === 'password_confirm' &&
             <div className="form-content">
-              <h1>Confirm account</h1>
-              <p>
-                {"You can't change your username once you set it. "}
-                {`Are you sure you want to set ${username} as your username?`}
-              </p>
-              <p>Please type your password to confirm it.</p>
+              <h1><FormattedMessage id="confirm_account" /></h1>
+              <p><FormattedMessage id="confirm_username" values={{ username }} /></p>
+              <p><FormattedMessage id="confirm_password" /></p>
               <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
             </div>}
             {step === 'created' &&
             <div className="form-content">
-              <h1>Welcome {username}</h1>
-              <p>You can now enjoy Steem and all its features.</p>
+              <h1><FormattedMessage id="welcome" /> {username}</h1>
+              <p><FormattedMessage id="enjoy_steem" /></p>
             </div>}
           </div>
           <div className="Signup__icons">
             {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
             {(step === 'password' || step === 'password_confirm') && <object data="img/signup-password.svg" type="image/svg+xml" id="signup-password" aria-label="signup-password" />}
             {step === 'created' && <object data="img/signup-create-account.svg" type="image/svg+xml" id="signup-create-account" aria-label="signup-create-account" />}
+            {step === 'error' && <object data="img/signup-create-account.svg" type="image/svg+xml" id="signup-create-account" aria-label="signup-create-account" />}
           </div>
         </div>
       </div>
