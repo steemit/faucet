@@ -113,36 +113,38 @@ class CreateAccount extends Component {
                 <div className={`Signup__steps-step ${stepNumber === 3 ? 'waiting' : ''} ${stepNumber > 3 ? 'processed' : ''}`} />
               </div>}
             </div>
-            {step === 'loading' && <div className="align-center"><Loading /></div>}
-            {step === 'error' &&
-            <div>
-              <h1><FormattedMessage id="oops" /></h1>
-              <p>{error}</p>
-            </div>
-            }
+            {(step === 'loading' || step === 'error') && <div className="form-content">
+              {step === 'loading' && <div className="align-center"><Loading /></div>}
+              {step === 'error' &&
+              <div>
+                <h1><FormattedMessage id="oops" /></h1>
+                <p>{error}</p>
+              </div>
+              }
+            </div>}
             {step === 'username' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="choose_username" /></h1>
               <p><FormattedMessage id="choose_carefully" /></p>
               {username === '' && <span className="username-taken"><FormattedMessage id="error_username_taken" values={{ username: <b>{reservedUsername}</b> }} /></span>}
               <FormSignupUsername onSubmit={this.handleSubmitUsername} />
             </div>}
             {step === 'password' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="save_password" /></h1>
               <p><FormattedMessage id="save_password_text" /></p>
               <FormCreateAccountPassword onSubmit={this.handleSubmitPassword} init />
             </div>
             }
             {step === 'password_confirm' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="confirm_account" /></h1>
               <p><FormattedMessage id="confirm_username" values={{ username }} /></p>
               <p><FormattedMessage id="confirm_password" /></p>
               <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
             </div>}
             {step === 'created' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="welcome" /> {username}</h1>
               <p><FormattedMessage id="enjoy_steem" /></p>
             </div>}

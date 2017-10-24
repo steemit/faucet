@@ -39,12 +39,18 @@
 
   .Signup__form, .Signup__icons {
     max-width: 500px;
+    min-height: 600px;
     width: 100%;
     padding: 50px 60px 50px 50px;
+    margin-bottom: 50px;
   }
 
   .Signup__icons {
     text-align: center;
+    display: flex;
+    align-content: center;
+    align-items: center;
+    margin-top: 50px;
 
     @media (max-width: @screen-md) {
       display: none;
@@ -55,11 +61,13 @@
     display: flex;
     justify-content: space-between;
     min-height: 50px;
-    margin-bottom: 80px;
+    flex: 1;
+    align-items: flex-start;
 
     .Signup__steps {
       display: flex;
       align-items: center;
+      margin-top: 15px;
 
       .Signup__steps-step {
         width: 10px;
@@ -90,6 +98,28 @@
   }
 
   .Signup__form {
+    min-height: 600px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    .form-actions {
+      position: absolute;
+      bottom: 0;
+      width: calc(~'100% - 110px');
+      max-width: 390px;
+    }
+
+    .form-content {
+      max-height: 100%;
+      flex: 1;
+      margin-top: -30px;
+
+      &.two-actions {
+        margin-top: -73px;
+      }
+    }
+
     .ant-input {
       color: rgba(51, 51, 51, 0.5);
     }
@@ -142,11 +172,14 @@
       }
     }
 
+    .ant-form-item-control {
+      text-align: center;
+    }
+
     button.back {
       color: #4ba2f2;
       background: none;
       font-size: 16px;
-      width: 100%;
 
       &:hover {
         color: #4ba2f2;
@@ -197,10 +230,6 @@
   }
 }
 
-.username-step {
-  margin-bottom: 115px;
-}
-
 #signup-username, #signup-password, #signup-error {
   width: 392px;
   height: auto;
@@ -209,7 +238,6 @@
 #signup-email {
   width: 300px;
   height: auto;
-  margin-top: 70px;
 }
 
 #signup-email-confirmation {

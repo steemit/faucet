@@ -96,7 +96,7 @@ class Email extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl, email } = this.props;
+    const { form: { getFieldDecorator }, intl, email, goBack } = this.props;
     return (
       <Form
         onSubmit={(e) => {
@@ -138,9 +138,17 @@ class Email extends React.Component {
             onChange={() => {}}
           />,
         )}
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-        </Form.Item>
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
+          </Form.Item>
+          {goBack &&
+          <Form.Item>
+            <Button htmlType="button" className="back" onClick={() => goBack('username', 0)}>
+              <FormattedMessage id="go_back" />
+            </Button>
+          </Form.Item>}
+        </div>
       </Form>
     );
   }
