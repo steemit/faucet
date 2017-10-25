@@ -33,12 +33,12 @@ class ConfirmPhoneNumber extends React.Component {
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              const emailError = data.errors.find(o => o.field === 'code');
-              if (emailError) {
+              const codeError = data.errors.find(o => o.field === 'code');
+              if (codeError) {
                 this.props.form.setFields({
                   code: {
                     value: values.code,
-                    errors: [new Error(emailError.error)],
+                    errors: [new Error(this.props.intl.formatMessage({ id: codeError.error }))],
                   },
                 });
               }
@@ -63,7 +63,7 @@ class ConfirmPhoneNumber extends React.Component {
       })
       .catch((error) => {
         error.response.json().then((data) => {
-          message.error(data.errors[0].error);
+          message.error(intl.formatMessage({ id: data.errors[0].error }));
         });
       });
   }

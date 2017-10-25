@@ -51,7 +51,9 @@ class PhoneNumber extends React.Component {
                 this.props.form.setFields({
                   phoneNumber: {
                     value: values.phoneNumber,
-                    errors: [new Error(phoneNumberError.error)],
+                    errors: [
+                      new Error(this.props.intl.formatMessage({ id: phoneNumberError.error })),
+                    ],
                   },
                 });
               }
@@ -61,7 +63,7 @@ class PhoneNumber extends React.Component {
                 this.props.form.setFields({
                   prefix: {
                     value: values.prefix,
-                    errors: [new Error(prefixError.error)],
+                    errors: [new Error(this.props.intl.formatMessage({ id: prefixError.error }))],
                   },
                 });
               }

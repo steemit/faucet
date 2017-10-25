@@ -21,7 +21,7 @@ const sendConfirmationEmail = async (req, res) => {
   const user = await req.db.users.findOne({ where: { email: req.query.email } });
 
   if (user.email_is_verified) {
-    const errors = [{ field: 'email', error: 'Email already verified' }];
+    const errors = [{ field: 'email', error: 'error_api_email_verified' }];
     res.status(400).json({ errors });
   } else if (
     !user.last_attempt_verify_email ||
@@ -48,12 +48,12 @@ const sendConfirmationEmail = async (req, res) => {
 
         res.json({ success: true, token });
       } else {
-        const errors = [{ field: 'email', error: 'Failed to send confirmation email' }];
+        const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
         res.status(500).json({ errors });
       }
     });
   } else {
-    const errors = [{ field: 'email', error: 'Please wait at least one minute between retries' }];
+    const errors = [{ field: 'email', error: 'error_api_wait' }];
     res.status(400).json({ errors });
   }
 };
@@ -61,13 +61,13 @@ const sendConfirmationEmail = async (req, res) => {
 router.get('/request_email', async (req, res) => {
   const errors = [];
   if (!req.query.recaptcha) {
-    errors.push({ field: 'recaptcha', error: 'Recaptcha is required' });
+    errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_required' });
   } else if (!req.query.email) {
-    errors.push({ field: 'email', error: 'Email is required' });
+    errors.push({ field: 'email', error: 'error_api_email_required' });
   } else if (!validator.isEmail(req.query.email)) {
-    errors.push({ field: 'email', error: 'Please provide a valid email' });
+    errors.push({ field: 'email', error: 'error_api_email_format' });
   } else if (badDomains.includes(req.query.email.split('@')[1])) {
-    errors.push({ field: 'email', error: 'This domain name is blacklisted, please provide another email' });
+    errors.push({ field: 'email', error: 'error_api_domain_blacklisted' });
   } else {
     const userCount = await req.db.users.count({
       where: {
@@ -76,14 +76,14 @@ router.get('/request_email', async (req, res) => {
       },
     });
     if (userCount > 0) {
-      errors.push({ field: 'email', error: 'Email already used' });
+      errors.push({ field: 'email', error: 'error_api_email_used' });
     }
   }
 
   const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
   const body = await response.json();
   if (!body.success) {
-    errors.push({ field: 'recaptcha', error: 'Recaptcha is invalid' });
+    errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_invalid' });
   }
 
   if (errors.length === 0) {
@@ -127,22 +127,23 @@ router.get('/request_sms', async (req, res) => {
   const errors = [];
 
   if (!req.query.token) {
-    errors.push({ field: 'phoneNumber', error: 'Token is required' });
+    errors.push({ field: 'phoneNumber', error: 'error_api_token_required' });
   }
   if (!req.query.phoneNumber) {
-    errors.push({ field: 'phoneNumber', error: 'Phone number is required' });
+    errors.push({ field: 'phoneNumber', error: 'error_api_phone_required' });
   }
   if (!req.query.prefix) {
-    errors.push({ field: 'prefix', error: 'Country code is required' });
+    errors.push({ field: 'prefix', error: 'error_api_country_code_required' });
   }
 
   try {
     decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
   } catch (err) {
-    errors.push({ field: 'phoneNumber', error: 'Invalid token' });
+    errors.push({ field: 'phoneNumber', error: 'error_api_token_invalid' });
   }
   if (errors.length === 0) {
     if (decoded && decoded.type === 'signup') {
+      // eslint-disable-next-line no-unused-vars
       const [countryPrefix, countryCode] = req.query.prefix.split('_');
       if (countryCode) {
         const phoneNumber = phoneUtil.format(
@@ -158,11 +159,11 @@ router.get('/request_sms', async (req, res) => {
         const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
 
         if (!user) {
-          errors.push({ field: 'phoneNumber', error: 'Unknown user' });
+          errors.push({ field: 'phoneNumber', error: 'error_api_unknown_user' });
         } else if (user.last_attempt_verify_phone_number &&
           user.last_attempt_verify_phone_number.getTime() > oneMinLater
         ) {
-          errors.push({ field: 'phoneNumber', error: 'Please wait at least one minute between retries' });
+          errors.push({ field: 'phoneNumber', error: 'error_api_wait' });
         }
 
         const phoneExists = await req.db.users.count({
@@ -173,7 +174,7 @@ router.get('/request_sms', async (req, res) => {
         });
 
         if (phoneExists > 0) {
-          errors.push({ field: 'phoneNumber', error: 'Phone number already used' });
+          errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
         }
 
         if (errors.length === 0) {
@@ -197,10 +198,10 @@ router.get('/request_sms', async (req, res) => {
           });
         }
       } else {
-        errors.push({ field: 'prefix', error: `Invalid prefix: ${countryPrefix} ${countryCode}` });
+        errors.push({ field: 'prefix', error: 'error_api_prefix_invalid' });
       }
     } else {
-      errors.push({ field: 'phoneNumber', error: 'Invalid token type' });
+      errors.push({ field: 'phoneNumber', error: 'error_api_token_invalid_type' });
     }
   }
   if (errors.length > 0) {
@@ -284,16 +285,16 @@ router.get('/confirm_sms', async (req, res) => {
   const errors = [];
 
   if (!req.query.token) {
-    errors.push({ field: 'code', error: 'Token is required' });
+    errors.push({ field: 'code', error: 'error_api_token_required' });
   }
   if (!req.query.code) {
-    errors.push({ field: 'code', error: 'Code is required' });
+    errors.push({ field: 'code', error: 'error_api_code_required' });
   }
 
   try {
     decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
   } catch (err) {
-    errors.push({ field: 'code', error: 'Invalid token' });
+    errors.push({ field: 'code', error: 'error_api_token_invalid' });
   }
 
   if (errors.length === 0) {
@@ -305,11 +306,11 @@ router.get('/confirm_sms', async (req, res) => {
       });
       if (user) {
         if (user.phone_number_is_verified) {
-          errors.push({ field: 'code', error: 'Phone already verified' });
+          errors.push({ field: 'code', error: 'error_api_phone_verified' });
         } else if (user.phone_code_attempts >= 5) {
-          errors.push({ field: 'code', error: 'Too many attempts, please request a new code' });
+          errors.push({ field: 'code', error: 'error_api_phone_too_many' });
         } else if (user.phone_code !== req.query.code) {
-          errors.push({ field: 'code', error: 'Invalid code' });
+          errors.push({ field: 'code', error: 'error_api_code_invalid' });
           req.db.users.update({
             phone_code_attempts: user.phone_code_attempts + 1,
           }, { where: { email: decoded.email } });
@@ -322,10 +323,10 @@ router.get('/confirm_sms', async (req, res) => {
           res.json({ success: true, completed: user.email_is_verified });
         }
       } else {
-        errors.push({ field: 'code', error: 'Unknown user' });
+        errors.push({ field: 'code', error: 'error_api_unknown_user' });
       }
     } else {
-      errors.push({ field: 'code', error: 'Invalid token type' });
+      errors.push({ field: 'code', error: 'error_api_token_invalid_type' });
     }
   }
   if (errors.length > 0) {
@@ -335,7 +336,7 @@ router.get('/confirm_sms', async (req, res) => {
 
 router.get('/confirm_email', async (req, res) => {
   if (!req.query.token) {
-    res.status(400).json({ error: 'Token is required' });
+    res.status(400).json({ error: 'error_api_token_required' });
   } else {
     let decoded;
     try {
@@ -347,7 +348,7 @@ router.get('/confirm_email', async (req, res) => {
           email: decoded.email,
         }, process.env.JWT_SECRET);
         if (!user) {
-          res.status(400).json({ error: 'Email doesn\'t exist' });
+          res.status(400).json({ error: 'error_api_email_exists_not' });
         } else {
           if (!user.email_is_verified) {
             await req.db.users.update({
@@ -364,10 +365,10 @@ router.get('/confirm_email', async (req, res) => {
           });
         }
       } else {
-        res.status(400).json({ error: 'Invalid token' });
+        res.status(400).json({ error: 'error_api_token_invalid' });
       }
     } catch (err) {
-      res.status(500).json({ error: 'Invalid token' });
+      res.status(500).json({ error: 'error_api_token_invalid' });
     }
   }
 });
@@ -379,7 +380,7 @@ router.get('/guess_country', (req, res) => {
 
 router.get('/confirm_account', async (req, res) => {
   if (!req.query.token) {
-    res.status(400).json({ error: 'Token is required' });
+    res.status(400).json({ error: 'error_api_token_required' });
   } else {
     let decoded;
     try {
@@ -387,11 +388,11 @@ router.get('/confirm_account', async (req, res) => {
       if (decoded.type === 'create_account') {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (!user) {
-          res.status(400).json({ error: 'User doesn\'t exist' });
+          res.status(400).json({ error: 'error_api_user_exists_not' });
         } else if (user.status === 'manual_review' || user.status === 'rejected') {
-          res.status(400).json({ error: 'Account verification is not done' });
+          res.status(400).json({ error: 'error_api_account_verification_pending' });
         } else if (user.status === 'created') {
-          res.status(400).json({ error: 'Account already created' });
+          res.status(400).json({ error: 'error_api_account_created' });
         } else if (user.status === 'approved') {
           const accounts = await steem.api.getAccountsAsync([user.username]);
           if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
@@ -399,24 +400,24 @@ router.get('/confirm_account', async (req, res) => {
           }
           res.json({ success: true, username: user.username, reservedUsername: '' });
         } else {
-          res.status(400).json({ error: 'Account verification is not done' });
+          res.status(400).json({ error: 'error_api_account_verification_pending' });
         }
       } else {
-        res.status(400).json({ error: 'Invalid token' });
+        res.status(400).json({ error: 'error_api_token_invalid' });
       }
     } catch (err) {
-      res.status(500).json({ error: 'Invalid token' });
+      res.status(500).json({ error: 'error_api_token_invalid' });
     }
   }
 });
 
 router.get('/create_account', async (req, res) => {
   if (!req.query.token) {
-    res.status(400).json({ error: 'Token is required' });
+    res.status(400).json({ error: 'error_api_token_required' });
   } else if (!req.query.username) {
-    res.status(400).json({ error: 'Username is required' });
+    res.status(400).json({ error: 'error_api_username_required' });
   } else if (!req.query.public_keys) {
-    res.status(400).json({ error: 'Public keys are required' });
+    res.status(400).json({ error: 'error_api_public_keys_required' });
   } else {
     let decoded;
     try {
@@ -458,7 +459,7 @@ router.get('/create_account', async (req, res) => {
             [],
             (err) => {
               if (err) {
-                res.status(500).json({ error: 'An error occurred while creating the account' });
+                res.status(500).json({ error: 'error_api_create_account' });
               } else {
                 req.db.users.update({
                   username: req.query.username,
@@ -470,13 +471,13 @@ router.get('/create_account', async (req, res) => {
             },
           );
         } else {
-          res.status(400).json({ error: 'This account hasn\'t been approved yet' });
+          res.status(400).json({ error: 'error_api_account_verification_pending' });
         }
       } else {
-        res.status(400).json({ error: 'Invalid token' });
+        res.status(400).json({ error: 'error_api_token_invalid' });
       }
     } catch (err) {
-      res.status(500).json({ error: 'Invalid token' });
+      res.status(500).json({ error: 'error_api_token_invalid' });
     }
   }
 });
@@ -505,7 +506,7 @@ router.get('/check_username', async (req, res) => {
   const username = req.query.username;
   const accounts = await steem.api.getAccountsAsync([req.query.username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
-    res.json({ error: 'Username already used' });
+    res.json({ error: 'error_api_username_used' });
   } else {
     const user = await req.db.users.findOne({ where: { username, email_is_verified: true }, order: 'username_booked_at DESC' });
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
@@ -514,7 +515,7 @@ router.get('/check_username', async (req, res) => {
       (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime() &&
       user.email !== req.query.email
     ) {
-      res.json({ error: 'Username reserved' });
+      res.json({ error: 'error_api_username_reserved' });
     } else {
       res.json({ success: true });
     }

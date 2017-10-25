@@ -12,52 +12,75 @@ export const accountNotExist = (rule, value, callback) => {
   });
 };
 
-// https://github.com/steemit/condenser/blob/eaf8a02658b8deaef376ec90b81d0866e52582cc/app/utils/ChainValidation.js#L4
-export const validateAccountName = (rule, value, callback) => {
-  let i;
-  let label;
-  let len;
-  let suffix;
-
-  suffix = 'Account name should ';
-  if (!value) {
-    return callback([`${suffix}not be empty`]);
+export const validateAccountNameMin = (rule, value, callback) => {
+  if (value.length < 3) {
+    callback(['Account name should be longer']);
+  } else {
+    callback();
   }
+};
 
-  const length = value.length;
-
-  if (length < 3) {
-    return callback([`${suffix}be longer`]);
+export const validateAccountNameMax = (rule, value, callback) => {
+  if (value.length > 16) {
+    callback(['Account name should be shorter']);
+  } else {
+    callback();
   }
-  if (length > 16) {
-    return callback([`${suffix}be shorter`]);
-  }
+};
 
-  if (/\./.test(value)) {
-    suffix = 'Each account segment should ';
-  }
-
+export const validateAccountNameSegmentStart = (rule, value, callback) => {
   const ref = value.split('.');
-
-  for (i = 0, len = ref.length; i < len; i += 1) {
-    label = ref[i];
-    if (!/^[a-z]/.test(label)) {
-      return callback([`${suffix}start with a letter`]);
-    }
-    if (!/^[a-z0-9-]*$/.test(label)) {
-      return callback([`${suffix}have only letters, digits, or dashes`]);
-    }
-    if (/--/.test(label)) {
-      return callback([`${suffix}have only one dash in a row`]);
-    }
-    if (!/[a-z0-9]$/.test(label)) {
-      return callback([`${suffix}end with a letter or digit`]);
-    }
-    if (!(label.length >= 3)) {
-      return callback([`${suffix}be longer`]);
+  for (let i = 0; i < ref.length; i += 1) {
+    if (!/^[a-z]/.test(ref[i])) {
+      callback(['Each account segment should start with a letter']);
+      return;
     }
   }
-  return callback();
+  callback();
+};
+
+export const validateAccountNameSegmentAlphaNumeric = (rule, value, callback) => {
+  const ref = value.split('.');
+  for (let i = 0; i < ref.length; i += 1) {
+    if (!/^[a-z0-9-]*$/.test(ref[i])) {
+      callback(['Each account segment should have only letters, digits, or dashes']);
+      return;
+    }
+  }
+  callback();
+};
+
+export const validateAccountNameSegmentDash = (rule, value, callback) => {
+  const ref = value.split('.');
+  for (let i = 0; i < ref.length; i += 1) {
+    if (/--/.test(ref[i])) {
+      callback(['Each account segment should have only one dash in a row']);
+      return;
+    }
+  }
+  callback();
+};
+
+export const validateAccountNameSegmentEnd = (rule, value, callback) => {
+  const ref = value.split('.');
+  for (let i = 0; i < ref.length; i += 1) {
+    if (!/[a-z0-9]$/.test(ref[i])) {
+      callback(['Each account segment should end with a letter or digit']);
+      return;
+    }
+  }
+  callback();
+};
+
+export const validateAccountNameSegmentMin = (rule, value, callback) => {
+  const ref = value.split('.');
+  for (let i = 0; i < ref.length; i += 1) {
+    if (!(ref[i].length >= 3)) {
+      callback(['Each account segment should be longer']);
+      return;
+    }
+  }
+  callback();
 };
 
 export const validateEmail = (rule, value, callback) => {

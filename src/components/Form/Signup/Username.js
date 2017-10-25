@@ -4,7 +4,15 @@ import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
-import { validateAccountName } from '../../../utils/validator';
+import {
+  validateAccountNameMin,
+  validateAccountNameMax,
+  validateAccountNameSegmentStart,
+  validateAccountNameSegmentAlphaNumeric,
+  validateAccountNameSegmentDash,
+  validateAccountNameSegmentEnd,
+  validateAccountNameSegmentMin,
+} from '../../../utils/validator';
 
 class Username extends React.Component {
   constructor(props) {
@@ -26,7 +34,7 @@ class Username extends React.Component {
           .then(parseJSON)
           .then((data) => {
             if (data.error) {
-              callback(data.error);
+              callback(this.props.intl.formatMessage({ id: data.error }));
             } else {
               this.setState({ username: value });
               callback();
@@ -68,7 +76,13 @@ class Username extends React.Component {
             validateFirst: true,
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_username_required' }) },
-              { validator: validateAccountName },
+              { validator: validateAccountNameMin, message: intl.formatMessage({ id: 'error_validation_account_min' }) },
+              { validator: validateAccountNameMax, message: intl.formatMessage({ id: 'error_validation_account_max' }) },
+              { validator: validateAccountNameSegmentStart, message: intl.formatMessage({ id: 'error_validation_account_segment_start' }) },
+              { validator: validateAccountNameSegmentAlphaNumeric, message: intl.formatMessage({ id: 'error_validation_account_segment_alpha' }) },
+              { validator: validateAccountNameSegmentDash, message: intl.formatMessage({ id: 'error_validation_account_segment_dash' }) },
+              { validator: validateAccountNameSegmentEnd, message: intl.formatMessage({ id: 'error_validation_account_segment_end' }) },
+              { validator: validateAccountNameSegmentMin, message: intl.formatMessage({ id: 'error_validation_account_segment_min' }) },
               { validator: this.validateUsername },
             ],
             initialValue: username,
