@@ -5,6 +5,7 @@ import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
+import { logStep } from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
 
@@ -34,6 +35,7 @@ class CreateAccount extends Component {
     const token = this.props.location.query.token;
     if (!token) {
       this.setState({ step: 'error', error: 'The token is required.' });
+      logStep('error', -1);
     } else {
       fetch(`/api/confirm_account?token=${this.props.location.query.token}`)
         .then(checkStatus)
@@ -46,13 +48,16 @@ class CreateAccount extends Component {
               username: data.username,
               reservedUsername: data.reservedUsername,
             });
+            logStep('username', 0);
           } else {
             this.setState({ step: 'error', error: data.error });
+            logStep('confirm_account_error', -1);
           }
         })
         .catch((error) => {
           error.response.json().then((data) => {
             this.setState({ step: 'error', error: data.error });
+            logStep('confirm_account_error', -1);
           });
         });
     }
@@ -64,6 +69,7 @@ class CreateAccount extends Component {
       stepNumber: 1,
       username: values.username,
     });
+    logStep('password', 1);
   }
 
   handleSubmitPassword = (values) => {
@@ -72,6 +78,7 @@ class CreateAccount extends Component {
       stepNumber: 2,
       password: values.password,
     });
+    logStep('password_confirm', 2);
   }
 
   handleSubmit = () => {
@@ -84,13 +91,16 @@ class CreateAccount extends Component {
       .then((data) => {
         if (data.success) {
           this.setState({ step: 'created' });
+          logStep('created', 3);
         } else {
           this.setState({ step: 'error', error: data.error });
+          logStep('created_error', -1);
         }
       })
       .catch((error) => {
         error.response.json().then((data) => {
           this.setState({ step: 'error', error: data.error });
+          logStep('created_error', -1);
         });
       });
   }
