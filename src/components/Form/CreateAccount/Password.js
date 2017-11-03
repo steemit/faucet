@@ -37,11 +37,11 @@ class Password extends React.Component {
   }
 
   passwordEquals = (rule, value, callback) => {
-    const { init, password } = this.props;
+    const { init, password, intl } = this.props;
     if (init) {
       callback();
     } else if (password !== value) {
-      callback('Passwords don\'t match');
+      callback(intl.formatMessage({ id: 'error_password_match' }));
     } else {
       callback();
     }
