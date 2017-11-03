@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from 'steem';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
@@ -17,6 +17,7 @@ class CreateAccount extends Component {
 
   static propTypes = {
     location: PropTypes.shape(),
+    intl: intlShape.isRequired,
   };
 
   constructor(props) {
@@ -34,7 +35,7 @@ class CreateAccount extends Component {
   componentWillMount() {
     const token = this.props.location.query.token;
     if (!token) {
-      this.setState({ step: 'error', error: 'The token is required.' });
+      this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: 'error_token_required' }) });
       logStep('error', -1);
     } else {
       fetch(`/api/confirm_account?token=${this.props.location.query.token}`)
@@ -50,13 +51,13 @@ class CreateAccount extends Component {
             });
             logStep('username', 0);
           } else {
-            this.setState({ step: 'error', error: data.error });
+            this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
             logStep('confirm_account_error', -1);
           }
         })
         .catch((error) => {
           error.response.json().then((data) => {
-            this.setState({ step: 'error', error: data.error });
+            this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
             logStep('confirm_account_error', -1);
           });
         });
@@ -93,13 +94,13 @@ class CreateAccount extends Component {
           this.setState({ step: 'created' });
           logStep('created', 3);
         } else {
-          this.setState({ step: 'error', error: data.error });
+          this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
           logStep('created_error', -1);
         }
       })
       .catch((error) => {
         error.response.json().then((data) => {
-          this.setState({ step: 'error', error: data.error });
+          this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
           logStep('created_error', -1);
         });
       });
@@ -171,4 +172,4 @@ class CreateAccount extends Component {
   }
 }
 
-export default CreateAccount;
+export default injectIntl(CreateAccount);
