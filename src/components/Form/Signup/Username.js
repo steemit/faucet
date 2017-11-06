@@ -15,6 +15,10 @@ class Username extends React.Component {
     };
   }
 
+  validateAccountNameIntl = (rule, value, callback) => {
+    validateAccountName(rule, value, callback, this.props.intl);
+  }
+
   validateUsername = (rule, value, callback) => {
     if (value) {
       if (window.usernameTimeout) {
@@ -26,7 +30,7 @@ class Username extends React.Component {
           .then(parseJSON)
           .then((data) => {
             if (data.error) {
-              callback(data.error);
+              callback(this.props.intl.formatMessage({ id: data.error }));
             } else {
               this.setState({ username: value });
               callback();
@@ -68,7 +72,7 @@ class Username extends React.Component {
             validateFirst: true,
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_username_required' }) },
-              { validator: validateAccountName },
+              { validator: this.validateAccountNameIntl },
               { validator: this.validateUsername },
             ],
             initialValue: username,
