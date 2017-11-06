@@ -180,9 +180,14 @@ pre {
     color: #4ba2f2;
     padding: 10px 10px 25px 10px;
     background: none;
-    &:active, &:hover {
+
+    &:active, &:hover, &:focus {
       background: none;
+      border: none;
     }
+  }
+  .ant-btn-clicked:after {
+    border: none !important;
   }
 }
 
