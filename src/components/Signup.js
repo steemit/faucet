@@ -1,13 +1,31 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { Button, Icon, Popover } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
+import LanguageItem from './LanguageItem';
 import { checkStatus, parseJSON } from '../utils/fetch';
+import * as actions from '../actions/appLocale';
+import locales from '../../helpers/locales.json';
 import './Signup.less';
 
+@connect(
+  state => ({
+    locale: state.appLocale.locale,
+  }),
+  dispatch =>
+    bindActionCreators(
+      {
+        setLocale: actions.setLocale,
+      },
+      dispatch,
+    ),
+)
 class Signup extends Component {
   static propTypes = {
     location: PropTypes.shape({
@@ -17,6 +35,8 @@ class Signup extends Component {
         token: PropTypes.string,
       }),
     }),
+    locale: PropTypes.string.isRequired,
+    setLocale: PropTypes.func.isRequired,
   }
 
   static defaultProps = {
@@ -100,11 +120,26 @@ class Signup extends Component {
 
   render() {
     const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
+    const { setLocale, locale } = this.props;
 
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
         <div className="signup-bg-right" />
+        <div className="language-select">
+          <Popover
+            placement="bottom"
+            content={
+              <ul className="lp-language-select">
+                <LanguageItem locale="en" setLocale={setLocale} />
+                <LanguageItem locale="fr" setLocale={setLocale} />
+              </ul>
+            }
+            trigger="click"
+          >
+            <Button>{locales[locale]}<Icon type="down" /></Button>
+          </Popover>
+        </div>
         <div className="Signup__container">
           <div className="Signup__form">
             <div className="Signup__header">
