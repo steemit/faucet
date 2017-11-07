@@ -40,7 +40,11 @@
   .Signup__form, .Signup__icons {
     max-width: 500px;
     width: 100%;
-    padding: 50px 60px 50px 50px;
+    padding: 50px 50px 50px 50px;
+
+    @media (max-width: @screen-md) {
+      padding: 20px 20px 50px 50px;
+    }
   }
 
   .Signup__icons {
