@@ -6,7 +6,7 @@ import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import { logStep } from '../../helpers/stepLogger';
+import logStep from '../../helpers/stepLogger';
 import './Signup.less';
 
 class Signup extends Component {
