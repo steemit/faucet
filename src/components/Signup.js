@@ -10,6 +10,7 @@ import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
 import { checkStatus, parseJSON } from '../utils/fetch';
+import logStep from '../../helpers/stepLogger';
 import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 import './Signup.less';
@@ -75,8 +76,10 @@ class Signup extends Component {
       this.props.location.query.username &&
       this.props.location.query.token
     ) {
+      logStep('phoneNumber', 2);
       return { step: 'phoneNumber', stepNumber: 2 };
     }
+    logStep('username', 0);
     return { step: 'username', stepNumber: 0 };
   }
 
@@ -90,6 +93,7 @@ class Signup extends Component {
       stepNumber: 1,
       username: values.username,
     });
+    logStep('email', 1);
   }
 
   handleSubmitEmail = (values, token) => {
@@ -99,6 +103,7 @@ class Signup extends Component {
       email: values.email,
       token,
     });
+    logStep('phoneNumber', 2);
   };
 
   handleSubmitPhoneNumber = (values) => {
@@ -108,6 +113,7 @@ class Signup extends Component {
       phoneNumber: values.phoneNumber,
       prefix: values.prefix,
     });
+    logStep('confirmPhoneNumber', 3);
   };
 
   handleSubmitConfirmPhoneNumber = (completed) => {
@@ -116,6 +122,7 @@ class Signup extends Component {
       stepNumber: 4,
       completed,
     });
+    logStep('finish', 4);
   };
 
   render() {

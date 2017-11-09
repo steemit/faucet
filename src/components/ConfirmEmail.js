@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
+import { logStep } from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 
 class Index extends Component {
@@ -24,6 +25,7 @@ class Index extends Component {
     const token = this.props.location.query.token;
     if (!token) {
       this.setState({ status: 'error', error: intl.formatMessage({ id: 'error_token_required' }) });
+      logStep('confirm_email_error', 4);
     } else {
       fetch(`/api/confirm_email?token=${this.props.location.query.token}`)
         .then(checkStatus)
@@ -37,6 +39,7 @@ class Index extends Component {
             username: data.username,
             token: data.token,
           });
+          logStep(`confirm_email_${data.success ? 'success' : 'error'}`, 4);
         })
         .catch((error) => {
           error.response.json().then((data) => {
@@ -48,6 +51,7 @@ class Index extends Component {
               username: data.username,
               token: data.token,
             });
+            logStep('confirm_email_error', 4);
           });
         });
     }
