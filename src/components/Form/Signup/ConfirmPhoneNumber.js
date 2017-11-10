@@ -26,19 +26,19 @@ class ConfirmPhoneNumber extends React.Component {
             this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
-                this.props.onSubmit(values, data.token);
+                this.props.onSubmit(data.completed);
               }
             }
           })
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              const emailError = data.errors.find(o => o.field === 'code');
-              if (emailError) {
+              const codeError = data.errors.find(o => o.field === 'code');
+              if (codeError) {
                 this.props.form.setFields({
                   code: {
                     value: values.code,
-                    errors: [new Error(emailError.error)],
+                    errors: [new Error(this.props.intl.formatMessage({ id: codeError.error }))],
                   },
                 });
               }
@@ -63,13 +63,13 @@ class ConfirmPhoneNumber extends React.Component {
       })
       .catch((error) => {
         error.response.json().then((data) => {
-          message.error(data.errors[0].error);
+          message.error(intl.formatMessage({ id: data.errors[0].error }));
         });
       });
   }
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: { getFieldDecorator }, intl, goBack } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form confirm-phone">
         <Form.Item
@@ -87,9 +87,17 @@ class ConfirmPhoneNumber extends React.Component {
             />,
           )}
         </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-        </Form.Item>
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
+          </Form.Item>
+          {goBack &&
+          <Form.Item>
+            <Button htmlType="button" className="back" onClick={() => goBack('phoneNumber', 2)}>
+              <FormattedMessage id="go_back" />
+            </Button>
+          </Form.Item>}
+        </div>
       </Form>
     );
   }

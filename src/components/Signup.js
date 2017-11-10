@@ -1,26 +1,61 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { Form, Button } from 'antd';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { Button, Icon, Popover } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
+import LanguageItem from './LanguageItem';
 import { checkStatus, parseJSON } from '../utils/fetch';
+import logStep from '../../helpers/stepLogger';
+import * as actions from '../actions/appLocale';
+import locales from '../../helpers/locales.json';
 import './Signup.less';
 
+@connect(
+  state => ({
+    locale: state.appLocale.locale,
+  }),
+  dispatch =>
+    bindActionCreators(
+      {
+        setLocale: actions.setLocale,
+      },
+      dispatch,
+    ),
+)
 class Signup extends Component {
+  static propTypes = {
+    location: PropTypes.shape({
+      query: PropTypes.shape({
+        username: PropTypes.string,
+        email: PropTypes.string,
+        token: PropTypes.string,
+      }),
+    }),
+    locale: PropTypes.string.isRequired,
+    setLocale: PropTypes.func.isRequired,
+  }
+
+  static defaultProps = {
+    location: null,
+  }
+
   constructor(props) {
     super(props);
     this.state = {
-      step: 'username',
-      stepNumber: 0,
-      username: '',
-      email: '',
+      step: this.initStep().step,
+      stepNumber: this.initStep().stepNumber,
+      username: props.location.query.username || '',
+      email: props.location.query.email || '',
       phoneNumber: '',
-      token: '',
+      token: props.location.query.token || '',
       countryCode: '',
       prefix: '',
+      completed: false,
     };
   }
 
@@ -35,12 +70,30 @@ class Signup extends Component {
       });
   }
 
+  initStep = () => {
+    if (
+      this.props.location.query.email &&
+      this.props.location.query.username &&
+      this.props.location.query.token
+    ) {
+      logStep('phoneNumber', 2);
+      return { step: 'phoneNumber', stepNumber: 2 };
+    }
+    logStep('username', 0);
+    return { step: 'username', stepNumber: 0 };
+  }
+
+  goBack = (step, stepNumber) => {
+    this.setState({ step, stepNumber });
+  }
+
   handleSubmitUsername = (values) => {
     this.setState({
       step: 'email',
       stepNumber: 1,
       username: values.username,
     });
+    logStep('email', 1);
   }
 
   handleSubmitEmail = (values, token) => {
@@ -50,6 +103,7 @@ class Signup extends Component {
       email: values.email,
       token,
     });
+    logStep('phoneNumber', 2);
   };
 
   handleSubmitPhoneNumber = (values) => {
@@ -59,22 +113,40 @@ class Signup extends Component {
       phoneNumber: values.phoneNumber,
       prefix: values.prefix,
     });
+    logStep('confirmPhoneNumber', 3);
   };
 
-  handleSubmitConfirmPhoneNumber = () => {
+  handleSubmitConfirmPhoneNumber = (completed) => {
     this.setState({
       step: 'finish',
       stepNumber: 4,
+      completed,
     });
+    logStep('finish', 4);
   };
 
   render() {
-    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
+    const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
+    const { setLocale, locale } = this.props;
 
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
         <div className="signup-bg-right" />
+        <div className="language-select">
+          <Popover
+            placement="bottom"
+            content={
+              <ul className="lp-language-select">
+                <LanguageItem locale="en" setLocale={setLocale} />
+                <LanguageItem locale="fr" setLocale={setLocale} />
+              </ul>
+            }
+            trigger="click"
+          >
+            <Button>{locales[locale]}<Icon type="down" /></Button>
+          </Popover>
+        </div>
         <div className="Signup__container">
           <div className="Signup__form">
             <div className="Signup__header">
@@ -87,46 +159,45 @@ class Signup extends Component {
               </div>}
             </div>
             {step === 'username' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="get_started" /></h1>
-              <h2><FormattedMessage id="username_know" /></h2>
-              <FormSignupUsername onSubmit={this.handleSubmitUsername} />
+              <p><FormattedMessage id="username_know" /></p>
+              <FormSignupUsername
+                onSubmit={this.handleSubmitUsername}
+                username={this.state.username}
+                email={this.state.email}
+              />
             </div>}
             {step === 'email' &&
-            <div>
+            <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_email" /></h1>
-              <h2><FormattedMessage id="confirm_existence" /></h2>
+              <p><FormattedMessage id="confirm_existence" /></p>
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={this.state.username}
+                email={this.state.email}
+                goBack={this.goBack}
               />
-              <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'username', stepNumber: 0 })}>
-                  <FormattedMessage id="go_back" />
-                </Button>
-              </Form.Item>
             </div>
             }
             {step === 'phoneNumber' &&
-            <div>
+            <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_phone" /></h1>
-              <h2><FormattedMessage id="send_sms" /></h2>
+              <p><FormattedMessage id="send_sms" /></p>
               <FormSignupPhoneNumber
                 onSubmit={this.handleSubmitPhoneNumber}
                 token={token}
                 countryCode={countryCode}
+                prefix={prefix}
+                phoneNumber={phoneNumber}
+                goBack={this.goBack}
               />
-              <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'email', stepNumber: 1 })}>
-                  <FormattedMessage id="go_back" />
-                </Button>
-              </Form.Item>
             </div>
             }
             {step === 'confirmPhoneNumber' &&
-            <div>
+            <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_confirmation_code" /></h1>
-              <h2>
+              <p>
                 <FormattedMessage
                   id="sms_code"
                   values={{
@@ -139,24 +210,20 @@ class Signup extends Component {
                 />
                 <br />
                 <FormattedMessage id="please_confirm" />
-              </h2>
+              </p>
               <FormSignupConfirmPhoneNumber
                 onSubmit={this.handleSubmitConfirmPhoneNumber}
                 token={token}
                 phoneNumber={phoneNumber}
                 prefix={prefix}
+                goBack={this.goBack}
               />
-              <Form.Item>
-                <Button htmlType="button" className="back" onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
-                  <FormattedMessage id="go_back" />
-                </Button>
-              </Form.Item>
             </div>
             }
             {step === 'finish' &&
-            <div>
+            <div className="form-content">
               <h1><FormattedMessage id="almost_there" /></h1>
-              <p><FormattedMessage id="finish_text_1" /></p>
+              {!completed && <p><FormattedMessage id="finish_text_1" /></p>}
               <p><FormattedMessage id="finish_text_2" /></p>
               <p><FormattedMessage id="finish_text_3" /></p>
             </div>

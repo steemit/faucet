@@ -82,10 +82,11 @@ class Email extends React.Component {
                 this.props.form.setFields({
                   email: {
                     value: values.email,
-                    errors: [new Error(emailError.error)],
+                    errors: [new Error(this.props.intl.formatMessage({ id: emailError.error }))],
                   },
                 });
               }
+              window.grecaptcha.reset();
             });
           });
       } else {
@@ -95,7 +96,7 @@ class Email extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: { getFieldDecorator }, intl, email, goBack } = this.props;
     return (
       <Form
         onSubmit={(e) => {
@@ -112,9 +113,10 @@ class Email extends React.Component {
           {getFieldDecorator('email', {
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_email_required' }) },
-              { validator: validateEmail },
-              { validator: validateEmailDomain },
+              { validator: validateEmail, message: intl.formatMessage({ id: 'error_api_email_format' }) },
+              { validator: validateEmailDomain, message: intl.formatMessage({ id: 'error_api_domain_blacklisted' }) },
             ],
+            initialValue: email,
           })(
             <Input
               prefix={<Icon type="mail" />}
@@ -124,7 +126,7 @@ class Email extends React.Component {
         </Form.Item>
         {getFieldDecorator('recaptcha', {
           rules: [
-            { validator: this.validateRecaptcha },
+            { validator: this.validateRecaptcha, message: intl.formatMessage({ id: 'error_api_recaptcha_required' }) },
           ],
           validateTrigger: '',
         })(
@@ -136,9 +138,17 @@ class Email extends React.Component {
             onChange={() => {}}
           />,
         )}
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-        </Form.Item>
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
+          </Form.Item>
+          {goBack &&
+          <Form.Item>
+            <Button htmlType="button" className="back" onClick={() => goBack('username', 0)}>
+              <FormattedMessage id="go_back" />
+            </Button>
+          </Form.Item>}
+        </div>
       </Form>
     );
   }

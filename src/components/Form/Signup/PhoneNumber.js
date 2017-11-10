@@ -23,7 +23,7 @@ class PhoneNumber extends React.Component {
         return `${country.prefix}_${country.iso}`;
       }
     }
-    return '';
+    return undefined;
   }
 
   handleSubmit = (e) => {
@@ -51,7 +51,9 @@ class PhoneNumber extends React.Component {
                 this.props.form.setFields({
                   phoneNumber: {
                     value: values.phoneNumber,
-                    errors: [new Error(phoneNumberError.error)],
+                    errors: [
+                      new Error(this.props.intl.formatMessage({ id: phoneNumberError.error })),
+                    ],
                   },
                 });
               }
@@ -61,7 +63,7 @@ class PhoneNumber extends React.Component {
                 this.props.form.setFields({
                   prefix: {
                     value: values.prefix,
-                    errors: [new Error(prefixError.error)],
+                    errors: [new Error(this.props.intl.formatMessage({ id: prefixError.error }))],
                   },
                 });
               }
@@ -74,16 +76,16 @@ class PhoneNumber extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: { getFieldDecorator }, intl, prefix, phoneNumber, goBack } = this.props;
 
     const prefixSelector = getFieldDecorator('prefix', {
       rules: [
         { required: true, message: intl.formatMessage({ id: 'error_country_code_required' }) },
       ],
-      initialValue: this.getPrefixDefaultValue(),
+      initialValue: prefix || this.getPrefixDefaultValue(),
     })(
       <Select
-        placeholder={intl.formatMessage({ id: 'country_code' })}
+        placeholder={intl.formatMessage({ id: 'country_code_select' })}
         showSearch
         optionFilterProp="children"
         filterOption={(input, option) =>
@@ -111,6 +113,7 @@ class PhoneNumber extends React.Component {
               { required: true, message: intl.formatMessage({ id: 'error_phone_required' }) },
               { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: intl.formatMessage({ id: 'error_phone_format' }) },
             ],
+            initialValue: phoneNumber,
           })(
             <Input
               prefix={<Icon type="mobile" />}
@@ -118,9 +121,17 @@ class PhoneNumber extends React.Component {
             />,
           )}
         </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-        </Form.Item>
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
+          </Form.Item>
+          {goBack &&
+          <Form.Item>
+            <Button htmlType="button" className="back" onClick={() => goBack('email', 1)}>
+              <FormattedMessage id="go_back" />
+            </Button>
+          </Form.Item>}
+        </div>
       </Form>
     );
   }

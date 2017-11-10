@@ -15,18 +15,22 @@ class Username extends React.Component {
     };
   }
 
+  validateAccountNameIntl = (rule, value, callback) => {
+    validateAccountName(rule, value, callback, this.props.intl);
+  }
+
   validateUsername = (rule, value, callback) => {
     if (value) {
       if (window.usernameTimeout) {
         window.clearTimeout(window.usernameTimeout);
       }
       window.usernameTimeout = setTimeout(() => {
-        fetch(`/api/check_username?username=${value}`)
+        fetch(`/api/check_username?username=${value}&email=${this.props.email}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
             if (data.error) {
-              callback(data.error);
+              callback(this.props.intl.formatMessage({ id: data.error }));
             } else {
               this.setState({ username: value });
               callback();
@@ -52,18 +56,26 @@ class Username extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl } = this.props;
+    const { form: {
+      getFieldDecorator,
+      getFieldError,
+      isFieldValidating,
+      getFieldValue,
+    }, intl,
+    username } = this.props;
     return (
-      <Form onSubmit={this.handleSubmit} className="signup-form username-step">
+      <Form onSubmit={this.handleSubmit} className="signup-form">
         <Form.Item
           hasFeedback
         >
           {getFieldDecorator('username', {
+            validateFirst: true,
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_username_required' }) },
-              { validator: validateAccountName },
+              { validator: this.validateAccountNameIntl },
               { validator: this.validateUsername },
             ],
+            initialValue: username,
           })(
             <Input
               prefix={<Icon type="user" />}
@@ -71,10 +83,22 @@ class Username extends React.Component {
             />,
           )}
         </Form.Item>
-        {this.state.username !== '' && <span className="username-available"><FormattedMessage id="username_available" values={{ username: <strong>{this.state.username}</strong> }} /></span>}
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-        </Form.Item>
+        {
+          getFieldValue('username') &&
+          !getFieldError('username') &&
+          !isFieldValidating('username') &&
+          <p>
+            <FormattedMessage
+              id="username_available"
+              values={{ username: <strong>{getFieldValue('username')}</strong> }}
+            />
+          </p>
+        }
+        <div className="form-actions">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
+          </Form.Item>
+        </div>
       </Form>
     );
   }

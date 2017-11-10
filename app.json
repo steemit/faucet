@@ -48,6 +48,18 @@
     },
     "RECAPTCHA_SITE_KEY": {
       "required": true
+    },
+    "DELEGATOR_ACTIVE_WIF": {
+      "required": true
+    },
+    "DELEGATOR_USERNAME": {
+      "required": true
+    },
+    "CREATE_ACCOUNT_FEE": {
+      "required": true
+    },
+    "CREATE_ACCOUNT_DELEGATION": {
+      "required": true
     }
   },
   "formation": {
