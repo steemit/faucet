@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import { logStep } from '../../helpers/stepLogger';
+import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 
 class Index extends Component {
