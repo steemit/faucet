@@ -5,7 +5,7 @@ import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import { logStep } from '../../helpers/stepLogger';
+import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
 
@@ -90,6 +90,7 @@ class CreateAccount extends Component {
       .then(checkStatus)
       .then(parseJSON)
       .then((data) => {
+        console.log(data);
         if (data.success) {
           this.setState({ step: 'created' });
           logStep('created', 3);
@@ -98,11 +99,10 @@ class CreateAccount extends Component {
           logStep('created_error', -1);
         }
       })
-      .catch((error) => {
-        error.response.json().then((data) => {
-          this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
-          logStep('created_error', -1);
-        });
+      .catch((data) => {
+        console.log(data);
+        this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
+        logStep('created_error', -1);
       });
   }
 

@@ -459,7 +459,8 @@ router.get('/create_account', async (req, res) => {
             [],
             (err) => {
               if (err) {
-                res.status(500).json({ error: 'error_api_create_account' });
+                console.log(err);
+                res.status(500).json({ error: 'error_api_create_account', detail: err });
               } else {
                 req.db.users.update({
                   username: req.query.username,
