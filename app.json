@@ -60,6 +60,9 @@
     },
     "CREATE_ACCOUNT_DELEGATION": {
       "required": true
+    },
+    "STEEMJS_URL": {
+      "required": true
     }
   },
   "formation": {
