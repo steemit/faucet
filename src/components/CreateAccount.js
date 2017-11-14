@@ -90,7 +90,6 @@ class CreateAccount extends Component {
       .then(checkStatus)
       .then(parseJSON)
       .then((data) => {
-        console.log(data);
         if (data.success) {
           this.setState({ step: 'created' });
           logStep('created', 3);
@@ -100,7 +99,6 @@ class CreateAccount extends Component {
         }
       })
       .catch((data) => {
-        console.log(data);
         this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
         logStep('created_error', -1);
       });
