@@ -6,10 +6,13 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('steem');
+const Raven = require('raven');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const twilio = require('./helpers/twilio');
 const geoip = require('./helpers/maxmind');
+
+Raven.config(process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN).install();
 
 if (process.env.STEEMJS_URL) {
   steem.api.setOptions({ url: process.env.STEEMJS_URL });
@@ -30,6 +33,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.enable('trust proxy');
+
+app.use(Raven.requestHandler());
 
 app.use((req, res, next) => {
   req.steem = steem;
@@ -57,6 +62,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
+app.use(Raven.errorHandler());
 app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
