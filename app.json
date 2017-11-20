@@ -10,7 +10,7 @@
       "required": true
     },
     "JWT_SECRET": {
-      "generator": "secret"
+      "required": true
     },
     "MAILGUN_API_KEY": {
       "required": true

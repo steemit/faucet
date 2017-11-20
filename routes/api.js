@@ -485,7 +485,9 @@ router.get('/create_account', async (req, res) => {
 
 router.get('/approve_account', async (req, res) => {
   try {
-    await approveAccount(req, req.query.email);
+    const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+
+    await approveAccount(req, decoded.email);
     res.json({ success: true });
   } catch (err) {
     const errors = [{ field: 'email', error: 'Failed to send approve account email' }];
@@ -495,7 +497,9 @@ router.get('/approve_account', async (req, res) => {
 
 router.get('/reject_account', async (req, res) => {
   try {
-    await rejectAccount(req, req.query.email);
+    const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+
+    await rejectAccount(req, decoded.email);
     res.json({ success: true });
   } catch (err) {
     const errors = [{ field: 'email', error: 'Failed to send reject account email' }];
