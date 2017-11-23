@@ -486,14 +486,11 @@ router.get('/create_account', async (req, res) => {
 router.get('/approve_account', async (req, res) => {
   try {
     const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-    const promises = [];
-    for (let i = 0; i < decoded.emails.length; i += 1) {
-      promises.push(approveAccount(req, decoded.emails[i]));
-    }
-    await Promise.all(promises);
+
+    await Promise.all(decoded.emails.map(email => (approveAccount(req, email))));
     res.json({ success: true });
   } catch (err) {
-    const errors = [{ field: 'email', error: 'Failed to send approve account email' }];
+    const errors = [{ error: 'Failed to send approve account emails' }];
     res.status(500).json({ errors });
   }
 });
