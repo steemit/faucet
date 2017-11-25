@@ -1,4 +1,5 @@
 const templates = require('./templates.json');
+const clone = require('lodash/clone');
 const mailgun = require('mailgun-js')({
   apiKey: process.env.MAILGUN_API_KEY,
   domain: process.env.MAILGUN_DOMAIN,
@@ -7,7 +8,7 @@ const mailgun = require('mailgun-js')({
 const mail = {};
 
 mail.send = (to, template, params = {}, cb) => {
-  const data = templates[template];
+  const data = clone(templates[template]);
   Object.keys(params).forEach((key) => {
     data.text = data.text.replace(`{${key}}`, params[key]);
     data.subject = data.subject.replace(`{${key}}`, params[key]);
