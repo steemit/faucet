@@ -236,23 +236,24 @@ const rejectAccount = async (req, email) => {
 };
 
 const approveAccount = async (req, email) => {
-  await req.db.users.update({
-    status: 'approved',
-  }, { where: { email } });
+  try {
+    const mailToken = jwt.sign({
+      type: 'create_account',
+      email,
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-  const mailToken = jwt.sign({
-    type: 'create_account',
-    email,
-  }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-  req.mail.send(email, 'create_account', {
-    url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
-  },
-  (err) => {
-    if (err) {
-      throw new Error(err);
-    }
-  });
+    req.mail.send(email, 'create_account', {
+      url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
+    },
+    (err) => {
+      if (err) {
+        console.log(err);
+        throw new Error(err);
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const sendAccountInformation = async (req, email) => {
@@ -490,6 +491,7 @@ router.get('/approve_account', async (req, res) => {
     await Promise.all(decoded.emails.map(email => (approveAccount(req, email))));
     res.json({ success: true });
   } catch (err) {
+    console.log(err);
     const errors = [{ error: 'Failed to send approve account emails' }];
     res.status(500).json({ errors });
   }
