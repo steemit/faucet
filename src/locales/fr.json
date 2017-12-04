@@ -85,6 +85,7 @@
   "save_password": "Sauvegarder votre mot de passe",
   "save_password_text": "Si vous perdez votre mot de passe, votre compte sera perdu de façon irreversible. Nous ne conservons pas votre mot de passe et ne pouvons vous aider à le récupérer.",
   "send_sms": "Nous devons vous envoyer un SMS.",
+  "signup_done": "Votre inscription est maintenant terminée. Vous allez recevoir prochainement un email vous indiquant l'étape suivante une fois votre inscription vérifiée.",
   "sms_code": "Nous avons envoyé le code par SMS au +{prefix} {phoneNumber} {editLink}",
   "steemconnect_signup": "SteemConnect Inscription",
   "success_new_code_sent": "Nouveau code envoyé",
