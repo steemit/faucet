@@ -249,12 +249,11 @@ const approveAccount = async (req, email) => {
     },
     (err) => {
       if (err) {
-        console.log(err);
         throw new Error(err);
       }
     });
   } catch (err) {
-    console.log(err);
+    // Do nothing
   }
 };
 
@@ -462,7 +461,6 @@ router.get('/create_account', async (req, res) => {
             [],
             (err) => {
               if (err) {
-                console.log(err);
                 res.status(500).json({ error: 'error_api_create_account', detail: err });
               } else {
                 req.db.users.update({
@@ -493,7 +491,6 @@ router.get('/approve_account', async (req, res) => {
     await Promise.all(decoded.emails.map(email => (approveAccount(req, email))));
     res.json({ success: true });
   } catch (err) {
-    console.log(err);
     const errors = [{ error: 'Failed to send approve account emails' }];
     res.status(500).json({ errors });
   }
