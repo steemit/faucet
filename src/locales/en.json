@@ -2,6 +2,7 @@
   "almost_there": "Almost there,",
   "choose_carefully": "Choose it carefully as you cannot change it later",
   "choose_username": "Choose username",
+  "click_here": "Click here",
   "complete_signup": "Complete signup",
   "confirm_account": "Confirm account",
   "confirm_existence": "We need to confirm if you really exists",
@@ -82,6 +83,7 @@
   "password_copied": "Password copied to clipboard",
   "phone_number": "Phone number",
   "please_confirm": "Please enter the code below to confirm it.",
+  "redirect_ten_seconds": "If you are not redirected within 10 seconds",
   "resend": "Resend",
   "save_password": "Save password",
   "save_password_text": "If you ever lose your password, your account will be irreversibly lost. We do not have your password and cannot help you recover it.",
@@ -92,5 +94,6 @@
   "thank_you": "Thank you!",
   "username": "Username",
   "username_available": "Good news! The username {username} is available.",
-  "username_know": "Your username is how you will be known"
+  "username_know": "Your username is how you will be known",
+  "welcome": "Welcome"
 }

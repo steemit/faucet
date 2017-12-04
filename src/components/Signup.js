@@ -34,6 +34,7 @@ class Signup extends Component {
         username: PropTypes.string,
         email: PropTypes.string,
         token: PropTypes.string,
+        redirect_uri: PropTypes.string,
       }),
     }),
     locale: PropTypes.string.isRequired,
@@ -50,6 +51,7 @@ class Signup extends Component {
       step: this.initStep().step,
       stepNumber: this.initStep().stepNumber,
       username: props.location.query.username || '',
+      redirectUri: props.location.query.redirect_uri || '',
       email: props.location.query.email || '',
       phoneNumber: '',
       token: props.location.query.token || '',
@@ -177,6 +179,7 @@ class Signup extends Component {
                 username={this.state.username}
                 email={this.state.email}
                 goBack={this.goBack}
+                redirectUri={this.state.redirectUri}
               />
             </div>
             }
