@@ -108,11 +108,13 @@ router.get('/request_email', async (req, res) => {
         fingerprint: JSON.parse(req.query.fingerprint),
         username: req.query.username,
         username_booked_at: new Date(),
+        redirect_uri: req.query.redirect_uri,
       }).then(async () => { await sendConfirmationEmail(req, res); });
     } else {
       req.db.users.update({
         username: req.query.username,
         username_booked_at: new Date(),
+        redirect_uri: req.query.redirect_uri,
       }, { where: { email: req.query.email } });
 
       await sendConfirmationEmail(req, res);
@@ -397,9 +399,9 @@ router.get('/confirm_account', async (req, res) => {
         } else if (user.status === 'approved') {
           const accounts = await steem.api.getAccountsAsync([user.username]);
           if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-            res.json({ success: true, username: '', reservedUsername: user.username });
+            res.json({ success: true, username: '', reservedUsername: user.username, redirectUri: user.redirect_uri });
           }
-          res.json({ success: true, username: user.username, reservedUsername: '' });
+          res.json({ success: true, username: user.username, reservedUsername: '', redirectUri: user.redirect_uri });
         } else {
           res.status(400).json({ error: 'error_api_account_verification_pending' });
         }
