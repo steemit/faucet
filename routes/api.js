@@ -197,10 +197,6 @@ const rejectAccount = async (req, email) => {
 
 const approveAccount = async (req, email) => {
   try {
-    await req.db.users.update({
-      email_is_verified: true,
-    }, { where: { email } });
-
     const mailToken = jwt.sign({
       type: 'create_account',
       email,
@@ -319,6 +315,9 @@ router.get('/confirm_account', async (req, res) => {
         } else if (user.status === 'created') {
           res.status(400).json({ error: 'error_api_account_created' });
         } else if (user.status === 'approved') {
+          await req.db.users.update({
+            email_is_verified: true,
+          }, { where: { email: decoded.email } });
           const accounts = await steem.api.getAccountsAsync([user.username]);
           if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
             res.json({ success: true, username: '', reservedUsername: user.username });
