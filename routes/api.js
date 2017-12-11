@@ -192,6 +192,10 @@ const rejectAccount = async (req, email) => {
 
 const approveAccount = async (req, email) => {
   try {
+    await req.db.users.update({
+      email_is_verified: true,
+    }, { where: { email } });
+
     const mailToken = jwt.sign({
       type: 'create_account',
       email,
@@ -213,7 +217,7 @@ const approveAccount = async (req, email) => {
 
 const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
-  if (user && user.email_is_verified && user.phone_number_is_verified) {
+  if (user && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
     let result;
     try {
@@ -276,7 +280,7 @@ router.get('/confirm_sms', async (req, res) => {
             phone_code_attempts: user.phone_code_attempts + 1,
           }, { where: { email: decoded.email } });
           await sendAccountInformation(req, decoded.email);
-          res.json({ success: true, completed: user.email_is_verified });
+          res.json({ success: true });
         }
       } else {
         errors.push({ field: 'code', error: 'error_api_unknown_user' });
@@ -287,45 +291,6 @@ router.get('/confirm_sms', async (req, res) => {
   }
   if (errors.length > 0) {
     res.status(500).json({ errors });
-  }
-});
-
-router.get('/confirm_email', async (req, res) => {
-  if (!req.query.token) {
-    res.status(400).json({ error: 'error_api_token_required' });
-  } else {
-    let decoded;
-    try {
-      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-      if (decoded.type === 'confirm_email') {
-        const user = await req.db.users.findOne({ where: { email: decoded.email } });
-        const token = jwt.sign({
-          type: 'signup',
-          email: decoded.email,
-        }, process.env.JWT_SECRET);
-        if (!user) {
-          res.status(400).json({ error: 'error_api_email_exists_not' });
-        } else {
-          if (!user.email_is_verified) {
-            await req.db.users.update({
-              email_is_verified: true,
-            }, { where: { email: decoded.email } });
-            await sendAccountInformation(req, decoded.email);
-          }
-          res.json({
-            success: true,
-            completed: user.phone_number_is_verified,
-            email: user.email,
-            username: user.username,
-            token,
-          });
-        }
-      } else {
-        res.status(400).json({ error: 'error_api_token_invalid' });
-      }
-    } catch (err) {
-      res.status(500).json({ error: 'error_api_token_invalid' });
-    }
   }
 });
 
