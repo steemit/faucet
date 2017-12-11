@@ -2,7 +2,6 @@
   "almost_there": "Almost there,",
   "choose_carefully": "Choose it carefully as you cannot change it later",
   "choose_username": "Choose username",
-  "complete_signup": "Complete signup",
   "confirm_account": "Confirm account",
   "confirm_existence": "We need to confirm if you really exists",
   "confirm_password": "Please type your password to confirm it.",
@@ -13,7 +12,6 @@
   "country_code_select": "Select your country code",
   "edit": "Edit",
   "email": "E-mail",
-  "email_verified": "Your email address has been verified.",
   "enjoy_steem": "You can now enjoy Steem and all its features.",
   "enter_confirmation_code": "Enter confirmation code",
   "enter_email": "Enter email address",
@@ -89,7 +87,6 @@
   "sms_code": "We have sms you the code to +{prefix} {phoneNumber} {editLink}",
   "steemconnect_signup": "SteemConnect Signup",
   "success_new_code_sent": "New code sent",
-  "thank_you": "Thank you!",
   "username": "Username",
   "username_available": "Good news! The username {username} is available.",
   "username_know": "Your username is how you will be known"
