@@ -202,7 +202,7 @@ class Signup extends Component {
                   id="sms_code"
                   values={{
                     prefix: prefix.split('_')[0],
-                    phoneNumber,
+                    phoneNumber: phoneNumber.slice(1),
                     editLink: <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
                       <FormattedMessage id="edit" />
                     </a>,
