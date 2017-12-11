@@ -15,49 +15,6 @@ router.get('/', (req, res) => {
   res.json({});
 });
 
-const sendConfirmationEmail = async (req, res) => {
-  const date = new Date();
-  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
-  const user = await req.db.users.findOne({ where: { email: req.query.email } });
-
-  if (user.email_is_verified) {
-    const errors = [{ field: 'email', error: 'error_api_email_verified' }];
-    res.status(400).json({ errors });
-  } else if (
-    !user.last_attempt_verify_email ||
-    user.last_attempt_verify_email.getTime() < oneMinLater
-  ) {
-    // create an email token valid for 24 hours
-    const mailToken = jwt.sign({
-      type: 'confirm_email',
-      email: req.query.email,
-    }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    req.mail.send(req.query.email, 'confirm_email', {
-      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
-    },
-    (err) => {
-      if (!err) {
-        const token = jwt.sign({
-          type: 'signup',
-          email: req.query.email,
-        }, process.env.JWT_SECRET);
-
-        req.db.users.update({
-          last_attempt_verify_email: new Date(),
-        }, { where: { email: req.query.email } });
-
-        res.json({ success: true, token });
-      } else {
-        const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
-        res.status(500).json({ errors });
-      }
-    });
-  } else {
-    const errors = [{ field: 'email', error: 'error_api_wait' }];
-    res.status(400).json({ errors });
-  }
-};
-
 router.get('/request_email', async (req, res) => {
   const errors = [];
   if (!req.query.recaptcha) {
@@ -108,14 +65,12 @@ router.get('/request_email', async (req, res) => {
         fingerprint: JSON.parse(req.query.fingerprint),
         username: req.query.username,
         username_booked_at: new Date(),
-      }).then(async () => { await sendConfirmationEmail(req, res); });
+      });
     } else {
       req.db.users.update({
         username: req.query.username,
         username_booked_at: new Date(),
       }, { where: { email: req.query.email } });
-
-      await sendConfirmationEmail(req, res);
     }
   } else {
     res.status(400).json({ errors });
