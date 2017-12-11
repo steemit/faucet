@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
-import steem from 'steem';
+import steem from '@steemit/steem-js';
 import fetch from 'isomorphic-fetch';
 import { Form } from 'antd';
 import FormSignupUsername from './Form/Signup/Username';
