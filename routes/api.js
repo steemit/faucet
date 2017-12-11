@@ -1,6 +1,6 @@
 const express = require('express');
 const fetch = require('isomorphic-fetch');
-const steem = require('steem');
+const steem = require('@steemit/steem-js');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
