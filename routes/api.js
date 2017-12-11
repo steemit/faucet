@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const express = require('express');
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
@@ -426,6 +427,7 @@ router.get('/create_account', async (req, res) => {
       if (decoded.type === 'create_account') {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (user.status === 'approved') {
+          // eslint-disable-next-line camelcase
           const { username, public_keys } = req.query;
           const weightThreshold = 1;
           const accountAuths = [];
@@ -503,7 +505,7 @@ router.get('/check_username', async (req, res) => {
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
     res.json({ error: 'error_api_username_used' });
   } else {
-    const user = await req.db.users.findOne({ where: { username, email_is_verified: true }, order: 'username_booked_at DESC' });
+    const user = await req.db.users.findOne({ where: { username, email_is_verified: true }, order: [['username_booked_at', 'DESC']] });
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     if (
       user &&
