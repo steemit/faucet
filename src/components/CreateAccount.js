@@ -2,13 +2,32 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import fetch from 'isomorphic-fetch';
+import { Button, Icon, Popover } from 'antd';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import LanguageItem from './LanguageItem';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
+import * as actions from '../actions/appLocale';
+import locales from '../../helpers/locales.json';
 
+
+@connect(
+  state => ({
+    locale: state.appLocale.locale,
+  }),
+  dispatch =>
+    bindActionCreators(
+      {
+        setLocale: actions.setLocale,
+      },
+      dispatch,
+    ),
+)
 class CreateAccount extends Component {
   static defaultProps = {
     location: PropTypes.shape(),
@@ -18,6 +37,8 @@ class CreateAccount extends Component {
   static propTypes = {
     location: PropTypes.shape(),
     intl: intlShape.isRequired,
+    locale: PropTypes.string.isRequired,
+    setLocale: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -110,11 +131,26 @@ class CreateAccount extends Component {
 
   render() {
     const { step, stepNumber, error, username, reservedUsername, password } = this.state;
+    const { setLocale, locale } = this.props;
 
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
         <div className="signup-bg-right" />
+        <div className="language-select">
+          <Popover
+            placement="bottom"
+            content={
+              <ul className="lp-language-select">
+                <LanguageItem locale="en" setLocale={setLocale} />
+                <LanguageItem locale="fr" setLocale={setLocale} />
+              </ul>
+            }
+            trigger="click"
+          >
+            <Button>{locales[locale]}<Icon type="down" /></Button>
+          </Popover>
+        </div>
         <div className="Signup__container">
           <div className="Signup__form">
             <div className="Signup__header">
