@@ -49,9 +49,12 @@ router.get('/request_email', async (req, res) => {
         email: req.query.email,
       },
     });
-
+    const token = jwt.sign({
+      type: 'signup',
+      email: req.query.email,
+    }, process.env.JWT_SECRET);
     if (userExist === 0) {
-      req.db.users.create({
+      await req.db.users.create({
         email: req.query.email,
         email_is_verified: false,
         last_attempt_verify_email: null,
@@ -66,11 +69,13 @@ router.get('/request_email', async (req, res) => {
         username: req.query.username,
         username_booked_at: new Date(),
       });
+      res.json({ success: true, token });
     } else {
-      req.db.users.update({
+      await req.db.users.update({
         username: req.query.username,
         username_booked_at: new Date(),
       }, { where: { email: req.query.email } });
+      res.json({ success: true, token });
     }
   } else {
     res.status(400).json({ errors });
