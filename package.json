@@ -55,7 +55,7 @@
     "mailgun-js": "^0.13.1",
     "maxmind": "^2.2.0",
     "morgan": "^1.9.0",
-    "mysql": "^2.14.1",
+    "mysql2": "^1.5.1",
     "node-sass": "^4.5.3",
     "nodemon": "^1.12.1",
     "numeral": "^1.5.3",
