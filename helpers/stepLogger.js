@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { api } from 'steem';
+import { api } from '@steemit/steem-js';
 
 const logStep = (step, stepNumber) => {
   api.call('overseer.collect', ['signup', { step, stepNumber }], (error) => {
