@@ -61,7 +61,7 @@ class Password extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, init, intl } = this.props;
+    const { form: { getFieldDecorator }, init, intl, goBack } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form password-step">
         <Form.Item>
@@ -104,6 +104,12 @@ class Password extends React.Component {
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
           </Form.Item>
+          {goBack &&
+          <Form.Item>
+            <Button htmlType="button" className="back" onClick={() => goBack('password', 1)}>
+              <FormattedMessage id="go_back" />
+            </Button>
+          </Form.Item>}
         </div>
       </Form>
     );

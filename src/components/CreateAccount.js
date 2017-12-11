@@ -64,6 +64,10 @@ class CreateAccount extends Component {
     }
   }
 
+  goBack = (step, stepNumber) => {
+    this.setState({ step, stepNumber });
+  }
+
   handleSubmitUsername = (values) => {
     this.setState({
       step: 'password',
@@ -149,7 +153,11 @@ class CreateAccount extends Component {
             <div className="form-content">
               <h1><FormattedMessage id="confirm_account" /></h1>
               <p><FormattedMessage id="confirm_password" /></p>
-              <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
+              <FormCreateAccountPassword
+                onSubmit={this.handleSubmit}
+                password={password}
+                goBack={this.goBack}
+              />
             </div>}
             {step === 'created' &&
             <div className="form-content">
