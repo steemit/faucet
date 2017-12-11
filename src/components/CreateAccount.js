@@ -148,7 +148,6 @@ class CreateAccount extends Component {
             {step === 'password_confirm' &&
             <div className="form-content">
               <h1><FormattedMessage id="confirm_account" /></h1>
-              <p><FormattedMessage id="confirm_username" values={{ username }} /></p>
               <p><FormattedMessage id="confirm_password" /></p>
               <FormCreateAccountPassword onSubmit={this.handleSubmit} password={password} />
             </div>}
