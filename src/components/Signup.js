@@ -126,7 +126,7 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
+    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
     const { setLocale, locale } = this.props;
 
     return (
