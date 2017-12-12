@@ -16,49 +16,6 @@ router.get('/', (req, res) => {
   res.json({});
 });
 
-const sendConfirmationEmail = async (req, res) => {
-  const date = new Date();
-  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
-  const user = await req.db.users.findOne({ where: { email: req.query.email } });
-
-  if (user.email_is_verified) {
-    const errors = [{ field: 'email', error: 'error_api_email_verified' }];
-    res.status(400).json({ errors });
-  } else if (
-    !user.last_attempt_verify_email ||
-    user.last_attempt_verify_email.getTime() < oneMinLater
-  ) {
-    // create an email token valid for 24 hours
-    const mailToken = jwt.sign({
-      type: 'confirm_email',
-      email: req.query.email,
-    }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    req.mail.send(req.query.email, 'confirm_email', {
-      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
-    },
-    (err) => {
-      if (!err) {
-        const token = jwt.sign({
-          type: 'signup',
-          email: req.query.email,
-        }, process.env.JWT_SECRET);
-
-        req.db.users.update({
-          last_attempt_verify_email: new Date(),
-        }, { where: { email: req.query.email } });
-
-        res.json({ success: true, token });
-      } else {
-        const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
-        res.status(500).json({ errors });
-      }
-    });
-  } else {
-    const errors = [{ field: 'email', error: 'error_api_wait' }];
-    res.status(400).json({ errors });
-  }
-};
-
 router.get('/request_email', async (req, res) => {
   const errors = [];
   if (!req.query.recaptcha) {
@@ -93,9 +50,12 @@ router.get('/request_email', async (req, res) => {
         email: req.query.email,
       },
     });
-
+    const token = jwt.sign({
+      type: 'signup',
+      email: req.query.email,
+    }, process.env.JWT_SECRET);
     if (userExist === 0) {
-      req.db.users.create({
+      await req.db.users.create({
         email: req.query.email,
         email_is_verified: false,
         last_attempt_verify_email: null,
@@ -109,14 +69,14 @@ router.get('/request_email', async (req, res) => {
         fingerprint: JSON.parse(req.query.fingerprint),
         username: req.query.username,
         username_booked_at: new Date(),
-      }).then(async () => { await sendConfirmationEmail(req, res); });
+      });
+      res.json({ success: true, token });
     } else {
-      req.db.users.update({
+      await req.db.users.update({
         username: req.query.username,
         username_booked_at: new Date(),
       }, { where: { email: req.query.email } });
-
-      await sendConfirmationEmail(req, res);
+      res.json({ success: true, token });
     }
   } else {
     res.status(400).json({ errors });
@@ -248,18 +208,17 @@ const approveAccount = async (req, email) => {
     },
     (err) => {
       if (err) {
-        console.log(err);
         throw new Error(err);
       }
     });
   } catch (err) {
-    console.log(err);
+    // Do nothing
   }
 };
 
 const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
-  if (user && user.email_is_verified && user.phone_number_is_verified) {
+  if (user && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
     let result;
     try {
@@ -322,7 +281,7 @@ router.get('/confirm_sms', async (req, res) => {
             phone_code_attempts: user.phone_code_attempts + 1,
           }, { where: { email: decoded.email } });
           await sendAccountInformation(req, decoded.email);
-          res.json({ success: true, completed: user.email_is_verified });
+          res.json({ success: true });
         }
       } else {
         errors.push({ field: 'code', error: 'error_api_unknown_user' });
@@ -333,45 +292,6 @@ router.get('/confirm_sms', async (req, res) => {
   }
   if (errors.length > 0) {
     res.status(500).json({ errors });
-  }
-});
-
-router.get('/confirm_email', async (req, res) => {
-  if (!req.query.token) {
-    res.status(400).json({ error: 'error_api_token_required' });
-  } else {
-    let decoded;
-    try {
-      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-      if (decoded.type === 'confirm_email') {
-        const user = await req.db.users.findOne({ where: { email: decoded.email } });
-        const token = jwt.sign({
-          type: 'signup',
-          email: decoded.email,
-        }, process.env.JWT_SECRET);
-        if (!user) {
-          res.status(400).json({ error: 'error_api_email_exists_not' });
-        } else {
-          if (!user.email_is_verified) {
-            await req.db.users.update({
-              email_is_verified: true,
-            }, { where: { email: decoded.email } });
-            await sendAccountInformation(req, decoded.email);
-          }
-          res.json({
-            success: true,
-            completed: user.phone_number_is_verified,
-            email: user.email,
-            username: user.username,
-            token,
-          });
-        }
-      } else {
-        res.status(400).json({ error: 'error_api_token_invalid' });
-      }
-    } catch (err) {
-      res.status(500).json({ error: 'error_api_token_invalid' });
-    }
   }
 });
 
@@ -396,6 +316,9 @@ router.get('/confirm_account', async (req, res) => {
         } else if (user.status === 'created') {
           res.status(400).json({ error: 'error_api_account_created' });
         } else if (user.status === 'approved') {
+          await req.db.users.update({
+            email_is_verified: true,
+          }, { where: { email: decoded.email } });
           const accounts = await steem.api.getAccountsAsync([user.username]);
           if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
             res.json({ success: true, username: '', reservedUsername: user.username });
@@ -462,7 +385,6 @@ router.get('/create_account', async (req, res) => {
             [],
             (err) => {
               if (err) {
-                console.log(err);
                 res.status(500).json({ error: 'error_api_create_account', detail: err });
               } else {
                 req.db.users.update({
@@ -493,7 +415,6 @@ router.get('/approve_account', async (req, res) => {
     await Promise.all(decoded.emails.map(email => (approveAccount(req, email))));
     res.json({ success: true });
   } catch (err) {
-    console.log(err);
     const errors = [{ error: 'Failed to send approve account emails' }];
     res.status(500).json({ errors });
   }
