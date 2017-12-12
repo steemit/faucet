@@ -124,6 +124,7 @@ function makeConfig(options) {
           test: /\.(eot|ttf|woff|woff2)(\?.+)?$/,
         }
       ].concat(makeStyleLoaders(options)),
+      noParse: /libphonenumber.js$/
     },
   };
 }
