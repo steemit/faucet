@@ -128,7 +128,7 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
+    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
     const { setLocale, locale } = this.props;
 
     return (
@@ -226,9 +226,8 @@ class Signup extends Component {
             {step === 'finish' &&
             <div className="form-content">
               <h1><FormattedMessage id="almost_there" /></h1>
-              {!completed && <p><FormattedMessage id="finish_text_1" /></p>}
+              <p><FormattedMessage id="finish_text_1" /></p>
               <p><FormattedMessage id="finish_text_2" /></p>
-              <p><FormattedMessage id="finish_text_3" /></p>
             </div>
             }
           </div>
