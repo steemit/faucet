@@ -15,6 +15,9 @@ import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 import './Signup.less';
 
+const PNF = require('google-libphonenumber').PhoneNumberFormat;
+const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
+
 @connect(
   state => ({
     locale: state.appLocale.locale,
@@ -128,7 +131,12 @@ class Signup extends Component {
   render() {
     const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
     const { setLocale, locale } = this.props;
-
+    let phoneNumberFormatted = phoneNumber;
+    if (phoneNumber && prefix) {
+      phoneNumberFormatted = phoneUtil.format(
+        phoneUtil.parse(phoneNumber, prefix.split('_')[1]),
+        PNF.INTERNATIONAL);
+    }
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
@@ -201,8 +209,7 @@ class Signup extends Component {
                 <FormattedMessage
                   id="sms_code"
                   values={{
-                    prefix: prefix.split('_')[0],
-                    phoneNumber: phoneNumber.slice(1),
+                    phoneNumber: phoneNumberFormatted,
                     editLink: <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
                       <FormattedMessage id="edit" />
                     </a>,
