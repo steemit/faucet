@@ -65,6 +65,9 @@ module.exports = {
       username_booked_at: {
         type: Sequelize.DATE,
       },
+      redirect_uri: {
+        type: Sequelize.STRING,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),

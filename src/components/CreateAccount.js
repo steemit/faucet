@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import fetch from 'isomorphic-fetch';
+import { Form } from 'antd';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import { checkStatus, parseJSON } from '../utils/fetch';
@@ -29,6 +30,7 @@ class CreateAccount extends Component {
       username: '',
       password: '',
       reservedUsername: '',
+      redirectUri: '',
     };
   }
 
@@ -48,6 +50,7 @@ class CreateAccount extends Component {
               stepNumber: data.username === '' ? 0 : 1,
               username: data.username,
               reservedUsername: data.reservedUsername,
+              redirectUri: data.redirectUri,
             });
             logStep('username', 0);
           } else {
@@ -105,8 +108,14 @@ class CreateAccount extends Component {
   }
 
   render() {
-    const { step, stepNumber, error, username, reservedUsername, password } = this.state;
-
+    const {
+      step, stepNumber, error, username, reservedUsername, redirectUri, password,
+    } = this.state;
+    if (step === 'created' && redirectUri && redirectUri !== '') {
+      setTimeout(() => {
+        window.location.href = redirectUri;
+      }, 10000);
+    }
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
@@ -156,6 +165,11 @@ class CreateAccount extends Component {
             <div className="form-content">
               <h1><FormattedMessage id="welcome" /> {username}</h1>
               <p><FormattedMessage id="enjoy_steem" /></p>
+              {redirectUri && redirectUri !== '' && <p><FormattedMessage id="redirect_ten_seconds" /></p>}
+              {redirectUri && redirectUri !== '' &&
+              <Form.Item>
+                <a className="redirect-btn" href={redirectUri} target="_blank" rel="noopener noreferrer"><FormattedMessage id="click_here" /></a>
+              </Form.Item>}
             </div>}
           </div>
           <div className="Signup__icons">
