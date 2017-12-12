@@ -48,6 +48,7 @@ function makePlugins(options) {
   } else {
     plugins = plugins.concat([
       new webpack.optimize.DedupePlugin(),
+      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
       new webpack.optimize.UglifyJsPlugin({
         minimize: true,
         compress: {
