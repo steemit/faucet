@@ -15,9 +15,6 @@ import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 import './Signup.less';
 
-const PNF = require('google-libphonenumber').PhoneNumberFormat;
-const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
-
 @connect(
   state => ({
     locale: state.appLocale.locale,
@@ -55,6 +52,7 @@ class Signup extends Component {
       username: props.location.query.username || '',
       email: props.location.query.email || '',
       phoneNumber: '',
+      phoneNumberFormatted: '',
       token: props.location.query.token || '',
       countryCode: '',
       prefix: '',
@@ -114,6 +112,7 @@ class Signup extends Component {
       step: 'confirmPhoneNumber',
       stepNumber: 3,
       phoneNumber: values.phoneNumber,
+      phoneNumberFormatted: values.phoneNumberFormatted,
       prefix: values.prefix,
     });
     logStep('confirmPhoneNumber', 3);
@@ -129,14 +128,11 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token, countryCode, prefix, phoneNumber, completed } = this.state;
+    const {
+      step, stepNumber, token, countryCode, prefix, phoneNumberFormatted, phoneNumber, completed,
+    } = this.state;
     const { setLocale, locale } = this.props;
-    let phoneNumberFormatted = phoneNumber;
-    if (phoneNumber && prefix) {
-      phoneNumberFormatted = phoneUtil.format(
-        phoneUtil.parse(phoneNumber, prefix.split('_')[1]),
-        PNF.INTERNATIONAL);
-    }
+
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />

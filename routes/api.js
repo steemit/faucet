@@ -192,7 +192,7 @@ router.get('/request_sms', async (req, res) => {
             to: phoneNumber,
             from: process.env.TWILIO_PHONE_NUMBER,
           }).then(() => {
-            res.json({ success: true });
+            res.json({ success: true, phoneNumber });
           }).catch((error) => {
             const status = error.status || 400;
             res.status(status).json(error);

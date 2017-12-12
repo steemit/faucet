@@ -39,7 +39,7 @@ class PhoneNumber extends React.Component {
             this.setState({ submitting: false });
             if (data.success) {
               if (this.props.onSubmit) {
-                this.props.onSubmit(values);
+                this.props.onSubmit({ ...values, phoneNumberFormatted: data.phoneNumber });
               }
             }
           })
