@@ -90,10 +90,14 @@ class CreateAccount extends Component {
   componentDidUpdate() {
     const { step, query } = this.state;
     if (step === 'created') {
-      const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
-      setTimeout(() => {
-        window.location.href = `${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`;
-      }, 5000);
+      if (process.env.IS_BROWSER && query && query.view_mode && query.view_mode === 'whistle') {
+        window.postMessage('whistle_signup_complete');
+      } else {
+        const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
+        setTimeout(() => {
+          window.location.href = `${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`;
+        }, 5000);
+      }
     }
   }
 
