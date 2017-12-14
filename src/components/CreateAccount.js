@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import fetch from 'isomorphic-fetch';
-import { Button, Icon, Popover } from 'antd';
+import { Button, Form, Icon, Popover } from 'antd';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import LanguageItem from './LanguageItem';
@@ -50,6 +50,7 @@ class CreateAccount extends Component {
       username: '',
       password: '',
       reservedUsername: '',
+      query: {},
     };
   }
 
@@ -69,6 +70,7 @@ class CreateAccount extends Component {
               stepNumber: data.username === '' ? 0 : 1,
               username: data.username,
               reservedUsername: data.reservedUsername,
+              query: data.query,
             });
             logStep('username', 0);
           } else {
@@ -82,6 +84,16 @@ class CreateAccount extends Component {
             logStep('confirm_account_error', -1);
           });
         });
+    }
+  }
+
+  componentDidUpdate() {
+    const { step, query } = this.state;
+    if (step === 'created') {
+      const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
+      setTimeout(() => {
+        window.location.href = `${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`;
+      }, 5000);
     }
   }
 
@@ -130,9 +142,9 @@ class CreateAccount extends Component {
   }
 
   render() {
-    const { step, stepNumber, error, username, reservedUsername, password } = this.state;
+    const { step, stepNumber, error, username, reservedUsername, password, query } = this.state;
     const { setLocale, locale } = this.props;
-
+    const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
@@ -199,6 +211,14 @@ class CreateAccount extends Component {
             <div className="form-content">
               <h1><FormattedMessage id="welcome" /> {username}</h1>
               <p><FormattedMessage id="enjoy_steem" /></p>
+              <Form.Item>
+                <a
+                  href={`${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`}
+                  className="redirect-btn"
+                >
+                  <FormattedMessage id="redirect_button_text" />
+                </a>
+              </Form.Item>
             </div>}
           </div>
           <div className="Signup__icons">

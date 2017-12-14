@@ -67,6 +67,7 @@ router.get('/request_email', async (req, res) => {
         created_at: new Date(),
         updated_at: null,
         fingerprint: JSON.parse(req.query.fingerprint),
+        metadata: { query: JSON.parse(req.query.query) },
         username: req.query.username,
         username_booked_at: new Date(),
       });
@@ -323,7 +324,7 @@ router.get('/confirm_account', async (req, res) => {
           if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
             res.json({ success: true, username: '', reservedUsername: user.username });
           }
-          res.json({ success: true, username: user.username, reservedUsername: '' });
+          res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
         } else {
           res.status(400).json({ error: 'error_api_account_verification_pending' });
         }

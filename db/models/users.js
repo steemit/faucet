@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => (
     status: DataTypes.STRING,
     username: DataTypes.STRING,
     username_booked_at: DataTypes.DATE,
+    metadata: DataTypes.JSON,
   }, {
     freezeTableName: true,
     underscored: true,
