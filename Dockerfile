@@ -6,6 +6,7 @@ RUN apk add --update git
 
 WORKDIR /app
 ADD . /app
-RUN yarn install
+RUN yarn install --frozen-lockfile
+RUN yarn run test
 
 ENTRYPOINT [ "yarn", "start" ]
