@@ -18,6 +18,7 @@ module.exports = {
         status: null,
         username: 'fabien2017',
         username_booked_at: new Date(),
+        metadata: JSON.stringify({ query: { uid: '12345' } }),
       },
     ], {})
   ),

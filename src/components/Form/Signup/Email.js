@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
@@ -9,16 +9,24 @@ import fingerprint from '../../../../helpers/fingerprint';
 import { validateEmail, validateEmailDomain } from '../../../utils/validator';
 
 class Email extends React.Component {
+  static contextTypes = {
+    router: PropTypes.shape({}),
+  }
+
   constructor(props) {
     super(props);
     this.state = {
       submitting: false,
       fingerprint: '',
+      query: '',
     };
   }
 
   componentWillMount() {
-    this.setState({ fingerprint: JSON.stringify(fingerprint()) });
+    this.setState({
+      fingerprint: JSON.stringify(fingerprint()),
+      query: JSON.stringify(this.context.router.location.query),
+    });
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -60,7 +68,7 @@ class Email extends React.Component {
   handleSubmit = () => {
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
+        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&query=${this.state.query}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
