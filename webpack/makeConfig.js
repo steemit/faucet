@@ -31,6 +31,7 @@ function makePlugins(options) {
         ),
         IS_BROWSER: JSON.stringify(true),
         RECAPTCHA_SITE_KEY: JSON.stringify(process.env.RECAPTCHA_SITE_KEY),
+        DEFAULT_REDIRECT_URI: JSON.stringify(process.env.DEFAULT_REDIRECT_URI),
       },
     }),
     new LodashModuleReplacementPlugin({ collections: true, paths: true }),

@@ -65,6 +65,9 @@ module.exports = {
       username_booked_at: {
         type: Sequelize.DATE,
       },
+      metadata: {
+        type: Sequelize.JSON,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),
