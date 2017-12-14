@@ -10,11 +10,11 @@
   "scripts": {
     "start": "nodemon --ignore src ./bin/www",
     "eslint-autofix": "eslint --fix \"src/**/*.js\" \"*.js\"",
-    "test": "npm run lint && nsp check --output summary",
+    "test": "yarn run lint && nsp check --output summary",
     "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "build": "webpack --progress -p --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress -p --config webpack/webpack.config.js",
-    "postinstall": "npm run build"
+    "postinstall": "yarn run build"
   },
   "dependencies": {
     "@steemit/steem-js": "^0.6.9",
