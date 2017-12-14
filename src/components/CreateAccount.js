@@ -90,7 +90,7 @@ class CreateAccount extends Component {
   componentDidUpdate() {
     const { step, query } = this.state;
     if (step === 'created') {
-      if (process.env.IS_BROWSER && query && query.view_mode && query.view_mode === 'whistle') {
+      if (this.isWhistle()) {
         window.postMessage('whistle_signup_complete');
       } else {
         const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
@@ -99,6 +99,11 @@ class CreateAccount extends Component {
         }, 5000);
       }
     }
+  }
+
+  isWhistle = () => {
+    const { query } = this.state;
+    return query && query.view_mode && query.view_mode === 'whistle';
   }
 
   goBack = (step, stepNumber) => {
@@ -215,6 +220,7 @@ class CreateAccount extends Component {
             <div className="form-content">
               <h1><FormattedMessage id="welcome" /> {username}</h1>
               <p><FormattedMessage id="enjoy_steem" /></p>
+              {!this.isWhistle() &&
               <Form.Item>
                 <a
                   href={`${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`}
@@ -222,7 +228,7 @@ class CreateAccount extends Component {
                 >
                   <FormattedMessage id="redirect_button_text" />
                 </a>
-              </Form.Item>
+              </Form.Item>}
             </div>}
           </div>
           <div className="Signup__icons">
