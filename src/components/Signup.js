@@ -52,6 +52,7 @@ class Signup extends Component {
       username: props.location.query.username || '',
       email: props.location.query.email || '',
       phoneNumber: '',
+      phoneNumberFormatted: '',
       token: props.location.query.token || '',
       countryCode: '',
       prefix: '',
@@ -111,6 +112,7 @@ class Signup extends Component {
       step: 'confirmPhoneNumber',
       stepNumber: 3,
       phoneNumber: values.phoneNumber,
+      phoneNumberFormatted: values.phoneNumberFormatted,
       prefix: values.prefix,
     });
     logStep('confirmPhoneNumber', 3);
@@ -126,7 +128,9 @@ class Signup extends Component {
   };
 
   render() {
-    const { step, stepNumber, token, countryCode, prefix, phoneNumber } = this.state;
+    const {
+      step, stepNumber, token, countryCode, prefix, phoneNumberFormatted, phoneNumber,
+    } = this.state;
     const { setLocale, locale } = this.props;
 
     return (
@@ -201,8 +205,7 @@ class Signup extends Component {
                 <FormattedMessage
                   id="sms_code"
                   values={{
-                    prefix: prefix.split('_')[0],
-                    phoneNumber,
+                    phoneNumber: phoneNumberFormatted,
                     editLink: <a href={undefined} onClick={() => this.setState({ step: 'phoneNumber', stepNumber: 2 })}>
                       <FormattedMessage id="edit" />
                     </a>,
