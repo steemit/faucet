@@ -12,7 +12,7 @@ const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
 
-const conveyorAccount = process.env.CONVEYOR_USER;
+const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
 const conveyor = cloneDeep(steem);
 conveyor.config.set('address_prefix', 'STX');
