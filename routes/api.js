@@ -405,14 +405,15 @@ router.get('/create_account', async (req, res) => {
             publicKeys.memo,
             JSON.stringify({}),
             [],
-            (err) => {
+            async (err) => {
               if (err) {
                 res.status(500).json({ error: 'error_api_create_account', detail: err });
               } else {
-                req.db.users.update({
-                  username: req.query.username,
-                  status: 'created',
-                }, { where: { email: decoded.email } });
+                const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
+                const signedCallAsync = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
+                await signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
+
+                req.db.users.destroy({ where: { email: decoded.email } });
 
                 res.json({ success: true });
               }
