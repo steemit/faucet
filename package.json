@@ -17,7 +17,7 @@
     "postinstall": "yarn run build"
   },
   "dependencies": {
-    "@steemit/steem-js": "^0.6.9",
+    "@steemit/steem-js": "0.6.10",
     "antd": "2.13.11",
     "autoprefixer-loader": "^3.2.0",
     "babel-core": "^6.26.0",
