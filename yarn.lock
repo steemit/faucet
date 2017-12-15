@@ -70,10 +70,21 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@steemit/steem-js@^0.6.9":
-  version "0.6.9"
-  resolved "https://registry.yarnpkg.com/@steemit/steem-js/-/steem-js-0.6.9.tgz#231df48e19b9e9b3bcfe693dbb9ec16f16c3e16e"
+"@steemit/libcrypto@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@steemit/libcrypto/-/libcrypto-1.0.1.tgz#c31ab3e5deb667628169b3d54d746b015de31a79"
+
+"@steemit/rpc-auth@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@steemit/rpc-auth/-/rpc-auth-1.1.0.tgz#4170c04d928ef37af5bdbde3f517ef74909480bd"
   dependencies:
+    "@steemit/libcrypto" "^1.0.1"
+
+"@steemit/steem-js@0.6.10":
+  version "0.6.10"
+  resolved "https://registry.yarnpkg.com/@steemit/steem-js/-/steem-js-0.6.10.tgz#cfc66bbabd391c8d91234785367ccf1a329236ca"
+  dependencies:
+    "@steemit/rpc-auth" "^1.1.0"
     bigi "^1.4.2"
     bluebird "^3.4.6"
     browserify-aes "^1.0.6"
@@ -88,7 +99,6 @@
     detect-node "^2.0.3"
     ecurve "^1.0.5"
     lodash "^4.16.4"
-    postinstall-build "^5.0.1"
     secure-random "^1.1.1"
     ws "^3.3.2"
 
@@ -5665,10 +5675,6 @@ postgres-interval@^1.1.0:
   resolved "https://registry.yarnpkg.com/postgres-interval/-/postgres-interval-1.1.1.tgz#acdb0f897b4b1c6e496d9d4e0a853e1c428f06f0"
   dependencies:
     xtend "^4.0.0"
-
-postinstall-build@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/postinstall-build/-/postinstall-build-5.0.1.tgz#b917a9079b26178d9a24af5a5cd8cb4a991d11b9"
 
 prelude-ls@~1.1.2:
   version "1.1.2"
