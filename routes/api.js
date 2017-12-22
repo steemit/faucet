@@ -29,7 +29,8 @@ router.get('/', (req, res) => {
  * Checks for the email step
  * Recaptcha, bad domains and existence with conveyor are verified
  * A token containing the email is generated for the next steps
- * The user stored temporary until its blockchain creation
+ * The user is then temporary stored in the database until the process is completed
+ * and his account created in the Steem blockchain
  */
 router.get('/request_email', async (req, res) => {
   const errors = [];
