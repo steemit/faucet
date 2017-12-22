@@ -3,10 +3,7 @@
   "scripts": {
   },
   "env": {
-    "DATABASE_NAME": {
-      "required": true
-    },
-    "JAWSDB_URL": {
+    "DATABASE_URL": {
       "required": true
     },
     "JWT_SECRET": {
