@@ -30,16 +30,17 @@ class PhoneNumber extends React.Component {
     e.preventDefault();
     if (this.state.submitting) return;
     this.setState({ submitting: true });
-    this.props.form.validateFieldsAndScroll((err, values) => {
+    const { form: { validateFieldsAndScroll, setFields }, token, onSubmit, intl } = this.props;
+    validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_sms?token=${this.props.token}&phoneNumber=${values.phoneNumber}&prefix=${values.prefix}`)
+        fetch(`/api/request_sms?token=${token}&phoneNumber=${values.phoneNumber}&prefix=${values.prefix}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
-              if (this.props.onSubmit) {
-                this.props.onSubmit({ ...values, phoneNumberFormatted: data.phoneNumber });
+              if (onSubmit) {
+                onSubmit({ ...values, phoneNumberFormatted: data.phoneNumber });
               }
             }
           })
@@ -48,11 +49,11 @@ class PhoneNumber extends React.Component {
             error.response.json().then((data) => {
               const phoneNumberError = data.errors.find(o => o.field === 'phoneNumber');
               if (phoneNumberError) {
-                this.props.form.setFields({
+                setFields({
                   phoneNumber: {
                     value: values.phoneNumber,
                     errors: [
-                      new Error(this.props.intl.formatMessage({ id: phoneNumberError.error })),
+                      new Error(intl.formatMessage({ id: phoneNumberError.error })),
                     ],
                   },
                 });
@@ -60,10 +61,10 @@ class PhoneNumber extends React.Component {
 
               const prefixError = data.errors.find(o => o.field === 'prefix');
               if (prefixError) {
-                this.props.form.setFields({
+                setFields({
                   prefix: {
                     value: values.prefix,
-                    errors: [new Error(this.props.intl.formatMessage({ id: prefixError.error }))],
+                    errors: [new Error(intl.formatMessage({ id: prefixError.error }))],
                   },
                 });
               }

@@ -72,11 +72,8 @@ class Signup extends Component {
   }
 
   initStep = () => {
-    if (
-      this.props.location.query.email &&
-      this.props.location.query.username &&
-      this.props.location.query.token
-    ) {
+    const { location: { query: { email, username, token } } } = this.props;
+    if (email && username && token) {
       logStep('phoneNumber', 2);
       return { step: 'phoneNumber', stepNumber: 2 };
     }
@@ -129,7 +126,8 @@ class Signup extends Component {
 
   render() {
     const {
-      step, stepNumber, token, countryCode, prefix, phoneNumberFormatted, phoneNumber,
+      step, stepNumber, token, countryCode, prefix,
+      phoneNumberFormatted, phoneNumber, username, email,
     } = this.state;
     const { setLocale, locale } = this.props;
 
@@ -168,8 +166,8 @@ class Signup extends Component {
               <p><FormattedMessage id="username_know" /></p>
               <FormSignupUsername
                 onSubmit={this.handleSubmitUsername}
-                username={this.state.username}
-                email={this.state.email}
+                username={username}
+                email={email}
               />
             </div>}
             {step === 'email' &&
@@ -178,8 +176,8 @@ class Signup extends Component {
               <p><FormattedMessage id="confirm_existence" /></p>
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
-                username={this.state.username}
-                email={this.state.email}
+                username={username}
+                email={email}
                 goBack={this.goBack}
               />
             </div>
