@@ -25,6 +25,13 @@ router.get('/', (req, res) => {
   res.json({});
 });
 
+/**
+ * Checks for the email step
+ * Recaptcha, bad domains and existence with conveyor are verified
+ * A token containing the email is generated for the next steps
+ * The user is then temporary stored in the database until the process is completed
+ * and his account created in the Steem blockchain
+ */
 router.get('/request_email', async (req, res) => {
   const errors = [];
   if (!req.query.recaptcha) {
@@ -98,6 +105,10 @@ router.get('/request_email', async (req, res) => {
   }
 });
 
+/**
+ * Checks the phone validity and use with the conveyor
+ * The user can only request one code every minute to prevent flood
+ */
 router.get('/request_sms', async (req, res) => {
   let decoded;
   const errors = [];
@@ -190,6 +201,9 @@ router.get('/request_sms', async (req, res) => {
   }
 });
 
+/**
+ * Mocking route of the steemit gatekeeper
+ */
 router.get('/check', (req, res) => {
   // mocking the response according to
   // https://github.com/steemit/gatekeeper/blob/master/src/classifier.ts#L13
@@ -216,6 +230,9 @@ const rejectAccount = async (req, email) => {
     });
 };
 
+/**
+ * Send the email to user to continue the account creation process
+ */
 const approveAccount = async (req, email) => {
   try {
     const mailToken = jwt.sign({
@@ -236,6 +253,10 @@ const approveAccount = async (req, email) => {
   }
 };
 
+/**
+ * Check for the status of an account using the steemit gatekeeper
+ * An account can have approved, rejected or manual_review status
+ */
 const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
   if (user && user.phone_number_is_verified) {
@@ -261,6 +282,10 @@ const sendAccountInformation = async (req, email) => {
   }
 };
 
+/**
+ * Verify the SMS code and then ask the gatekeeper for the status of the account
+ * do decide the next step
+ */
 router.get('/confirm_sms', async (req, res) => {
   let decoded;
   const errors = [];
@@ -315,11 +340,18 @@ router.get('/confirm_sms', async (req, res) => {
   }
 });
 
+/** Return the country code using maxmind database */
 router.get('/guess_country', (req, res) => {
   const location = req.geoip.get(req.ip);
   res.json({ location });
 });
 
+/**
+ * After the account approval, the user receive an email to continue the creation process.
+ * We verify that the account is confirmed, confirm the email
+ * and initialize his username if it's still available
+ * Rejected accounts are marked as pending review
+ */
 router.get('/confirm_account', async (req, res) => {
   if (!req.query.token) {
     res.status(400).json({ error: 'error_api_token_required' });
@@ -356,6 +388,11 @@ router.get('/confirm_account', async (req, res) => {
   }
 });
 
+/**
+ * Create the account on the blockchain using steem-js
+ * Send the data to the conveyor that will store the user account
+ * Remove the user information from our database
+ */
 router.get('/create_account', async (req, res) => {
   if (!req.query.token) {
     res.status(400).json({ error: 'error_api_token_required' });
@@ -428,6 +465,11 @@ router.get('/create_account', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint called by the faucet admin to approve accounts
+ * The email allowing the users to continue the creation process is sent
+ * to all approved accounts
+ */
 router.get('/approve_account', async (req, res) => {
   try {
     const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
@@ -440,6 +482,10 @@ router.get('/approve_account', async (req, res) => {
   }
 });
 
+/**
+ * Check the validity and blockchain availability of a username
+ * Accounts created with the faucet can book a username for one week
+ */
 router.get('/check_username', async (req, res) => {
   const username = req.query.username;
   const accounts = await steem.api.getAccountsAsync([req.query.username]);
