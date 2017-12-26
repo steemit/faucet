@@ -5,7 +5,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../../../utils/fetch';
-import fingerprint from '../../../../helpers/fingerprint';
+import getFingerprint from '../../../../helpers/fingerprint';
 import { validateEmail, validateEmailDomain } from '../../../utils/validator';
 
 class Email extends React.Component {
@@ -24,7 +24,7 @@ class Email extends React.Component {
 
   componentWillMount() {
     this.setState({
-      fingerprint: JSON.stringify(fingerprint()),
+      fingerprint: JSON.stringify(getFingerprint()),
       query: JSON.stringify(this.context.router.location.query),
     });
   }
@@ -66,16 +66,18 @@ class Email extends React.Component {
   }
 
   handleSubmit = () => {
-    this.props.form.validateFieldsAndScroll((err, values) => {
+    const { form: { validateFieldsAndScroll, setFields }, onSubmit, username, intl } = this.props;
+    const { fingerprint, query } = this.state;
+    validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${this.state.fingerprint}&query=${this.state.query}&username=${this.props.username}&recaptcha=${window.grecaptcha.getResponse()}`)
+        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${fingerprint}&query=${query}&username=${username}&recaptcha=${window.grecaptcha.getResponse()}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
-              if (this.props.onSubmit) {
-                this.props.onSubmit(
+              if (onSubmit) {
+                onSubmit(
                   values,
                   data.token,
                 );
@@ -87,10 +89,10 @@ class Email extends React.Component {
             error.response.json().then((data) => {
               const emailError = data.errors.find(o => o.field === 'email');
               if (emailError) {
-                this.props.form.setFields({
+                setFields({
                   email: {
                     value: values.email,
-                    errors: [new Error(this.props.intl.formatMessage({ id: emailError.error }))],
+                    errors: [new Error(intl.formatMessage({ id: emailError.error }))],
                   },
                 });
               }

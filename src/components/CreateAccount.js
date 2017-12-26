@@ -55,12 +55,12 @@ class CreateAccount extends Component {
   }
 
   componentWillMount() {
-    const token = this.props.location.query.token;
+    const { location: { query: { token } }, intl } = this.props;
     if (!token) {
-      this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: 'error_token_required' }) });
+      this.setState({ step: 'error', error: intl.formatMessage({ id: 'error_token_required' }) });
       logStep('error', -1);
     } else {
-      fetch(`/api/confirm_account?token=${this.props.location.query.token}`)
+      fetch(`/api/confirm_account?token=${token}`)
         .then(checkStatus)
         .then(parseJSON)
         .then((data) => {
@@ -74,13 +74,13 @@ class CreateAccount extends Component {
             });
             logStep('username', 0);
           } else {
-            this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
+            this.setState({ step: 'error', error: intl.formatMessage({ id: data.error }) });
             logStep('confirm_account_error', -1);
           }
         })
         .catch((error) => {
           error.response.json().then((data) => {
-            this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
+            this.setState({ step: 'error', error: intl.formatMessage({ id: data.error }) });
             logStep('confirm_account_error', -1);
           });
         });
@@ -129,10 +129,11 @@ class CreateAccount extends Component {
   }
 
   handleSubmit = () => {
+    const { location: { query: { token } }, intl } = this.props;
     const { username, password } = this.state;
     const publicKeys = steem.auth.generateKeys(username, password, ['owner', 'active', 'posting', 'memo']);
 
-    fetch(`/api/create_account?token=${this.props.location.query.token}&username=${username}&public_keys=${JSON.stringify(publicKeys)}`)
+    fetch(`/api/create_account?token=${token}&username=${username}&public_keys=${JSON.stringify(publicKeys)}`)
       .then(checkStatus)
       .then(parseJSON)
       .then((data) => {
@@ -140,12 +141,12 @@ class CreateAccount extends Component {
           this.setState({ step: 'created' });
           logStep('created', 3);
         } else {
-          this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
+          this.setState({ step: 'error', error: intl.formatMessage({ id: data.error }) });
           logStep('created_error', -1);
         }
       })
-      .catch((data) => {
-        this.setState({ step: 'error', error: this.props.intl.formatMessage({ id: data.error }) });
+      .catch(() => {
+        this.setState({ step: 'error', error: intl.formatMessage({ id: 'error_api_create_account' }) });
         logStep('created_error', -1);
       });
   }

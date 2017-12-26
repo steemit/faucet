@@ -20,7 +20,7 @@ function getDevice(gl) {
   return { vendor, renderer };
 }
 
-function fingerprint() {
+function getFingerprint() {
   const rv = {};
   try {
     const canvas = document.createElement('canvas');
@@ -43,4 +43,4 @@ function fingerprint() {
   return rv;
 }
 
-export default fingerprint;
+export default getFingerprint;
