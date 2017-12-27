@@ -3,6 +3,9 @@
   "scripts": {
   },
   "env": {
+    "DATABASE_NAME": {
+      "required": true
+    },
     "DATABASE_URL": {
       "required": true
     },
