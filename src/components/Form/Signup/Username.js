@@ -24,13 +24,14 @@ class Username extends React.Component {
       if (window.usernameTimeout) {
         window.clearTimeout(window.usernameTimeout);
       }
+      const { email, intl } = this.props;
       window.usernameTimeout = setTimeout(() => {
-        fetch(`/api/check_username?username=${value}&email=${this.props.email}`)
+        fetch(`/api/check_username?username=${value}&email=${email}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
             if (data.error) {
-              callback(this.props.intl.formatMessage({ id: data.error }));
+              callback(intl.formatMessage({ id: data.error }));
             } else {
               this.setState({ username: value });
               callback();
@@ -46,9 +47,10 @@ class Username extends React.Component {
     e.preventDefault();
     if (this.state.submitting) return;
     this.setState({ submitting: true });
-    this.props.form.validateFieldsAndScroll((err, values) => {
+    const { form: { validateFieldsAndScroll }, onSubmit } = this.props;
+    validateFieldsAndScroll((err, values) => {
       if (!err) {
-        this.props.onSubmit(values);
+        onSubmit(values);
       } else {
         this.setState({ submitting: false });
       }
