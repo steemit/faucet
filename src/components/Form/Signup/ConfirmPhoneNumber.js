@@ -17,16 +17,17 @@ class ConfirmPhoneNumber extends React.Component {
     e.preventDefault();
     if (this.state.submitting) return;
     this.setState({ submitting: true });
-    this.props.form.validateFieldsAndScroll((err, values) => {
+    const { form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl } = this.props;
+    validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/confirm_sms?token=${this.props.token}&code=${values.code}`)
+        fetch(`/api/confirm_sms?token=${token}&code=${values.code}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
-              if (this.props.onSubmit) {
-                this.props.onSubmit(data.completed);
+              if (onSubmit) {
+                onSubmit(data.completed);
               }
             }
           })
@@ -35,10 +36,10 @@ class ConfirmPhoneNumber extends React.Component {
             error.response.json().then((data) => {
               const codeError = data.errors.find(o => o.field === 'code');
               if (codeError) {
-                this.props.form.setFields({
+                setFields({
                   code: {
                     value: values.code,
-                    errors: [new Error(this.props.intl.formatMessage({ id: codeError.error }))],
+                    errors: [new Error(intl.formatMessage({ id: codeError.error }))],
                   },
                 });
               }
