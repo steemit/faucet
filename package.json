@@ -17,6 +17,7 @@
     "postinstall": "yarn run build"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.1.4",
     "@steemit/steem-js": "0.6.10",
     "antd": "2.13.11",
     "autoprefixer-loader": "^3.2.0",
