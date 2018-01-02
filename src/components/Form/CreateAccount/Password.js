@@ -51,9 +51,10 @@ class Password extends React.Component {
     e.preventDefault();
     if (this.state.submitting) return;
     this.setState({ submitting: true });
-    this.props.form.validateFieldsAndScroll((err, values) => {
+    const { form: { validateFieldsAndScroll }, onSubmit } = this.props;
+    validateFieldsAndScroll((err, values) => {
       if (!err) {
-        this.props.onSubmit(values);
+        onSubmit(values);
       } else {
         this.setState({ submitting: false });
       }
@@ -61,7 +62,9 @@ class Password extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, init, intl, goBack } = this.props;
+    const {
+      form: { getFieldDecorator, getFieldValue, setFieldsValue }, init, intl, goBack,
+    } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form password-step">
         <Form.Item>
@@ -77,7 +80,7 @@ class Password extends React.Component {
               suffix={init &&
                 <a
                   href={undefined}
-                  onClick={() => { this.copyToClipboard(this.props.form.getFieldValue('password')); }}
+                  onClick={() => { this.copyToClipboard(getFieldValue('password')); }}
                 >
                   <FormattedMessage id="copy" />
                 </a>
@@ -94,7 +97,7 @@ class Password extends React.Component {
             href={undefined}
             className="new-password"
             onClick={() => {
-              this.props.form.setFieldsValue({ password: createSuggestedPassword() });
+              setFieldsValue({ password: createSuggestedPassword() });
             }}
           >
             <FormattedMessage id="generate_new_password" />
