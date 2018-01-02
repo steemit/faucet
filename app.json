@@ -62,8 +62,7 @@
   "formation": {
   },
   "addons": [
-    "jawsdb",
-    "mailgun"
+    "jawsdb"
   ],
   "buildpacks": [
     {
