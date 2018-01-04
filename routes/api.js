@@ -179,7 +179,7 @@ router.get('/request_sms', async (req, res) => {
           }, { where: { email: decoded.email } });
 
           req.twilio.messages.create({
-            body: `${phoneCode} is your SteemConnect confirmation code`,
+            body: `${phoneCode} is your Steem confirmation code`,
             to: phoneNumber,
             from: process.env.TWILIO_PHONE_NUMBER,
           }).then(() => {
