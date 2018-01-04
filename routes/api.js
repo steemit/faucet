@@ -14,8 +14,6 @@ const badDomains = require('../bad-domains');
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
 const conveyor = cloneDeep(steem);
-conveyor.config.set('address_prefix', 'STX');
-conveyor.config.set('chain_id', '79276aea5d4877d9a25892eaa01b0adf019d3e5cb12a97478df3298ccdd01673');
 conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
 conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
 
