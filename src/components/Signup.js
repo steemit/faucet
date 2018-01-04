@@ -34,15 +34,16 @@ class Signup extends Component {
         username: PropTypes.string,
         email: PropTypes.string,
         token: PropTypes.string,
+        ref: PropTypes.string,
       }),
     }),
     locale: PropTypes.string.isRequired,
     setLocale: PropTypes.func.isRequired,
-  }
+  };
 
   static defaultProps = {
     location: null,
-  }
+  };
 
   constructor(props) {
     super(props);
