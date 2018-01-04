@@ -31,10 +31,16 @@ router.get('/', (req, res) => {
  * A token containing the email is generated for the next steps
  * The user is then temporary stored in the database until the process is completed
  * and his account created in the Steem blockchain
+ * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
 router.get('/request_email', async (req, res) => {
   const errors = [];
-  if (!req.query.recaptcha) {
+  const location = req.geoip.get(req.ip);
+  let skipRecaptcha = false;
+  if (location && location.country && location.country.iso_code === 'CN') {
+    skipRecaptcha = true;
+  }
+  if (!skipRecaptcha && !req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_required' });
   } else if (!req.query.email) {
     errors.push({ field: 'email', error: 'error_api_email_required' });
@@ -59,10 +65,12 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
-  const body = await response.json();
-  if (!body.success) {
-    errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_invalid' });
+  if (!skipRecaptcha) {
+    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+    const body = await response.json();
+    if (!body.success) {
+      errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_invalid' });
+    }
   }
 
   if (errors.length === 0) {
