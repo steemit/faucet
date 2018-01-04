@@ -17,6 +17,7 @@
     "postinstall": "yarn run build"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.1.4",
     "@steemit/steem-js": "0.6.10",
     "antd": "2.13.11",
     "autoprefixer-loader": "^3.2.0",
@@ -52,7 +53,6 @@
     "local-storage": "^1.4.2",
     "lodash": "^4.0.0",
     "lodash-webpack-plugin": "^0.10.6",
-    "mailgun-js": "^0.13.1",
     "maxmind": "^2.2.0",
     "morgan": "^1.9.0",
     "mysql2": "^1.5.1",
