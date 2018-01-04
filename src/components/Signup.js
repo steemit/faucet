@@ -54,6 +54,7 @@ class Signup extends Component {
       phoneNumber: '',
       phoneNumberFormatted: '',
       token: props.location.query.token || '',
+      ref: props.location.query.ref || '',
       countryCode: '',
       prefix: '',
       completed: false,
@@ -79,11 +80,11 @@ class Signup extends Component {
     }
     logStep('username', 0);
     return { step: 'username', stepNumber: 0 };
-  }
+  };
 
   goBack = (step, stepNumber) => {
     this.setState({ step, stepNumber });
-  }
+  };
 
   handleSubmitUsername = (values) => {
     this.setState({
@@ -128,6 +129,7 @@ class Signup extends Component {
     const {
       step, stepNumber, token, countryCode, prefix,
       phoneNumberFormatted, phoneNumber, username, email,
+      ref,
     } = this.state;
     const { setLocale, locale } = this.props;
 
@@ -162,6 +164,9 @@ class Signup extends Component {
             </div>
             {step === 'username' &&
             <div className="form-content">
+              {ref === 'steemit' &&
+                <object data="img/steemit-logo.svg" type="image/svg+xml" id="app-logo" aria-label="logo" />
+              }
               <h1><FormattedMessage id="get_started" /></h1>
               <p><FormattedMessage id="username_know" /></p>
               <FormSignupUsername
