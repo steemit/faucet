@@ -1,4 +1,3 @@
-const cloneDeep = require('lodash/cloneDeep');
 const util = require('util');
 const express = require('express');
 const fetch = require('isomorphic-fetch');
@@ -13,11 +12,7 @@ const badDomains = require('../bad-domains');
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
-const conveyor = cloneDeep(steem);
-conveyor.config.set('address_prefix', 'STX');
-conveyor.config.set('chain_id', '79276aea5d4877d9a25892eaa01b0adf019d3e5cb12a97478df3298ccdd01673');
-conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
-conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
+steem.api.signedCall = util.promisify(steem.api.signedCall).bind(steem.api);
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -52,7 +47,7 @@ router.get('/request_email', async (req, res) => {
     if (userCount > 0) {
       errors.push({ field: 'email', error: 'error_api_email_used' });
     } else {
-      const emailRegistered = await conveyor.api.signedCall('conveyor.is_email_registered', [req.query.email], conveyorAccount, conveyorKey);
+      const emailRegistered = await steem.api.signedCall('conveyor.is_email_registered', [req.query.email], conveyorAccount, conveyorKey);
       if (emailRegistered) {
         errors.push({ field: 'email', error: 'error_api_email_used' });
       }
@@ -163,7 +158,7 @@ router.get('/request_sms', async (req, res) => {
         if (phoneExists > 0) {
           errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
         } else {
-          const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
+          const phoneRegistered = await steem.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
           if (phoneRegistered) {
             errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
           }
@@ -445,7 +440,7 @@ router.get('/create_account', async (req, res) => {
                 res.status(500).json({ error: 'error_api_create_account', detail: err });
               } else {
                 const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-                await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
+                await steem.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
 
                 req.db.users.destroy({ where: { email: decoded.email } });
 
