@@ -6,6 +6,7 @@ import { Button, Icon, Popover } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
+import FormSignupEmailChinese from './Form/Signup/EmailChinese';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
@@ -174,12 +175,20 @@ class Signup extends Component {
             <div className="form-content two-actions">
               <h1><FormattedMessage id="enter_email" /></h1>
               <p><FormattedMessage id="confirm_existence" /></p>
+              {countryCode !== 'CN' &&
               <FormSignupEmail
                 onSubmit={this.handleSubmitEmail}
                 username={username}
                 email={email}
                 goBack={this.goBack}
-              />
+              />}
+              {countryCode === 'CN' &&
+              <FormSignupEmailChinese
+                onSubmit={this.handleSubmitEmail}
+                username={username}
+                email={email}
+                goBack={this.goBack}
+              />}
             </div>
             }
             {step === 'phoneNumber' &&
