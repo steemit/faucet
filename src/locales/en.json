@@ -92,7 +92,7 @@
   "username": "Username",
   "username_available": "Good news! The username {username} is available.",
   "username_know": "Start with a username. It's how you'll be known on all Steem-based apps.",
-  "username_know_steemit": "Start with a username. It's how you'll be known on [Steemit] and other Steem-based apps.",
+  "username_know_steemit": "Start with a username. It's how you'll be known on Steemit and other Steem-based apps.",
   "username_steemit_login": "Already got an account? {link}",
   "welcome": "Bienvenue"
 }

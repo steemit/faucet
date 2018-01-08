@@ -91,7 +91,7 @@
   "username": "Nom d'utilisateur",
   "username_available": "Bonne nouvelle! L'utilisateur {username} est disponible.",
   "username_know": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom pour toutes les applications Steem.",
-  "username_know_steemit": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom sur [Steemit] et toutes les autres applications Steem.",
+  "username_know_steemit": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom sur Steemit et toutes les autres applications Steem.",
   "username_steemit_login": "Vous avez déjà un compte ? {link}",
   "welcome": "Welcome"
 }
