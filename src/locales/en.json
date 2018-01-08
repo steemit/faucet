@@ -83,10 +83,16 @@
   "save_password": "Save password",
   "save_password_text": "If you ever lose your password, your account will be irreversibly lost. We do not have your password and cannot help you recover it.",
   "send_sms": "We need to send you a quick text.",
+  "sign_in": "Sign in",
+  "signup_username_right_text": "A single Steem account gets you in to all Steem-based apps",
+  "signup_username_right_title": "One account is all you need",
   "sms_code": "We have sms you the code to {phoneNumber} {editLink}",
   "steem_signup": "Steem Signup",
   "success_new_code_sent": "New code sent",
   "username": "Username",
   "username_available": "Good news! The username {username} is available.",
-  "username_know": "Your username is how you will be known"
+  "username_know": "Start with a username. It's how you'll be known on all Steem-based apps.",
+  "username_know_steemit": "Start with a username. It's how you'll be known on [Steemit] and other Steem-based apps.",
+  "username_steemit_login": "Already got an account? {link}",
+  "welcome": "Bienvenue"
 }

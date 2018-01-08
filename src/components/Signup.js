@@ -169,11 +169,15 @@ class Signup extends Component {
                 <object data="img/steemit-logo.svg" type="image/svg+xml" id="app-logo" aria-label="logo" />
               }
               <h1><FormattedMessage id="get_started" /></h1>
-              <p><FormattedMessage id="username_know" /></p>
+              <p>
+                {ref === 'steemit' && <FormattedMessage id="username_know_steemit" />}
+                {ref !== 'steemit' && <FormattedMessage id="username_know" />}
+              </p>
               <FormSignupUsername
                 onSubmit={this.handleSubmitUsername}
                 username={username}
                 email={email}
+                origin={ref}
               />
             </div>}
             {step === 'email' &&
@@ -236,7 +240,14 @@ class Signup extends Component {
             }
           </div>
           <div className="Signup__icons">
-            {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
+            {step === 'username' &&
+            <div>
+              <h3><FormattedMessage id="signup_username_right_title" /></h3>
+              <p>
+                <FormattedMessage id="signup_username_right_text" />
+              </p>
+            </div>}
+            {step === 'username' && <img src="/img/signup-username.png" id="signup-username" aria-label="signup-username" alt="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
             {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
