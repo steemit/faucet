@@ -239,7 +239,7 @@ class Signup extends Component {
             </div>
             }
           </div>
-          <div className="Signup__icons">
+          <div className={`Signup__icons ${step === 'username' ? 'username-icons' : ''}`}>
             {step === 'username' &&
             <div>
               <h3><FormattedMessage id="signup_username_right_title" /></h3>

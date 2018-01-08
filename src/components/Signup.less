@@ -53,11 +53,12 @@
   .Signup__icons {
     text-align: center;
     display: flex;
-    flex-direction: column;
     align-content: center;
     align-items: center;
     margin-top: 50px;
-
+    &.username-icons {
+      flex-direction: column;
+    }
     @media (max-width: @screen-md) {
       display: none;
     }
