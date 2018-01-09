@@ -5,6 +5,7 @@ const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const Geetest = require('gt3-sdk');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
@@ -40,6 +41,9 @@ router.get('/request_email', async (req, res) => {
   }
   if (!skipRecaptcha && !req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_required' });
+  } else if (skipRecaptcha && !req.query.geetest_challenge
+    && !req.query.geetest_seccode && !req.query.geetest_validate) {
+    errors.push({ field: 'geetestCaptcha', error: 'error_api_geetestcaptcha_required' });
   } else if (!req.query.email) {
     errors.push({ field: 'email', error: 'error_api_email_required' });
   } else if (!validator.isEmail(req.query.email)) {
@@ -68,6 +72,27 @@ router.get('/request_email', async (req, res) => {
     const body = await response.json();
     if (!body.success) {
       errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_invalid' });
+    }
+  } else {
+    const captcha = new Geetest({
+      geetest_id: process.env.GEETEST_ID,
+      geetest_key: process.env.GEETEST_SECRET,
+    });
+    const geetestValidate = util.promisify(captcha.validate).bind(captcha);
+    try {
+      const geetestRes = await geetestValidate(false, {
+        // eslint-disable-next-line key-spacing
+        geetest_challenge: req.query.geetest_challenge,
+        // eslint-disable-next-line key-spacing
+        geetest_validate: req.query.geetest_validate,
+        // eslint-disable-next-line key-spacing
+        geetest_seccode: req.query.geetest_seccode,
+      });
+      if (!geetestRes) {
+        errors.push({ field: 'geetestCaptcha', error: 'error_api_geetestcaptcha_invalid' });
+      }
+    } catch (err) {
+      errors.push({ field: 'geetestCaptcha', error: 'error_api_geetestcaptcha_invalid' });
     }
   }
 
@@ -510,6 +535,20 @@ router.get('/check_username', async (req, res) => {
       res.json({ success: true });
     }
   }
+});
+
+router.get('/gt_challenge', (req, res) => {
+  const captcha = new Geetest({
+    geetest_id: process.env.GEETEST_ID,
+    geetest_key: process.env.GEETEST_SECRET,
+  });
+  captcha.register(null, (err, data) => {
+    if (err) {
+      res.status(400).send({ err });
+    } else {
+      res.send(data);
+    }
+  });
 });
 
 module.exports = router;
