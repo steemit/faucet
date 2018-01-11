@@ -35,15 +35,16 @@ class Signup extends Component {
         username: PropTypes.string,
         email: PropTypes.string,
         token: PropTypes.string,
+        ref: PropTypes.string,
       }),
     }),
     locale: PropTypes.string.isRequired,
     setLocale: PropTypes.func.isRequired,
-  }
+  };
 
   static defaultProps = {
     location: null,
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -55,6 +56,7 @@ class Signup extends Component {
       phoneNumber: '',
       phoneNumberFormatted: '',
       token: props.location.query.token || '',
+      ref: props.location.query.ref || '',
       countryCode: '',
       prefix: '',
       completed: false,
@@ -80,11 +82,11 @@ class Signup extends Component {
     }
     logStep('username', 0);
     return { step: 'username', stepNumber: 0 };
-  }
+  };
 
   goBack = (step, stepNumber) => {
     this.setState({ step, stepNumber });
-  }
+  };
 
   handleSubmitUsername = (values) => {
     this.setState({
@@ -129,6 +131,7 @@ class Signup extends Component {
     const {
       step, stepNumber, token, countryCode, prefix,
       phoneNumberFormatted, phoneNumber, username, email,
+      ref,
     } = this.state;
     const { setLocale, locale } = this.props;
 
@@ -163,12 +166,19 @@ class Signup extends Component {
             </div>
             {step === 'username' &&
             <div className="form-content">
+              {ref === 'steemit' &&
+                <object data="img/steemit-logo.svg" type="image/svg+xml" id="app-logo" aria-label="logo" />
+              }
               <h1><FormattedMessage id="get_started" /></h1>
-              <p><FormattedMessage id="username_know" /></p>
+              <p>
+                {ref === 'steemit' && <FormattedMessage id="username_know_steemit" />}
+                {ref !== 'steemit' && <FormattedMessage id="username_know" />}
+              </p>
               <FormSignupUsername
                 onSubmit={this.handleSubmitUsername}
                 username={username}
                 email={email}
+                origin={ref}
               />
             </div>}
             {step === 'email' &&
@@ -238,8 +248,15 @@ class Signup extends Component {
             </div>
             }
           </div>
-          <div className="Signup__icons">
-            {step === 'username' && <object data="img/signup-username.svg" type="image/svg+xml" id="signup-username" aria-label="signup-username" />}
+          <div className={`Signup__icons ${step === 'username' ? 'username-icons' : ''}`}>
+            {step === 'username' &&
+            <div>
+              <h3><FormattedMessage id="signup_username_right_title" /></h3>
+              <p>
+                <FormattedMessage id="signup_username_right_text" />
+              </p>
+            </div>}
+            {step === 'username' && <img src="/img/signup-username.png" id="signup-username" aria-label="signup-username" alt="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
             {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}

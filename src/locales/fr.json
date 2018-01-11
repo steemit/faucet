@@ -82,11 +82,16 @@
   "save_password": "Sauvegarder votre mot de passe",
   "save_password_text": "Si vous perdez votre mot de passe, votre compte sera perdu de façon irreversible. Nous ne conservons pas votre mot de passe et ne pouvons vous aider à le récupérer.",
   "send_sms": "Nous devons vous envoyer un SMS.",
+  "sign_in": "Connectez-vous",
+  "signup_username_right_text": "Un seul et unique compte vous donne accès à toutes les applications Steem",
+  "signup_username_right_title": "Vous n'avez besoin que d'un seul compte",
   "sms_code": "Nous avons envoyé le code par SMS au {phoneNumber} {editLink}",
-  "steemconnect_signup": "SteemConnect Inscription",
+  "steem_signup": "Inscription Steem",
   "success_new_code_sent": "Nouveau code envoyé",
   "username": "Nom d'utilisateur",
   "username_available": "Bonne nouvelle! L'utilisateur {username} est disponible.",
-  "username_know": "Votre nom d'utilisateur sous lequel vous serez connu(e)",
-  "welcome": "Bienvenue"
+  "username_know": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom pour toutes les applications Steem.",
+  "username_know_steemit": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom sur Steemit et toutes les autres applications Steem.",
+  "username_steemit_login": "Vous avez déjà un compte ? {link}",
+  "welcome": "Welcome"
 }

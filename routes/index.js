@@ -7,7 +7,7 @@ router.get('/.well-known/healthcheck.json', (req, res) => {
 });
 
 router.get('/*', (req, res) => {
-  res.render('index', { title: 'SteemConnect' });
+  res.render('index', { title: 'Sign up on Steem' });
 });
 
 module.exports = router;
