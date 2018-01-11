@@ -379,9 +379,9 @@ router.get('/confirm_account', async (req, res) => {
           }, { where: { email: decoded.email } });
           const accounts = await steem.api.getAccountsAsync([user.username]);
           if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-            res.json({ success: true, username: '', reservedUsername: user.username });
+            res.json({ success: true, username: '', reservedUsername: user.username, email: user.email });
           }
-          res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
+          res.json({ success: true, username: user.username, reservedUsername: '', email: user.email, query: user.metadata.query });
         } else {
           res.status(400).json({ error: 'error_api_account_verification_pending' });
         }
@@ -406,6 +406,8 @@ router.get('/create_account', async (req, res) => {
     res.status(400).json({ error: 'error_api_username_required' });
   } else if (!req.query.public_keys) {
     res.status(400).json({ error: 'error_api_public_keys_required' });
+  } else if (!req.query.email) {
+    res.status(400).json({ error: 'error_api_email_required' });
   } else {
     let decoded;
     try {
@@ -414,7 +416,7 @@ router.get('/create_account', async (req, res) => {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
         if (user.status === 'approved') {
           // eslint-disable-next-line camelcase
-          const { username, public_keys } = req.query;
+          const { username, public_keys, email } = req.query;
           const weightThreshold = 1;
           const accountAuths = [];
           const publicKeys = JSON.parse(public_keys);
@@ -455,7 +457,24 @@ router.get('/create_account', async (req, res) => {
 
                 req.db.users.destroy({ where: { email: decoded.email } });
 
-                res.json({ success: true });
+                const result = await fetch(`${process.env.CREATE_USER_URL}`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      email,
+                      name: username,
+                      owner_key: publicKeys.owner,
+                      secret: `${process.env.CREATE_USER_SECRET}`,
+                    }),
+                  })
+                  .then(checkStatus)
+                  .then(response => response.json());
+
+                res.json({ success: result.success });
               }
             },
           );

@@ -50,6 +50,7 @@ class CreateAccount extends Component {
       username: '',
       password: '',
       reservedUsername: '',
+      email: '',
       query: {},
     };
   }
@@ -70,6 +71,7 @@ class CreateAccount extends Component {
               stepNumber: data.username === '' ? 0 : 1,
               username: data.username,
               reservedUsername: data.reservedUsername,
+              email: data.email,
               query: data.query,
             });
             logStep('username', 0);
@@ -130,10 +132,10 @@ class CreateAccount extends Component {
 
   handleSubmit = () => {
     const { location: { query: { token } }, intl } = this.props;
-    const { username, password } = this.state;
+    const { username, password, email } = this.state;
     const publicKeys = steem.auth.generateKeys(username, password, ['owner', 'active', 'posting', 'memo']);
 
-    fetch(`/api/create_account?token=${token}&username=${username}&public_keys=${JSON.stringify(publicKeys)}`)
+    fetch(`/api/create_account?token=${token}&username=${username}&email=${email}&public_keys=${JSON.stringify(publicKeys)}`)
       .then(checkStatus)
       .then(parseJSON)
       .then((data) => {
