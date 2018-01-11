@@ -81,11 +81,8 @@ router.get('/request_email', async (req, res) => {
     const geetestValidate = util.promisify(captcha.validate).bind(captcha);
     try {
       const geetestRes = await geetestValidate(false, {
-        // eslint-disable-next-line key-spacing
         geetest_challenge: req.query.geetest_challenge,
-        // eslint-disable-next-line key-spacing
         geetest_validate: req.query.geetest_validate,
-        // eslint-disable-next-line key-spacing
         geetest_seccode: req.query.geetest_seccode,
       });
       if (!geetestRes) {
