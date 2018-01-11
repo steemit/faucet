@@ -35,13 +35,13 @@ router.get('/', (req, res) => {
 router.get('/request_email', async (req, res) => {
   const errors = [];
   const location = req.geoip.get(req.ip);
-  let skipRecaptcha = false;
+  let useChineseCaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
-    skipRecaptcha = true;
+    useChineseCaptcha = true;
   }
-  if (!skipRecaptcha && !req.query.recaptcha) {
+  if (!useChineseCaptcha && !req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_required' });
-  } else if (skipRecaptcha && !req.query.geetest_challenge
+  } else if (useChineseCaptcha && !req.query.geetest_challenge
     && !req.query.geetest_seccode && !req.query.geetest_validate) {
     errors.push({ field: 'geetestCaptcha', error: 'error_api_geetestcaptcha_required' });
   } else if (!req.query.email) {
@@ -67,7 +67,7 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  if (!skipRecaptcha) {
+  if (!useChineseCaptcha) {
     const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
     const body = await response.json();
     if (!body.success) {
