@@ -56,9 +56,13 @@ router.get('/request_email', async (req, res) => {
     if (userCount > 0) {
       errors.push({ field: 'email', error: 'error_api_email_used' });
     } else {
-      const emailRegistered = await conveyor.api.signedCall('conveyor.is_email_registered', [req.query.email], conveyorAccount, conveyorKey);
-      if (emailRegistered) {
-        errors.push({ field: 'email', error: 'error_api_email_used' });
+      try {
+        const emailRegistered = await conveyor.api.signedCall('conveyor.is_email_registered', [req.query.email], conveyorAccount, conveyorKey);
+        if (emailRegistered) {
+          errors.push({ field: 'email', error: 'error_api_email_used' });
+        }
+      } catch (err) {
+        errors.push({ field: 'email', error: 'error_api_general' });
       }
     }
   }
@@ -169,9 +173,13 @@ router.get('/request_sms', async (req, res) => {
         if (phoneExists > 0) {
           errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
         } else {
-          const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
-          if (phoneRegistered) {
-            errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
+          try {
+            const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
+            if (phoneRegistered) {
+              errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
+            }
+          } catch (err) {
+            errors.push({ field: 'phoneNumber', error: 'error_api_general' });
           }
         }
 
@@ -377,11 +385,15 @@ router.get('/confirm_account', async (req, res) => {
           await req.db.users.update({
             email_is_verified: true,
           }, { where: { email: decoded.email } });
-          const accounts = await steem.api.getAccountsAsync([user.username]);
-          if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-            res.json({ success: true, username: '', reservedUsername: user.username });
+          try {
+            const accounts = await steem.api.getAccountsAsync([user.username]);
+            if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
+              res.json({ success: true, username: '', reservedUsername: user.username });
+            }
+            res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
+          } catch (err) {
+            res.status(500).json({ error: 'error_api_general' });
           }
-          res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
         } else {
           res.status(400).json({ error: 'error_api_account_verification_pending' });
         }
@@ -451,11 +463,13 @@ router.get('/create_account', async (req, res) => {
                 res.status(500).json({ error: 'error_api_create_account', detail: err });
               } else {
                 const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-                await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
-
-                req.db.users.destroy({ where: { email: decoded.email } });
-
-                res.json({ success: true });
+                try {
+                  await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
+                  req.db.users.destroy({ where: { email: decoded.email } });
+                  res.json({ success: true });
+                } catch (err2) {
+                  res.status(500).json({ error: 'error_api_general' });
+                }
               }
             },
           );
@@ -494,10 +508,16 @@ router.get('/approve_account', async (req, res) => {
  */
 router.get('/check_username', async (req, res) => {
   const username = req.query.username;
-  const accounts = await steem.api.getAccountsAsync([req.query.username]);
-  if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
-    res.json({ error: 'error_api_username_used' });
-  } else {
+  let error = '';
+  try {
+    const accounts = await steem.api.getAccountsAsync([req.query.username]);
+    if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
+      error = 'error_api_username_used';
+    }
+  } catch (err) {
+    error = 'error_api_general';
+  }
+  if (error === '') {
     const user = await req.db.users.findOne({ where: { username, email_is_verified: true }, order: [['username_booked_at', 'DESC']] });
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     if (
@@ -505,10 +525,13 @@ router.get('/check_username', async (req, res) => {
       (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime() &&
       user.email !== req.query.email
     ) {
-      res.json({ error: 'error_api_username_reserved' });
-    } else {
-      res.json({ success: true });
+      error = 'error_api_username_reserved';
     }
+  }
+  if (error !== '') {
+    res.json({ error });
+  } else {
+    res.json({ success: true });
   }
 });
 
