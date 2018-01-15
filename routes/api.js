@@ -62,6 +62,7 @@ router.get('/request_email', async (req, res) => {
           errors.push({ field: 'email', error: 'error_api_email_used' });
         }
       } catch (err) {
+        console.log('/request_email', 'conveyor.is_email_registered', err);
         errors.push({ field: 'email', error: 'error_api_general' });
       }
     }
@@ -179,6 +180,7 @@ router.get('/request_sms', async (req, res) => {
               errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
             }
           } catch (err) {
+            console.log('/request_sms', 'conveyor.is_phone_registered', err);
             errors.push({ field: 'phoneNumber', error: 'error_api_general' });
           }
         }
@@ -263,7 +265,7 @@ const approveAccount = async (req, email) => {
       }
     });
   } catch (err) {
-    // Do nothing
+    console.log('approveAccount', err);
   }
 };
 
@@ -281,6 +283,7 @@ const sendAccountInformation = async (req, email) => {
         .then(checkStatus)
         .then(res => res.text());
     } catch (err) {
+      console.log('sendAccountInformation', err);
       result = 'manual_review';
     }
 
@@ -392,6 +395,7 @@ router.get('/confirm_account', async (req, res) => {
             }
             res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
           } catch (err) {
+            console.log('/confirm_account', 'steem.api.getAccountsAsync', err);
             res.status(500).json({ error: 'error_api_general' });
           }
         } else {
@@ -468,6 +472,7 @@ router.get('/create_account', async (req, res) => {
                   req.db.users.destroy({ where: { email: decoded.email } });
                   res.json({ success: true });
                 } catch (err2) {
+                  console.log('/create_account', 'conveyor.set_user_data', err2);
                   res.status(500).json({ error: 'error_api_general' });
                 }
               }
@@ -515,6 +520,7 @@ router.get('/check_username', async (req, res) => {
       error = 'error_api_username_used';
     }
   } catch (err) {
+    console.log('/check_username', 'steem.api.getAccountsAsync', err);
     error = 'error_api_general';
   }
   if (error === '') {
