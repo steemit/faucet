@@ -53,7 +53,6 @@ module.exports = {
       },
       fingerprint: {
         type: Sequelize.JSON,
-        defaultValue: false,
       },
       status: {
         type: Sequelize.STRING,
