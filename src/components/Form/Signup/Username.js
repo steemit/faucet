@@ -64,7 +64,9 @@ class Username extends React.Component {
       isFieldValidating,
       getFieldValue,
     }, intl,
-    username } = this.props;
+    username,
+    origin,
+    } = this.props;
     return (
       <Form onSubmit={this.handleSubmit} className="signup-form">
         <Form.Item
@@ -100,6 +102,15 @@ class Username extends React.Component {
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
           </Form.Item>
+          {origin === 'steemit' &&
+          <Form.Item>
+            <div className="signin_redirect">
+              <FormattedMessage
+                id="username_steemit_login"
+                values={{ link: <a href="https://steemit.com/login.html"><FormattedMessage id="sign_in" /></a> }}
+              />
+            </div>
+          </Form.Item>}
         </div>
       </Form>
     );

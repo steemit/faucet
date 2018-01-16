@@ -63,6 +63,7 @@
     "SENTRY_DSN": {
       "required": true
     },
+    "LOG_FORMAT": "short",
     "DEFAULT_REDIRECT_URI": ""
   },
   "formation": {

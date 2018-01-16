@@ -1,4 +1,4 @@
-# SteemConnect2 Signup Module
+# Steem faucet
 
 ## Install
 Download and install Node.js >= 7.7.1 then run
@@ -14,4 +14,4 @@ yarn start
 ## Docker
 
 A Dockerfile is supplied. You will need to configure the app with environment variables.
-See the file [app.json](app.json) for a full list of what you will need.
+See the file [.env.example.json](.env.example.json) for a full list of what you will need.
