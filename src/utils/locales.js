@@ -1,19 +1,14 @@
+/* eslint-disable global-require,import/no-dynamic-require */
 import { addLocaleData } from 'react-intl';
-import en from 'react-intl/locale-data/en';
-import fr from 'react-intl/locale-data/fr';
-import zh from 'react-intl/locale-data/zh';
+import availableLocales from '../../helpers/locales.json';
 
-import enTranslations from '../locales/en.json';
-import frTranslations from '../locales/fr.json';
-import zhTranslations from '../locales/zh.json';
-
-addLocaleData([...en, ...fr, ...zh]);
-
-export const translations = {
-  en: enTranslations,
-  fr: frTranslations,
-  zh: zhTranslations,
-};
+export const translations = {};
+Object.keys(availableLocales).forEach((key) => {
+  const localeImport = require(`../locales/${key}.json`);
+  translations[key] = localeImport;
+  const localeIntl = require(`react-intl/locale-data/${key}`);
+  addLocaleData(localeIntl);
+});
 
 export const getAvailableLocale = (appLocale) => {
   let locale = appLocale || 'auto';
