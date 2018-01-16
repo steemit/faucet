@@ -14,8 +14,6 @@ const badDomains = require('../bad-domains');
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
 const conveyor = cloneDeep(steem);
-conveyor.config.set('address_prefix', 'STX');
-conveyor.config.set('chain_id', '79276aea5d4877d9a25892eaa01b0adf019d3e5cb12a97478df3298ccdd01673');
 conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
 conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
 
@@ -31,10 +29,16 @@ router.get('/', (req, res) => {
  * A token containing the email is generated for the next steps
  * The user is then temporary stored in the database until the process is completed
  * and his account created in the Steem blockchain
+ * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
 router.get('/request_email', async (req, res) => {
   const errors = [];
-  if (!req.query.recaptcha) {
+  const location = req.geoip.get(req.ip);
+  let skipRecaptcha = false;
+  if (location && location.country && location.country.iso_code === 'CN') {
+    skipRecaptcha = true;
+  }
+  if (!skipRecaptcha && !req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_required' });
   } else if (!req.query.email) {
     errors.push({ field: 'email', error: 'error_api_email_required' });
@@ -59,10 +63,12 @@ router.get('/request_email', async (req, res) => {
     }
   }
 
-  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
-  const body = await response.json();
-  if (!body.success) {
-    errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_invalid' });
+  if (!skipRecaptcha) {
+    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${req.query.recaptcha}&remoteip=${req.ip}`);
+    const body = await response.json();
+    if (!body.success) {
+      errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_invalid' });
+    }
   }
 
   if (errors.length === 0) {
@@ -179,7 +185,7 @@ router.get('/request_sms', async (req, res) => {
           }, { where: { email: decoded.email } });
 
           req.twilio.messages.create({
-            body: `${phoneCode} is your SteemConnect confirmation code`,
+            body: `${phoneCode} is your Steem confirmation code`,
             to: phoneNumber,
             from: process.env.TWILIO_PHONE_NUMBER,
           }).then(() => {

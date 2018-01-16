@@ -56,7 +56,9 @@
     align-content: center;
     align-items: center;
     margin-top: 50px;
-
+    &.username-icons {
+      flex-direction: column;
+    }
     @media (max-width: @screen-md) {
       display: none;
     }
@@ -246,23 +248,32 @@
 #signup-username, #signup-password, #signup-error {
   width: 392px;
   height: auto;
+  margin: 0 auto;
 }
 
 #signup-email {
   width: 300px;
   height: auto;
+  margin: 0 auto;
 }
 
 #signup-email-confirmation {
   width: 382px;
   height: auto;
+  margin: 0 auto;
 }
 
 #signup-phone, #signup-sms {
   width: 369px;
   height: auto;
+  margin: 0 auto;
 }
 #signup-create-account {
   width: 320px;
   height: auto;
+  margin: 0 auto;
+}
+.signin_redirect {
+  text-align: left;
+  font-size: 14px;
 }

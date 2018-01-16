@@ -6,29 +6,13 @@
     "DATABASE_NAME": {
       "required": true
     },
-    "JAWSDB_URL": {
+    "DATABASE_URL": {
       "required": true
     },
     "JWT_SECRET": {
       "required": true
     },
-    "MAILGUN_API_KEY": {
-      "required": true
-    },
-    "MAILGUN_DOMAIN": "steemconnect.com",
-    "MAILGUN_PUBLIC_KEY": {
-      "required": true
-    },
-    "MAILGUN_SMTP_LOGIN": {
-      "required": true
-    },
-    "MAILGUN_SMTP_PASSWORD": {
-      "required": true
-    },
-    "MAILGUN_SMTP_PORT": {
-      "required": true
-    },
-    "MAILGUN_SMTP_SERVER": {
+    "SENDGRID_API_KEY": {
       "required": true
     },
     "STAGING_JAWSDB_URL": {
@@ -73,13 +57,13 @@
     "SENTRY_DSN": {
       "required": true
     },
+    "LOG_FORMAT": "short",
     "DEFAULT_REDIRECT_URI": ""
   },
   "formation": {
   },
   "addons": [
-    "jawsdb",
-    "mailgun"
+    "jawsdb"
   ],
   "buildpacks": [
     {
