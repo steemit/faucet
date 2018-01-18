@@ -201,8 +201,9 @@ router.get('/request_sms', async (req, res) => {
           }).then(() => {
             res.json({ success: true, phoneNumber });
           }).catch((error) => {
-            const status = error.status || 400;
-            res.status(status).json(error);
+            console.log('/request_sms', 'req.twilio.messages.create', error);
+            errors.push({ field: 'phoneNumber', error: 'error_api_general' });
+            res.status(500).json({ errors });
           });
         }
       } else {
