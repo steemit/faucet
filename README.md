@@ -6,6 +6,13 @@ Download and install Node.js >= 7.7.1 then run
 yarn install
 ```
 
+## Init database
+Set up and run migrations directly from the terminal using Sequelize CLI. Here is how to do:
+```
+npm install -g sequelize-cli
+sequelize db:migrate --url 'mysql://username:password@hostname:port/database'
+```
+
 ## Run
 ```
 yarn start
