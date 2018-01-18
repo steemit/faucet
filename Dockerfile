@@ -4,12 +4,17 @@ RUN apk add --update git
 
 WORKDIR /app
 ADD . /app
+
 RUN yarn install --frozen-lockfile
+
 RUN yarn run test
 
 # prune modules
 RUN yarn install --frozen-lockfile --production
 
-ENV NODE_ENV=production
+EXPOSE 3000
 
-ENTRYPOINT [ "yarn", "start" ]
+ENV PORT 3000
+ENV NODE_ENV production
+
+CMD [ "./bin/run-prod" ]

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+yarn run build
+./bin/www
