@@ -11,6 +11,9 @@ const mail = require('./helpers/mail');
 const db = require('./db/models');
 const twilio = require('./helpers/twilio');
 const geoip = require('./helpers/maxmind');
+const getClientConfig = require('./helpers/getClientConfig');
+
+const clientConfig = getClientConfig();
 
 if (process.env.STEEMJS_URL) {
   steem.api.setOptions({ url: process.env.STEEMJS_URL });
@@ -25,6 +28,7 @@ if (process.env.NODE_ENV !== 'production') { require('./webpack/webpack')(app); 
 
 const hbs = require('hbs');
 
+hbs.registerHelper('clientConfig', () => clientConfig);
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
 hbs.registerPartials(`${__dirname}/views/partials`);
 app.set('views', path.join(__dirname, 'views'));

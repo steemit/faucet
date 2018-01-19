@@ -8,7 +8,8 @@
   "main": "./bin/www",
   "private": true,
   "scripts": {
-    "start": "nodemon --ignore src ./bin/www",
+    "start": "./bin/www",
+    "start-watch": "nodemon --ignore src ./bin/www",
     "eslint-autofix": "eslint --fix \"src/**/*.js\" \"*.js\"",
     "test": "yarn run lint && nsp check --output summary",
     "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
