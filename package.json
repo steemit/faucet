@@ -14,8 +14,7 @@
     "test": "yarn run lint && nsp check --output summary",
     "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "build": "webpack --progress -p --config webpack/webpack.prod.config.js",
-    "build-dev": "webpack --progress -p --config webpack/webpack.config.js",
-    "postinstall": "yarn run build"
+    "build-dev": "webpack --progress -p --config webpack/webpack.config.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^6.1.4",
