@@ -62,7 +62,7 @@ router.get('/request_email', async (req, res) => {
           errors.push({ field: 'email', error: 'error_api_email_used' });
         }
       } catch (err) {
-        console.log('/request_email', 'conveyor.is_email_registered', err);
+        req.log.error(err, '/request_email', 'conveyor.is_email_registered');
         errors.push({ field: 'email', error: 'error_api_general' });
       }
     }
@@ -180,7 +180,7 @@ router.get('/request_sms', async (req, res) => {
               errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
             }
           } catch (err) {
-            console.log('/request_sms', 'conveyor.is_phone_registered', err);
+            req.log.error(err, '/request_sms', 'conveyor.is_phone_registered');
             errors.push({ field: 'phoneNumber', error: 'error_api_general' });
           }
         }
@@ -201,7 +201,7 @@ router.get('/request_sms', async (req, res) => {
           }).then(() => {
             res.json({ success: true, phoneNumber });
           }).catch((error) => {
-            console.log('/request_sms', 'req.twilio.messages.create', error);
+            req.log.error('/request_sms', 'req.twilio.messages.create', error);
             errors.push({ field: 'phoneNumber', error: 'error_api_general' });
             res.status(500).json({ errors });
           });
@@ -266,7 +266,7 @@ const approveAccount = async (req, email) => {
       }
     });
   } catch (err) {
-    console.log('approveAccount', err);
+    req.log.error(err, 'approveAccount');
   }
 };
 
@@ -284,7 +284,7 @@ const sendAccountInformation = async (req, email) => {
         .then(checkStatus)
         .then(res => res.text());
     } catch (err) {
-      console.log('sendAccountInformation', err);
+      req.log.error(err, 'sendAccountInformation');
       result = 'manual_review';
     }
 
@@ -396,7 +396,7 @@ router.get('/confirm_account', async (req, res) => {
             }
             res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
           } catch (err) {
-            console.log('/confirm_account', 'steem.api.getAccountsAsync', err);
+            req.log.error(err, '/confirm_account', 'steem.api.getAccountsAsync');
             res.status(500).json({ error: 'error_api_general' });
           }
         } else {
@@ -473,7 +473,7 @@ router.get('/create_account', async (req, res) => {
                   req.db.users.destroy({ where: { email: decoded.email } });
                   res.json({ success: true });
                 } catch (err2) {
-                  console.log('/create_account', 'conveyor.set_user_data', err2);
+                  req.log.error(err2, '/create_account', 'conveyor.set_user_data');
                   res.status(500).json({ error: 'error_api_general' });
                 }
               }
@@ -521,7 +521,7 @@ router.get('/check_username', async (req, res) => {
       error = 'error_api_username_used';
     }
   } catch (err) {
-    console.log('/check_username', 'steem.api.getAccountsAsync', err);
+    req.log.error(err, '/check_username', 'steem.api.getAccountsAsync');
     error = 'error_api_general';
   }
   if (error === '') {
