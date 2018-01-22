@@ -20,7 +20,7 @@ Copy `.env.example` to `.env` and edit as needed.
 
 ## Run
 ```
-env $(tr "\\n" " " < .env) yarn start-watch # or just start, if you don't want nodemon
+env $(tr "\\n" " " < .env) yarn start-dev # or just start, if you don't want nodemon
 ```
 
 The app listens on port 3000 by default.
