@@ -5,6 +5,7 @@ const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const asyncMiddleware = require('../helpers/asyncMiddleware');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
@@ -31,7 +32,7 @@ router.get('/', (req, res) => {
  * and his account created in the Steem blockchain
  * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
-router.get('/request_email', async (req, res) => {
+router.get('/request_email', asyncMiddleware(async (req, res) => {
   const errors = [];
   const location = req.geoip.get(req.ip);
   let skipRecaptcha = false;
@@ -56,14 +57,9 @@ router.get('/request_email', async (req, res) => {
     if (userCount > 0) {
       errors.push({ field: 'email', error: 'error_api_email_used' });
     } else {
-      try {
-        const emailRegistered = await conveyor.api.signedCall('conveyor.is_email_registered', [req.query.email], conveyorAccount, conveyorKey);
-        if (emailRegistered) {
-          errors.push({ field: 'email', error: 'error_api_email_used' });
-        }
-      } catch (err) {
-        console.log('/request_email', 'conveyor.is_email_registered', err);
-        errors.push({ field: 'email', error: 'error_api_general' });
+      const emailRegistered = await conveyor.api.signedCall('conveyor.is_email_registered', [req.query.email], conveyorAccount, conveyorKey);
+      if (emailRegistered) {
+        errors.push({ field: 'email', error: 'error_api_email_used' });
       }
     }
   }
@@ -114,14 +110,13 @@ router.get('/request_email', async (req, res) => {
   } else {
     res.status(400).json({ errors });
   }
-});
+}));
 
 /**
  * Checks the phone validity and use with the conveyor
  * The user can only request one code every minute to prevent flood
  */
-router.get('/request_sms', async (req, res) => {
-  let decoded;
+router.get('/request_sms', asyncMiddleware(async (req, res) => {
   const errors = [];
 
   if (!req.query.token) {
@@ -134,11 +129,7 @@ router.get('/request_sms', async (req, res) => {
     errors.push({ field: 'prefix', error: 'error_api_country_code_required' });
   }
 
-  try {
-    decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-  } catch (err) {
-    errors.push({ field: 'phoneNumber', error: 'error_api_token_invalid' });
-  }
+  const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
   if (errors.length === 0) {
     if (decoded && decoded.type === 'signup') {
       // eslint-disable-next-line no-unused-vars
@@ -174,14 +165,9 @@ router.get('/request_sms', async (req, res) => {
         if (phoneExists > 0) {
           errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
         } else {
-          try {
-            const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
-            if (phoneRegistered) {
-              errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
-            }
-          } catch (err) {
-            console.log('/request_sms', 'conveyor.is_phone_registered', err);
-            errors.push({ field: 'phoneNumber', error: 'error_api_general' });
+          const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
+          if (phoneRegistered) {
+            errors.push({ field: 'phoneNumber', error: 'error_api_phone_used' });
           }
         }
 
@@ -200,10 +186,6 @@ router.get('/request_sms', async (req, res) => {
             from: process.env.TWILIO_PHONE_NUMBER,
           }).then(() => {
             res.json({ success: true, phoneNumber });
-          }).catch((error) => {
-            console.log('/request_sms', 'req.twilio.messages.create', error);
-            errors.push({ field: 'phoneNumber', error: 'error_api_general' });
-            res.status(500).json({ errors });
           });
         }
       } else {
@@ -216,7 +198,7 @@ router.get('/request_sms', async (req, res) => {
   if (errors.length > 0) {
     res.status(500).json({ errors });
   }
-});
+}));
 
 /**
  * Mocking route of the steemit gatekeeper
@@ -250,25 +232,21 @@ const rejectAccount = async (req, email) => {
 /**
  * Send the email to user to continue the account creation process
  */
-const approveAccount = async (req, email) => {
-  try {
-    const mailToken = jwt.sign({
-      type: 'create_account',
-      email,
-    }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const approveAccount = asyncMiddleware(async (req, email) => {
+  const mailToken = jwt.sign({
+    type: 'create_account',
+    email,
+  }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    req.mail.send(email, 'create_account', {
-      url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
-    },
-    (err) => {
-      if (err) {
-        throw new Error(err);
-      }
-    });
-  } catch (err) {
-    console.log('approveAccount', err);
-  }
-};
+  req.mail.send(email, 'create_account', {
+    url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
+  },
+  (err) => {
+    if (err) {
+      throw new Error(err);
+    }
+  });
+});
 
 /**
  * Check for the status of an account using the steemit gatekeeper
@@ -304,8 +282,7 @@ const sendAccountInformation = async (req, email) => {
  * Verify the SMS code and then ask the gatekeeper for the status of the account
  * do decide the next step
  */
-router.get('/confirm_sms', async (req, res) => {
-  let decoded;
+router.get('/confirm_sms', asyncMiddleware(async (req, res) => {
   const errors = [];
 
   if (!req.query.token) {
@@ -315,12 +292,7 @@ router.get('/confirm_sms', async (req, res) => {
     errors.push({ field: 'code', error: 'error_api_code_required' });
   }
 
-  try {
-    decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-  } catch (err) {
-    errors.push({ field: 'code', error: 'error_api_token_invalid' });
-  }
-
+  const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
   if (errors.length === 0) {
     if (decoded && decoded.type === 'signup') {
       const user = await req.db.users.findOne({
@@ -356,7 +328,7 @@ router.get('/confirm_sms', async (req, res) => {
   if (errors.length > 0) {
     res.status(500).json({ errors });
   }
-});
+}));
 
 /** Return the country code using maxmind database */
 router.get('/guess_country', (req, res) => {
@@ -370,53 +342,43 @@ router.get('/guess_country', (req, res) => {
  * and initialize his username if it's still available
  * Rejected accounts are marked as pending review
  */
-router.get('/confirm_account', async (req, res) => {
+router.get('/confirm_account', asyncMiddleware(async (req, res) => {
   if (!req.query.token) {
     res.status(400).json({ error: 'error_api_token_required' });
   } else {
-    let decoded;
-    try {
-      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-      if (decoded.type === 'create_account') {
-        const user = await req.db.users.findOne({ where: { email: decoded.email } });
-        if (!user) {
-          res.status(400).json({ error: 'error_api_user_exists_not' });
-        } else if (user.status === 'manual_review' || user.status === 'rejected') {
-          res.status(400).json({ error: 'error_api_account_verification_pending' });
-        } else if (user.status === 'created') {
-          res.status(400).json({ error: 'error_api_account_created' });
-        } else if (user.status === 'approved') {
-          await req.db.users.update({
-            email_is_verified: true,
-          }, { where: { email: decoded.email } });
-          try {
-            const accounts = await steem.api.getAccountsAsync([user.username]);
-            if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-              res.json({ success: true, username: '', reservedUsername: user.username });
-            }
-            res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
-          } catch (err) {
-            console.log('/confirm_account', 'steem.api.getAccountsAsync', err);
-            res.status(500).json({ error: 'error_api_general' });
-          }
-        } else {
-          res.status(400).json({ error: 'error_api_account_verification_pending' });
+    const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+    if (decoded.type === 'create_account') {
+      const user = await req.db.users.findOne({ where: { email: decoded.email } });
+      if (!user) {
+        res.status(400).json({ error: 'error_api_user_exists_not' });
+      } else if (user.status === 'manual_review' || user.status === 'rejected') {
+        res.status(400).json({ error: 'error_api_account_verification_pending' });
+      } else if (user.status === 'created') {
+        res.status(400).json({ error: 'error_api_account_created' });
+      } else if (user.status === 'approved') {
+        await req.db.users.update({
+          email_is_verified: true,
+        }, { where: { email: decoded.email } });
+        const accounts = await steem.api.getAccountsAsync([user.username]);
+        if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
+          res.json({ success: true, username: '', reservedUsername: user.username });
         }
+        res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
       } else {
-        res.status(400).json({ error: 'error_api_token_invalid' });
+        res.status(400).json({ error: 'error_api_account_verification_pending' });
       }
-    } catch (err) {
-      res.status(500).json({ error: 'error_api_token_invalid' });
+    } else {
+      res.status(400).json({ error: 'error_api_token_invalid' });
     }
   }
-});
+}));
 
 /**
  * Create the account on the blockchain using steem-js
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
-router.get('/create_account', async (req, res) => {
+router.get('/create_account', asyncMiddleware(async (req, res) => {
   if (!req.query.token) {
     res.status(400).json({ error: 'error_api_token_required' });
   } else if (!req.query.username) {
@@ -424,72 +386,62 @@ router.get('/create_account', async (req, res) => {
   } else if (!req.query.public_keys) {
     res.status(400).json({ error: 'error_api_public_keys_required' });
   } else {
-    let decoded;
-    try {
-      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
-      if (decoded.type === 'create_account') {
-        const user = await req.db.users.findOne({ where: { email: decoded.email } });
-        if (user.status === 'approved') {
-          // eslint-disable-next-line camelcase
-          const { username, public_keys } = req.query;
-          const weightThreshold = 1;
-          const accountAuths = [];
-          const publicKeys = JSON.parse(public_keys);
-          const owner = {
-            weight_threshold: weightThreshold,
-            account_auths: accountAuths,
-            key_auths: [[publicKeys.owner, 1]],
-          };
-          const active = {
-            weight_threshold: weightThreshold,
-            account_auths: accountAuths,
-            key_auths: [[publicKeys.active, 1]],
-          };
-          const posting = {
-            weight_threshold: weightThreshold,
-            account_auths: accountAuths,
-            key_auths: [[publicKeys.posting, 1]],
-          };
+    const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+    if (decoded.type === 'create_account') {
+      const user = await req.db.users.findOne({ where: { email: decoded.email } });
+      if (user.status === 'approved') {
+        // eslint-disable-next-line camelcase
+        const { username, public_keys } = req.query;
+        const weightThreshold = 1;
+        const accountAuths = [];
+        const publicKeys = JSON.parse(public_keys);
+        const owner = {
+          weight_threshold: weightThreshold,
+          account_auths: accountAuths,
+          key_auths: [[publicKeys.owner, 1]],
+        };
+        const active = {
+          weight_threshold: weightThreshold,
+          account_auths: accountAuths,
+          key_auths: [[publicKeys.active, 1]],
+        };
+        const posting = {
+          weight_threshold: weightThreshold,
+          account_auths: accountAuths,
+          key_auths: [[publicKeys.posting, 1]],
+        };
 
-          steem.broadcast.accountCreateWithDelegation(
-            process.env.DELEGATOR_ACTIVE_WIF,
-            process.env.CREATE_ACCOUNT_FEE,
-            process.env.CREATE_ACCOUNT_DELEGATION,
-            process.env.DELEGATOR_USERNAME,
-            username,
-            owner,
-            active,
-            posting,
-            publicKeys.memo,
-            JSON.stringify({}),
-            [],
-            async (err) => {
-              if (err) {
-                res.status(500).json({ error: 'error_api_create_account', detail: err });
-              } else {
-                const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-                try {
-                  await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
-                  req.db.users.destroy({ where: { email: decoded.email } });
-                  res.json({ success: true });
-                } catch (err2) {
-                  console.log('/create_account', 'conveyor.set_user_data', err2);
-                  res.status(500).json({ error: 'error_api_general' });
-                }
-              }
-            },
-          );
-        } else {
-          res.status(400).json({ error: 'error_api_account_verification_pending' });
-        }
+        steem.broadcast.accountCreateWithDelegation(
+          process.env.DELEGATOR_ACTIVE_WIF,
+          process.env.CREATE_ACCOUNT_FEE,
+          process.env.CREATE_ACCOUNT_DELEGATION,
+          process.env.DELEGATOR_USERNAME,
+          username,
+          owner,
+          active,
+          posting,
+          publicKeys.memo,
+          JSON.stringify({}),
+          [],
+          async (err) => {
+            if (err) {
+              res.status(500).json({ error: 'error_api_create_account', detail: err });
+            } else {
+              const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
+              await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
+              req.db.users.destroy({ where: { email: decoded.email } });
+              res.json({ success: true });
+            }
+          },
+        );
       } else {
-        res.status(400).json({ error: 'error_api_token_invalid' });
+        res.status(400).json({ error: 'error_api_account_verification_pending' });
       }
-    } catch (err) {
-      res.status(500).json({ error: 'error_api_token_invalid' });
+    } else {
+      res.status(400).json({ error: 'error_api_token_invalid' });
     }
   }
-});
+}));
 
 /**
  * Endpoint called by the faucet admin to approve accounts
@@ -512,17 +464,12 @@ router.get('/approve_account', async (req, res) => {
  * Check the validity and blockchain availability of a username
  * Accounts created with the faucet can book a username for one week
  */
-router.get('/check_username', async (req, res) => {
+router.get('/check_username', asyncMiddleware(async (req, res) => {
   const username = req.query.username;
   let error = '';
-  try {
-    const accounts = await steem.api.getAccountsAsync([req.query.username]);
-    if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
-      error = 'error_api_username_used';
-    }
-  } catch (err) {
-    console.log('/check_username', 'steem.api.getAccountsAsync', err);
-    error = 'error_api_general';
+  const accounts = await steem.api.getAccountsAsync([req.query.username]);
+  if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
+    error = 'error_api_username_used';
   }
   if (error === '') {
     const user = await req.db.users.findOne({ where: { username, email_is_verified: true }, order: [['username_booked_at', 'DESC']] });
@@ -540,6 +487,6 @@ router.get('/check_username', async (req, res) => {
   } else {
     res.json({ success: true });
   }
-});
+}));
 
 module.exports = router;

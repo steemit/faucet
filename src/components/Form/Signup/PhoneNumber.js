@@ -47,7 +47,7 @@ class PhoneNumber extends React.Component {
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              const phoneNumberError = data.errors.find(o => o.field === 'phoneNumber');
+              const phoneNumberError = data.errors.find(o => o.field === 'phoneNumber' || o.field === 'general');
               if (phoneNumberError) {
                 setFields({
                   phoneNumber: {

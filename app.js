@@ -71,14 +71,16 @@ if (process.env.SENTRY_DSN) {
   app.use(Raven.errorHandler());
 }
 
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.log(err);
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : err;
 
   // render the error page
   res.status(err.status || 500);
-  res.json(err);
+  res.json({ errors: [{ field: 'general', error: 'error_api_general' }] });
 });
 
 module.exports = { app, server };
