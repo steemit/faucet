@@ -262,7 +262,7 @@ const sendAccountInformation = async (req, email) => {
         .then(checkStatus)
         .then(res => res.text());
     } catch (err) {
-      console.log('sendAccountInformation', err);
+      req.log.error(err, 'sendAccountInformation');
       result = 'manual_review';
     }
 
