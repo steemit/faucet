@@ -50,7 +50,7 @@ class Email extends React.Component {
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              const emailError = data.errors.find(o => o.field === 'email');
+              const emailError = data.errors.find(o => o.field === 'email' || o.field === 'general');
               if (emailError) {
                 setFields({
                   email: {

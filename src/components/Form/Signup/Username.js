@@ -36,7 +36,10 @@ class Username extends React.Component {
               this.setState({ username: value });
               callback();
             }
-          });
+          })
+          .catch(errRes => errRes.response.json().then((err) => {
+            callback(intl.formatMessage({ id: err.errors[0].error }));
+          }));
       }, 500);
     } else {
       callback();

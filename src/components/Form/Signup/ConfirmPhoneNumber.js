@@ -34,7 +34,7 @@ class ConfirmPhoneNumber extends React.Component {
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              const codeError = data.errors.find(o => o.field === 'code');
+              const codeError = data.errors.find(o => o.field === 'code' || o.field === 'general');
               if (codeError) {
                 setFields({
                   code: {
