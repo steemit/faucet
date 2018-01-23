@@ -54,9 +54,6 @@
     "STEEMJS_URL": {
       "required": true
     },
-    "SENTRY_DSN": {
-      "required": true
-    },
     "LOG_FORMAT": "short",
     "DEFAULT_REDIRECT_URI": ""
   },

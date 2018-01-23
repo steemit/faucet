@@ -63,7 +63,6 @@
     "pg-promise": "7.3.3",
     "postcss-loader": "2.0.6",
     "query-string": "4.2.3",
-    "raven": "2.2.1",
     "react": "15.3.2",
     "react-async-script": "0.9.1",
     "react-dom": "15.3.2",
