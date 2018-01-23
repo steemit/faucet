@@ -97,7 +97,7 @@ class CreateAccount extends Component {
       } else {
         const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
         setTimeout(() => {
-          window.location.href = `${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`;
+          window.location.href = `${window.config.DEFAULT_REDIRECT_URI}?${urlParameters}`;
         }, 5000);
       }
     }
@@ -166,8 +166,8 @@ class CreateAccount extends Component {
             placement="bottom"
             content={
               <ul className="lp-language-select">
-                <LanguageItem locale="en" setLocale={setLocale} />
-                <LanguageItem locale="fr" setLocale={setLocale} />
+                {Object.keys(locales).map(key =>
+                  <LanguageItem locale={key} setLocale={setLocale} />)}
               </ul>
             }
             trigger="click"
@@ -226,7 +226,7 @@ class CreateAccount extends Component {
               {!this.isWhistle() &&
               <Form.Item>
                 <a
-                  href={`${process.env.DEFAULT_REDIRECT_URI}?${urlParameters}`}
+                  href={`${window.config.DEFAULT_REDIRECT_URI}?${urlParameters}`}
                   className="redirect-btn"
                 >
                   <FormattedMessage id="redirect_button_text" />

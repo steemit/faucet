@@ -1,16 +1,18 @@
 /* eslint-disable new-cap,global-require,no-param-reassign */
 const express = require('express');
 const path = require('path');
-const logger = require('morgan');
 const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('@steemit/steem-js');
-const Raven = require('raven');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const twilio = require('./helpers/twilio');
 const geoip = require('./helpers/maxmind');
+const getClientConfig = require('./helpers/getClientConfig');
+const logger = require('./helpers/logger');
+
+const clientConfig = getClientConfig();
 
 if (process.env.STEEMJS_URL) {
   steem.api.setOptions({ url: process.env.STEEMJS_URL });
@@ -21,21 +23,46 @@ https.globalAgent.maxSockets = 100;
 const app = express();
 const server = http.Server(app);
 
-if (process.env.NODE_ENV !== 'production') { require('./webpack/webpack')(app); }
+// logging middleware
+app.use((req, res, next) => {
+  const start = process.hrtime();
+  const reqId = req.headers['x-amzn-trace-id'] ||
+                req.headers['x-request-id'] ||
+                `dev-${Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}`;
+  const reqIp = req.headers['x-forwarded-for'] ||
+                req.connection.remoteAddress;
+  req.log = logger.child({ req_id: reqId, ip: reqIp });
+  req.log.debug({ req }, '<-- request');
+  res.set('X-Request-Id', reqId);
+  const logOut = () => {
+    const delta = process.hrtime(start);
+    const info = {
+      ms: (delta[0] * 1e3) + (delta[1] / 1e6),
+      code: res.statusCode,
+    };
+    req.log.info(info, '%s %s%s', req.method, req.baseUrl, req.url);
+    req.log.debug({ res }, '--> response');
+  };
+  res.once('finish', logOut);
+  res.once('close', logOut);
+  next();
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.info('running in development mode');
+  require('./webpack/webpack')(app);
+}
 
 const hbs = require('hbs');
 
+hbs.registerHelper('clientConfig', () => clientConfig);
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
 hbs.registerPartials(`${__dirname}/views/partials`);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.enable('trust proxy');
-
-if (process.env.SENTRY_DSN) {
-  Raven.config(process.env.SENTRY_DSN).install();
-  app.use(Raven.requestHandler());
-}
+app.disable('x-powered-by');
 
 app.use((req, res, next) => {
   req.steem = steem;
@@ -46,7 +73,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(logger(process.env.LOG_FORMAT || 'dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -61,11 +87,6 @@ app.use((req, res, next) => {
   err.status = 404;
   next(err);
 });
-
-// error handler
-if (process.env.SENTRY_DSN) {
-  app.use(Raven.errorHandler());
-}
 
 app.use((err, req, res) => {
   // set locals, only providing error in development

@@ -28,6 +28,7 @@
   "error_api_email_required": "Email address is required",
   "error_api_email_used": "Email address is already in use",
   "error_api_email_verified": "Email address already verified",
+  "error_api_general": "An unexpected error occurred, please try again later",
   "error_api_phone_required": "Phone number is required",
   "error_api_phone_too_many": "Too many attempts. Please request a new code",
   "error_api_phone_used": "Phone number already used",
