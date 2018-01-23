@@ -144,8 +144,8 @@ class Signup extends Component {
             placement="bottom"
             content={
               <ul className="lp-language-select">
-                <LanguageItem locale="en" setLocale={setLocale} />
-                <LanguageItem locale="fr" setLocale={setLocale} />
+                {Object.keys(locales).map(key =>
+                  <LanguageItem locale={key} setLocale={setLocale} />)}
               </ul>
             }
             trigger="click"
