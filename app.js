@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('@steemit/steem-js');
-const Raven = require('raven');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const twilio = require('./helpers/twilio');
@@ -65,11 +64,6 @@ app.set('view engine', 'hbs');
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
-if (process.env.SENTRY_DSN) {
-  Raven.config(process.env.SENTRY_DSN).install();
-  app.use(Raven.requestHandler());
-}
-
 app.use((req, res, next) => {
   req.steem = steem;
   req.twilio = twilio;
@@ -93,11 +87,6 @@ app.use((req, res, next) => {
   err.status = 404;
   next(err);
 });
-
-// error handler
-if (process.env.SENTRY_DSN) {
-  app.use(Raven.errorHandler());
-}
 
 app.use((err, req, res) => {
   // set locals, only providing error in development
