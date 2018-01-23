@@ -7,8 +7,8 @@ const reducers = combineReducers({
   appLocale,
 });
 
-if (process.env.STEEMJS_URL) {
-  steem.api.setOptions({ url: process.env.STEEMJS_URL });
+if (window.config.STEEMJS_URL) {
+  steem.api.setOptions({ url: window.config.STEEMJS_URL });
 }
 
 const store = createStore(

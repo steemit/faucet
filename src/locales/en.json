@@ -30,6 +30,7 @@
   "error_api_email_verified": "Email address already verified",
   "error_api_geetestcaptcha_invalid": "Captcha is invalid",
   "error_api_geetestcaptcha_required": "Captcha is required",
+  "error_api_general": "An unexpected error occurred, please try again later",
   "error_api_phone_required": "Phone number is required",
   "error_api_phone_too_many": "Too many attempts. Please request a new code",
   "error_api_phone_used": "Phone number already used",
