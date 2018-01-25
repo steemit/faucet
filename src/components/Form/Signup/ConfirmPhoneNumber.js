@@ -17,10 +17,12 @@ class ConfirmPhoneNumber extends React.Component {
     e.preventDefault();
     if (this.state.submitting) return;
     this.setState({ submitting: true });
-    const { form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl } = this.props;
+    const {
+      form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl, locale,
+    } = this.props;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/confirm_sms?token=${token}&code=${values.code}`)
+        fetch(`/api/confirm_sms?token=${token}&code=${values.code}&locale=${locale}`)
           .then(checkStatus)
           .then(parseJSON)
           .then((data) => {

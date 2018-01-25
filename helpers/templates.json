@@ -1,17 +1,20 @@
 {
-  "confirm_email": {
-    "from": "Steemit <noreply@steemit.com>",
-    "subject": "Please confirm your email",
-    "text": "On Steemit, you get paid to post and share good content. But first, let's finish setting up your account.\n\nPlease confirm your email address by clicking on this link:\n\n{url}\n\nCheers\nYour friends at Steemit"
-  },
   "create_account": {
     "from": "Steemit <noreply@steemit.com>",
-    "subject" : "One last step to set up your account",
-    "text": "Hi again,\n\nGood news! Your account information has been verfied.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"
+    "subject_en" : "One last step to set up your account",
+    "subject_fr" : "Encore une étape pour créer votre compte",
+    "subject_zh" : "One last step to set up your account",
+    "text_en": "Hi again,\n\nGood news! Your account information has been verified.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit",
+    "text_fr": "Bonjour,\n\nBonne nouvelle! Les informations de votre compte ont été vérifiées.\n\nCliquez sur le lien suivante pour terminer la création de votre compte.\n\n{url}\n\n Cordialement,\nL'équipe Steemit",
+    "text_zh": "Hi again,\n\nGood news! Your account information has been verfied.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"
   },
   "reject_account": {
     "from": "Steemit <noreply@steemit.com>",
-    "subject" : "Your account is under review",
-    "text": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
+    "subject_en" : "Your account is under review",
+    "subject_fr" : "Votre compte est en cours d'étude",
+    "subject_zh" : "Your account is under review",
+    "text_en": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit",
+    "text_fr": "Merci de vous être inscrit sur Steemit. Votre demande de création de compte est en cours d'étude. Nous reviendrons vers vous dès que possible.\n\n Cordialement,\nL'équipe Steemit",
+    "text_zh": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
   }
 }

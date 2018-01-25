@@ -234,12 +234,12 @@ router.get('/check', (req, res) => {
   }
 });
 
-const rejectAccount = async (req, email) => {
+const rejectAccount = async (req, email, locale) => {
   await req.db.users.update({
     status: 'rejected',
   }, { where: { email } });
 
-  await req.mail.send(email, 'reject_account', {},
+  await req.mail.send(email, 'reject_account', locale, {},
     (err) => {
       if (err) {
         throw new Error(err);
@@ -250,14 +250,14 @@ const rejectAccount = async (req, email) => {
 /**
  * Send the email to user to continue the account creation process
  */
-const approveAccount = async (req, email) => {
+const approveAccount = async (req, email, locale) => {
   try {
     const mailToken = jwt.sign({
       type: 'create_account',
       email,
     }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    req.mail.send(email, 'create_account', {
+    req.mail.send(email, 'create_account', locale, {
       url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
     },
     (err) => {
@@ -274,7 +274,7 @@ const approveAccount = async (req, email) => {
  * Check for the status of an account using the steemit gatekeeper
  * An account can have approved, rejected or manual_review status
  */
-const sendAccountInformation = async (req, email) => {
+const sendAccountInformation = async (req, email, locale) => {
   const user = await req.db.users.findOne({ where: { email } });
   if (user && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
@@ -289,9 +289,9 @@ const sendAccountInformation = async (req, email) => {
     }
 
     if (result === 'rejected') {
-      await rejectAccount(req, email);
+      await rejectAccount(req, email, locale);
     } else if (result === 'approved') {
-      await approveAccount(req, email);
+      await approveAccount(req, email, locale);
     } else {
       await req.db.users.update({
         status: result,
@@ -342,8 +342,9 @@ router.get('/confirm_sms', async (req, res) => {
           await req.db.users.update({
             phone_number_is_verified: true,
             phone_code_attempts: user.phone_code_attempts + 1,
+            locale: req.query.locale || 'en',
           }, { where: { email: decoded.email } });
-          await sendAccountInformation(req, decoded.email);
+          await sendAccountInformation(req, decoded.email, req.query.locale || 'en');
           res.json({ success: true });
         }
       } else {
