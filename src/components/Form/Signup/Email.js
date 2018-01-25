@@ -142,7 +142,7 @@ class Email extends React.Component {
         })(
           <ReCAPTCHA
             ref={(el) => { this.captcha = el; }}
-            sitekey={process.env.RECAPTCHA_SITE_KEY}
+            sitekey={window.config.RECAPTCHA_SITE_KEY}
             type="image"
             size="invisible"
             onChange={() => {}}
