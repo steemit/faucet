@@ -21,17 +21,6 @@ function makePlugins(options) {
         NODE_ENV: isDevelopment
           ? JSON.stringify('development')
           : JSON.stringify('production'),
-        ENABLE_LOGGER: JSON.stringify(process.env.ENABLE_LOGGER),
-        SENTRY_PUBLIC_DSN: isDevelopment
-          ? null
-          : JSON.stringify(process.env.SENTRY_PUBLIC_DSN),
-        STEEMJS_URL: JSON.stringify(
-          process.env.STEEMJS_URL ||
-          'wss://steemd.steemit.com',
-        ),
-        IS_BROWSER: JSON.stringify(true),
-        RECAPTCHA_SITE_KEY: JSON.stringify(process.env.RECAPTCHA_SITE_KEY),
-        DEFAULT_REDIRECT_URI: JSON.stringify(process.env.DEFAULT_REDIRECT_URI),
       },
     }),
     new LodashModuleReplacementPlugin({ collections: true, paths: true }),
@@ -68,12 +57,11 @@ function makeStyleLoaders(options) {
   if (options.isDevelopment) {
     return [
       {
-        test: /\.s[ac]ss|.less$/,
+        test: /\.less$/,
         loaders: [
           'style',
           'css?sourceMap?importLoaders=1',
           'postcss-loader?sourceMap&browsers=last 2 version',
-          'sass?sourceMap&sourceMapContents',
           'less-loader',
         ],
       },
@@ -82,10 +70,10 @@ function makeStyleLoaders(options) {
 
   return [
     {
-      test: /\.s[ac]ss|.less$/,
+      test: /\.less$/,
       loader: ExtractTextPlugin.extract(
         'style-loader',
-        'css?importLoaders=1!postcss-loader?browsers=last 2 version!sass!less'
+        'css?importLoaders=1!postcss-loader?browsers=last 2 version!less'
       ),
     },
   ];
