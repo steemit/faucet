@@ -16,6 +16,7 @@
   "enter_email": "Enter email address",
   "enter_phone": "Enter your phone number",
   "error_api_account_created": "Account already created",
+  "error_api_account_creation_progress": "An account creation is in progress",
   "error_api_account_longer": "Account name should be longer",
   "error_api_account_verification_pending": "Account verification is not done",
   "error_api_code_invalid": "Invalid code",

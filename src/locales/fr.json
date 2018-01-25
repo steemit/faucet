@@ -16,6 +16,7 @@
   "enter_email": "Saisissez votre adresse mail",
   "enter_phone": "Saisissez votre numéro de téléphone",
   "error_api_account_created": "le compte a déjà été créé",
+  "error_api_account_creation_progress": "Une création de compte est en cours",
   "error_api_account_longer": "Le nom d'utilisteur doit être plus long",
   "error_api_account_verification_pending": "La vérification du compte n'est pas encore achevée",
   "error_api_code_invalid": "Le code est invalide",
