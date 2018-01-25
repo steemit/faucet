@@ -38,6 +38,7 @@ router.get('/request_email', async (req, res) => {
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
   }
+
   if (!skipRecaptcha && !req.query.recaptcha) {
     errors.push({ field: 'recaptcha', error: 'error_api_recaptcha_required' });
   } else if (!req.query.email) {
