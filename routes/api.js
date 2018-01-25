@@ -483,7 +483,7 @@ router.get('/create_account', async (req, res) => {
                       email,
                       name: username,
                       owner_key: publicKeys.owner,
-                      secret: `${process.env.CREATE_USER_SECRET}`,
+                      secret: String(process.env.CREATE_USER_SECRET),
                     }),
                   })
                   .then(checkStatus)
