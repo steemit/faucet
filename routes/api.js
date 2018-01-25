@@ -488,7 +488,6 @@ router.get('/create_account', async (req, res) => {
                   })
                   .then(checkStatus)
                   .then(response => response.json());
-
                 res.json({ success: result.success });
               }
             },
