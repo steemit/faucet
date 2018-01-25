@@ -429,7 +429,9 @@ router.get('/create_account', async (req, res) => {
       decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
       if (decoded.type === 'create_account') {
         const user = await req.db.users.findOne({ where: { email: decoded.email } });
-        if (user.status === 'approved') {
+        if (!user) {
+          res.status(400).json({ error: 'error_api_user_exists_not' });
+        } else if (user.status === 'approved') {
           // eslint-disable-next-line camelcase
           const { username, public_keys } = req.query;
           const weightThreshold = 1;
