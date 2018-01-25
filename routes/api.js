@@ -460,38 +460,42 @@ router.get('/create_account', async (req, res) => {
             account_auths: accountAuths,
             key_auths: [[publicKeys.posting, 1]],
           };
-
-          steem.broadcast.accountCreateWithDelegation(
-            process.env.DELEGATOR_ACTIVE_WIF,
-            process.env.CREATE_ACCOUNT_FEE,
-            process.env.CREATE_ACCOUNT_DELEGATION,
-            process.env.DELEGATOR_USERNAME,
-            username,
-            owner,
-            active,
-            posting,
-            publicKeys.memo,
-            JSON.stringify({}),
-            [],
-            async (err) => {
-              if (err) {
-                await req.db.users.update({
-                  creation_hash: null,
-                }, { where: { email: decoded.email } });
-                res.status(500).json({ error: 'error_api_create_account', detail: err });
-              } else {
-                const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-                try {
-                  await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
-                  req.db.users.destroy({ where: { email: decoded.email } });
-                  res.json({ success: true });
-                } catch (err2) {
-                  req.log.error(err2, '/create_account', 'conveyor.set_user_data');
-                  res.status(500).json({ error: 'error_api_general' });
+          const userWithHash = await req.db.users.findOne({ where: { email: decoded.email } });
+          if (userWithHash.creation_hash === creationHash) {
+            steem.broadcast.accountCreateWithDelegation(
+              process.env.DELEGATOR_ACTIVE_WIF,
+              process.env.CREATE_ACCOUNT_FEE,
+              process.env.CREATE_ACCOUNT_DELEGATION,
+              process.env.DELEGATOR_USERNAME,
+              username,
+              owner,
+              active,
+              posting,
+              publicKeys.memo,
+              JSON.stringify({}),
+              [],
+              async (err) => {
+                if (err) {
+                  await req.db.users.update({
+                    creation_hash: null,
+                  }, { where: { email: decoded.email } });
+                  res.status(500).json({ error: 'error_api_create_account', detail: err });
+                } else {
+                  const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
+                  try {
+                    await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
+                    req.db.users.destroy({ where: { email: decoded.email } });
+                    res.json({ success: true });
+                  } catch (err2) {
+                    req.log.error(err2, '/create_account', 'conveyor.set_user_data');
+                    res.status(500).json({ error: 'error_api_general' });
+                  }
                 }
-              }
-            },
-          );
+              },
+            );
+          } else {
+            res.status(400).json({ error: 'error_api_account_creation_progress' });
+          }
         } else {
           res.status(400).json({ error: 'error_api_account_verification_pending' });
         }
@@ -499,7 +503,6 @@ router.get('/create_account', async (req, res) => {
         res.status(400).json({ error: 'error_api_token_invalid' });
       }
     } catch (err) {
-      console.log(err);
       res.status(500).json({ error: 'error_api_token_invalid' });
     }
   }
