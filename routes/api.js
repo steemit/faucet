@@ -439,7 +439,10 @@ router.get('/create_account', async (req, res) => {
           const creationHash = hash.sha256(crypto.randomBytes(32)).toString('hex');
           await req.db.users.update({
             creation_hash: creationHash,
-          }, { where: { email: decoded.email } });
+          }, { where: {
+            email: decoded.email,
+            creation_hash: null,
+          } });
           // eslint-disable-next-line camelcase
           const { username, public_keys } = req.query;
           const weightThreshold = 1;
