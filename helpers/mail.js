@@ -8,9 +8,11 @@ const mail = {};
 
 mail.send = (to, template, locale, params = {}, cb) => {
   const data = clone(templates[template]);
+  data.text = data[`text_${locale || 'en'}`];
+  data.subject = data[`subject_${locale || 'en'}`];
   Object.keys(params).forEach((key) => {
-    data.text = data[`text_${locale}`].replace(`{${key}}`, params[key]);
-    data.subject = data[`subject_${locale}`].replace(`{${key}}`, params[key]);
+    data.text = data.text.replace(`{${key}}`, params[key]);
+    data.subject = data.subject.replace(`{${key}}`, params[key]);
   });
   data.to = to;
 

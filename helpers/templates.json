@@ -16,5 +16,14 @@
     "text_en": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit",
     "text_fr": "Merci de vous être inscrit sur Steemit. Votre demande de création de compte est en cours d'étude. Nous reviendrons vers vous dès que possible.\n\n Cordialement,\nL'équipe Steemit",
     "text_zh": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
+  },
+  "account_created": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject_en" : "Account created",
+    "subject_fr" : "Votre compte est créé",
+    "subject_zh" : "Account created",
+    "text_en": "Welcome {username},\nYou can now enjoy Steem and all its features.\n\n Cheers,\nYour friends at Steemit",
+    "text_fr": "Bienvenue {username},\nVous pouvez profiter de Steem et de toutes ses fonctionnalités.\n\n Cordialement,\nL'équipe Steemit",
+    "text_zh": "欢迎 {username},\n你可以使用Steem所有功能了\n\n Cheers,\nYour friends at Steemit"
   }
 }

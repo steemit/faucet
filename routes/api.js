@@ -393,9 +393,9 @@ router.get('/confirm_account', async (req, res) => {
           try {
             const accounts = await steem.api.getAccountsAsync([user.username]);
             if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-              res.json({ success: true, username: '', reservedUsername: user.username });
+              res.json({ success: true, username: '', reservedUsername: user.username, locale: user.locale });
             }
-            res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query });
+            res.json({ success: true, username: user.username, reservedUsername: '', query: user.metadata.query, locale: user.locale });
           } catch (err) {
             req.log.error(err, '/confirm_account', 'steem.api.getAccountsAsync');
             res.status(500).json({ error: 'error_api_general' });
@@ -473,6 +473,14 @@ router.get('/create_account', async (req, res) => {
                 const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
                 try {
                   await conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey);
+                  req.mail.send(decoded.email, 'account_created', user.locale, {
+                    username,
+                  },
+                  (errMail) => {
+                    if (errMail) {
+                      throw new Error(err);
+                    }
+                  });
                   req.db.users.destroy({ where: { email: decoded.email } });
                   res.json({ success: true });
                 } catch (err2) {
@@ -503,7 +511,10 @@ router.get('/approve_account', async (req, res) => {
   try {
     const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
 
-    await Promise.all(decoded.emails.map(email => (approveAccount(req, email))));
+    await Promise.all(decoded.emails.map(async (email) => {
+      const user = await req.db.users.findOne({ where: { email } });
+      approveAccount(req, email, user.locale);
+    }));
     res.json({ success: true });
   } catch (err) {
     const errors = [{ error: 'Failed to send approve account emails' }];

@@ -55,7 +55,7 @@ class CreateAccount extends Component {
   }
 
   componentWillMount() {
-    const { location: { query: { token } }, intl } = this.props;
+    const { location: { query: { token } }, intl, setLocale } = this.props;
     if (!token) {
       this.setState({ step: 'error', error: intl.formatMessage({ id: 'error_token_required' }) });
       logStep('error', -1);
@@ -72,6 +72,9 @@ class CreateAccount extends Component {
               reservedUsername: data.reservedUsername,
               query: data.query,
             });
+            if (data.locale) {
+              setLocale(data.locale);
+            }
             logStep('username', 0);
           } else {
             this.setState({ step: 'error', error: intl.formatMessage({ id: data.error }) });
