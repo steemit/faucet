@@ -466,6 +466,8 @@ router.get('/create_account', apiMiddleware(async (req) => {
       [],
     );
   } catch (cause) {
+    // steem-js error messages are so long that the log is clipped causing errors in scalyr parsing
+    cause.message = cause.message.split('\n').slice(0, 2)
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
