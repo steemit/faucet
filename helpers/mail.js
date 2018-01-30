@@ -6,18 +6,23 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const mail = {};
 
-mail.send = (to, template, locale, params = {}, cb) => {
-  const data = clone(templates[template]);
-  data.text = data[`text_${locale || 'en'}`];
-  data.subject = data[`subject_${locale || 'en'}`];
-  Object.keys(params).forEach((key) => {
-    data.text = data.text.replace(`{${key}}`, params[key]);
-    data.subject = data.subject.replace(`{${key}}`, params[key]);
-  });
-  data.to = to;
-
-  sgMail.send(data, (error, result) => {
-    cb(error, result);
+mail.send = function sendMail(to, template, locale, params = {}) {
+  return new Promise((resolve, reject) => {
+    const data = clone(templates[template]);
+    data.text = data[`text_${locale || 'en'}`];
+    data.subject = data[`subject_${locale || 'en'}`];
+    for (const key of Object.keys(params)) { // eslint-disable-line no-restricted-syntax
+      data.text = data.text.replace(`{${key}}`, params[key]);
+      data.subject = data.subject.replace(`{${key}}`, params[key]);
+    }
+    data.to = to;
+    sgMail.send(data, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
   });
 };
 
