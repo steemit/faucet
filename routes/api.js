@@ -180,23 +180,23 @@ router.post('/request_email', apiMiddleware(async (req) => {
  * Checks the phone validity and use with the conveyor
  * The user can only request one code every minute to prevent flood
  */
-router.get('/request_sms', apiMiddleware(async (req) => {
-  const decoded = verifyToken(req.query.token, 'signup');
+router.post('/request_sms', apiMiddleware(async (req) => {
+  const decoded = verifyToken(req.body.token, 'signup');
 
-  if (!req.query.phoneNumber) {
+  if (!req.body.phoneNumber) {
     throw new ApiError({ type: 'error_api_phone_required', field: 'phoneNumber' });
   }
-  if (!req.query.prefix) {
+  if (!req.body.prefix) {
     throw new ApiError({ type: 'error_api_country_code_required', field: 'prefix' });
   }
 
-  const countryCode = req.query.prefix.split('_')[1];
+  const countryCode = req.body.prefix.split('_')[1];
   if (!countryCode) {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
   const phoneNumber = phoneUtil.format(
-    phoneUtil.parse(req.query.phoneNumber, countryCode),
+    phoneUtil.parse(req.body.phoneNumber, countryCode),
     PNF.INTERNATIONAL,
   );
   const user = await req.db.users.findOne({
@@ -322,10 +322,10 @@ const sendAccountInformation = async (req, email) => {
  * Verify the SMS code and then ask the gatekeeper for the status of the account
  * do decide the next step
  */
-router.get('/confirm_sms', apiMiddleware(async (req) => {
-  const decoded = verifyToken(req.query.token, 'signup');
+router.post('/confirm_sms', apiMiddleware(async (req) => {
+  const decoded = verifyToken(req.body.token, 'signup');
 
-  if (!req.query.code) {
+  if (!req.body.code) {
     throw new ApiError({ field: 'code', type: 'error_api_code_required' });
   }
 
@@ -344,7 +344,7 @@ router.get('/confirm_sms', apiMiddleware(async (req) => {
   if (user.phone_code_attempts >= 5) {
     throw new ApiError({ field: 'code', type: 'error_api_phone_too_many' });
   }
-  if (user.phone_code !== req.query.code) {
+  if (user.phone_code !== req.body.code) {
     req.db.users.update(
       { phone_code_attempts: user.phone_code_attempts + 1 },
       { where: { email: decoded.email } },

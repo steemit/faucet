@@ -2,8 +2,7 @@
 import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { message, Form, Icon, Input, Button } from 'antd';
-import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
+import apiCall from '../../../utils/api';
 
 class ConfirmPhoneNumber extends React.Component {
   constructor(props) {
@@ -20,9 +19,10 @@ class ConfirmPhoneNumber extends React.Component {
     const { form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl } = this.props;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/confirm_sms?token=${token}&code=${values.code}`)
-          .then(checkStatus)
-          .then(parseJSON)
+        apiCall('/api/confirm_sms', {
+          token,
+          code: values.code,
+        })
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
@@ -50,9 +50,11 @@ class ConfirmPhoneNumber extends React.Component {
 
   resendCode = () => {
     const { token, phoneNumber, prefix, intl } = this.props;
-    fetch(`/api/request_sms?token=${token}&phoneNumber=${phoneNumber}&prefix=${prefix}`)
-      .then(checkStatus)
-      .then(parseJSON)
+    apiCall('/api/request_sms', {
+      token,
+      phoneNumber,
+      prefix,
+    })
       .then((data) => {
         this.setState({ submitting: false });
         if (data.success) {
