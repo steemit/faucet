@@ -2,8 +2,7 @@
 import React, { PropTypes } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
-import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
+import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import { validateEmail, validateEmailDomain } from '../../../utils/validator';
 
@@ -33,9 +32,12 @@ class Email extends React.Component {
     const { fingerprint, query } = this.state;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${fingerprint}&query=${query}&username=${username}`)
-          .then(checkStatus)
-          .then(parseJSON)
+        apiCall('/api/request_email', {
+          email: values.email,
+          fingerprint,
+          query,
+          username,
+        })
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
