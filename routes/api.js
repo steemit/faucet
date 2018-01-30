@@ -379,8 +379,8 @@ router.get('/guess_country', apiMiddleware(async (req) => {
  * and initialize his username if it's still available
  * Rejected accounts are marked as pending review
  */
-router.get('/confirm_account', apiMiddleware(async (req) => {
-  const decoded = verifyToken(req.query.token, 'create_account');
+router.post('/confirm_account', apiMiddleware(async (req) => {
+  const decoded = verifyToken(req.body.token, 'create_account');
   const user = await req.db.users.findOne({ where: { email: decoded.email } });
   if (!user) {
     throw new ApiError({ type: 'error_api_user_exists_not' });
@@ -410,8 +410,8 @@ router.get('/confirm_account', apiMiddleware(async (req) => {
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
-router.get('/create_account', apiMiddleware(async (req) => {
-  const { username, public_keys, token } = req.query; // eslint-disable-line camelcase
+router.post('/create_account', apiMiddleware(async (req) => {
+  const { username, public_keys, token } = req.body; // eslint-disable-line camelcase
   const decoded = verifyToken(token, 'create_account');
   if (!username) {
     throw new ApiError({ type: 'error_api_username_required' });
