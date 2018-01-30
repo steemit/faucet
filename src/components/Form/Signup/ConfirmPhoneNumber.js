@@ -34,15 +34,12 @@ class ConfirmPhoneNumber extends React.Component {
           .catch((error) => {
             this.setState({ submitting: false });
             error.response.json().then((data) => {
-              const codeError = data.errors.find(o => o.field === 'code');
-              if (codeError) {
-                setFields({
-                  code: {
-                    value: values.code,
-                    errors: [new Error(intl.formatMessage({ id: codeError.error }))],
-                  },
-                });
-              }
+              setFields({
+                code: {
+                  value: values.code,
+                  errors: [new Error(intl.formatMessage({ id: data.error.type }))],
+                },
+              });
             });
           });
       } else {
@@ -62,8 +59,8 @@ class ConfirmPhoneNumber extends React.Component {
           message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
         }
       })
-      .catch((error) => {
-        error.response.json().then((data) => {
+      .catch((err) => {
+        err.response.json().then((data) => {
           message.error(intl.formatMessage({ id: data.errors[0].error }));
         });
       });
