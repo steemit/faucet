@@ -15,6 +15,13 @@ const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
 const conveyor = cloneDeep(steem);
 
+if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_URL.length < 1) {
+  throw new Error('Missing CREATE_USER_URL');
+}
+if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USER_SECRET.length < 1) {
+  throw new Error('Missing CREATE_USER_SECRET');
+}
+
 conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
 conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
 
@@ -467,7 +474,7 @@ router.get('/create_account', apiMiddleware(async (req) => {
     );
   } catch (cause) {
     // steem-js error messages are so long that the log is clipped causing errors in scalyr parsing
-    cause.message = cause.message.split('\n').slice(0, 2)
+    cause.message = cause.message.split('\n').slice(0, 2);
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
@@ -480,7 +487,7 @@ router.get('/create_account', apiMiddleware(async (req) => {
     req.log.error(error, 'Unable to store user data in conveyor');
   });
 
-  await fetch(`${process.env.CREATE_USER_URL}`, {
+  await fetch(process.env.CREATE_USER_URL, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -490,7 +497,7 @@ router.get('/create_account', apiMiddleware(async (req) => {
       email,
       name: username,
       owner_key: publicKeys.owner,
-      secret: String(process.env.CREATE_USER_SECRET),
+      secret: process.env.CREATE_USER_SECRET,
     }),
   }).then((checkStatus)).catch((error) => {
     req.log.error(error, 'Unable to send recovery info to condenser');
