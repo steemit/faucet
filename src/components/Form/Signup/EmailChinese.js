@@ -80,6 +80,9 @@ class Email extends React.Component {
           fingerprint,
           query,
           username,
+          geetest_challenge: captchaRes.geetest_challenge,
+          geetest_seccode: captchaRes.geetest_seccode,
+          geetest_validate: captchaRes.geetest_validate,
         })
           .then((data) => {
             this.setState({ submitting: false });

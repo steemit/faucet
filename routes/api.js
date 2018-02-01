@@ -41,6 +41,22 @@ async function verifyCaptcha(recaptcha, ip) {
   }
 }
 
+async function verifyGeetestCaptcha(geetestChallenge, geetestValidate, geetestSeccode) {
+  const captcha = new Geetest({
+    geetest_id: process.env.GEETEST_ID,
+    geetest_key: process.env.GEETEST_SECRET,
+  });
+  const geetestValidatePromise = util.promisify(captcha.validate).bind(captcha);
+  const geetestRes = await geetestValidatePromise(false, {
+    geetest_challenge: geetestChallenge,
+    geetest_validate: geetestValidate,
+    geetest_seccode: geetestSeccode,
+  });
+  if (!geetestRes) {
+    throw new Error('Invalid geetest captcha');
+  }
+}
+
 function verifyToken(token, type) {
   if (!token) {
     throw new ApiError({ type: 'error_api_token_required', field: 'phoneNumber' });
@@ -141,20 +157,11 @@ router.post('/request_email', apiMiddleware(async (req) => {
       throw new ApiError({ type: 'error_api_recaptcha_invalid', field: 'recaptcha', cause });
     }
   } else {
-    const captcha = new Geetest({
-      geetest_id: process.env.GEETEST_ID,
-      geetest_key: process.env.GEETEST_SECRET,
-    });
-    const geetestValidate = util.promisify(captcha.validate).bind(captcha);
     try {
-      const geetestRes = await geetestValidate(false, {
-        geetest_challenge: req.query.geetest_challenge,
-        geetest_validate: req.query.geetest_validate,
-        geetest_seccode: req.query.geetest_seccode,
-      });
-      if (!geetestRes) {
-        throw new ApiError({ type: 'error_api_geetestcaptcha_invalid', field: 'geetestCaptcha' });
-      }
+      await verifyGeetestCaptcha(
+        req.body.geetest_challenge,
+        req.body.geetest_validate,
+        req.body.geetest_seccode);
     } catch (cause) {
       throw new ApiError({ type: 'error_api_geetestcaptcha_invalid', field: 'geetestCaptcha', cause });
     }
