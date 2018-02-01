@@ -95,5 +95,22 @@
   "username_know": "选择一个用户名. 它是你在所有基于Steem应用的标志。",
   "username_know_steemit": "选择一个用户名. 它是你在Steemit和所有基于Steem应用的标志。",
   "username_steemit_login": "已经拥有账号? {link}",
-  "welcome": "欢迎"
+  "welcome": "欢迎",
+  "email_templates": {
+    "create_account": {
+      "from": "Steemit <noreply@steemit.com>",
+      "subject" : "One last step to set up your account",
+      "text": "Hi again,\n\nGood news! Your account information has been verfied.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"
+    },
+    "reject_account": {
+      "from": "Steemit <noreply@steemit.com>",
+      "subject" : "Your account is under review",
+      "text": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
+    },
+    "account_created": {
+      "from": "Steemit <noreply@steemit.com>",
+      "subject" : "Account created",
+      "text": "欢迎 {username},\n你可以使用Steem所有功能了\n\n Cheers,\nYour friends at Steemit"
+    }
+  }
 }
