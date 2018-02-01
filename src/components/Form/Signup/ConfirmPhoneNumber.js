@@ -82,6 +82,7 @@ class ConfirmPhoneNumber extends React.Component {
               prefix={<Icon type="key" />}
               suffix={<a href={undefined} onClick={this.resendCode}><FormattedMessage id="resend" /></a>}
               placeholder={intl.formatMessage({ id: 'confirmation_code' })}
+              type="number"
             />,
           )}
         </Form.Item>

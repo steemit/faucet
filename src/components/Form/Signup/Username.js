@@ -78,6 +78,10 @@ class Username extends React.Component {
             <Input
               prefix={<Icon type="user" />}
               placeholder={intl.formatMessage({ id: 'username' })}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
             />,
           )}
         </Form.Item>
