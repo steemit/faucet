@@ -455,8 +455,14 @@ router.get('/create_account', apiMiddleware(async (req) => {
     account_auths: accountAuths,
     key_auths: [[publicKeys.posting, 1]],
   };
-  const userWithHash = await req.db.users.findOne({ where: { email: decoded.email } });
-  if (userWithHash.creation_hash === creationHash) {
+  const newCreationHash = await req.db.sequelize.query(
+    'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ?',
+    {
+      replacements: [decoded.email],
+      type: req.db.sequelize.QueryTypes.SELECT,
+    },
+  );
+  if (newCreationHash[0].creation_hash === creationHash) {
     try {
       await steem.broadcast.accountCreateWithDelegationAsync(
         process.env.DELEGATOR_ACTIVE_WIF,
@@ -526,6 +532,5 @@ router.post('/check_username', apiMiddleware(async (req) => {
   }
   return { success: true };
 }));
-
 
 module.exports = router;
