@@ -15,6 +15,13 @@ const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
 const conveyor = cloneDeep(steem);
 
+if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_URL.length < 1) {
+  throw new Error('Missing CREATE_USER_URL');
+}
+if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USER_SECRET.length < 1) {
+  throw new Error('Missing CREATE_USER_SECRET');
+}
+
 conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
 conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
 
@@ -400,9 +407,9 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
 
   const accounts = await steem.api.getAccountsAsync([user.username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-    return { success: true, username: '', reservedUsername: user.username };
+    return { success: true, username: '', reservedUsername: user.username, email: user.email };
   }
-  return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query };
+  return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email };
 }));
 
 /**
@@ -410,14 +417,18 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
+
 router.post('/create_account', apiMiddleware(async (req) => {
-  const { username, public_keys, token } = req.body; // eslint-disable-line camelcase
+  const { username, public_keys, token, email } = req.body; // eslint-disable-line camelcase
   const decoded = verifyToken(token, 'create_account');
   if (!username) {
     throw new ApiError({ type: 'error_api_username_required' });
   }
   if (!public_keys) { // eslint-disable-line camelcase
     throw new ApiError({ type: 'error_api_public_keys_required' });
+  }
+  if (!email) {
+    throw new ApiError({ type: 'error_api_email_required' });
   }
 
   const user = await req.db.users.findOne({ where: { email: decoded.email } });
@@ -463,6 +474,8 @@ router.post('/create_account', apiMiddleware(async (req) => {
       [],
     );
   } catch (cause) {
+    // steem-js error messages are so long that the log is clipped causing errors in scalyr parsing
+    cause.message = cause.message.split('\n').slice(0, 2);
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
@@ -473,6 +486,22 @@ router.post('/create_account', apiMiddleware(async (req) => {
   }).catch((error) => {
     // TODO: this should be put in a queue and retry on error
     req.log.error(error, 'Unable to store user data in conveyor');
+  });
+
+  await fetch(process.env.CREATE_USER_URL, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      name: username,
+      owner_key: publicKeys.owner,
+      secret: process.env.CREATE_USER_SECRET,
+    }),
+  }).then((checkStatus)).catch((error) => {
+    req.log.error(error, 'Unable to send recovery info to condenser');
   });
 
   return { success: true };
