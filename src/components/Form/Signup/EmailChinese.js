@@ -51,13 +51,11 @@ class Email extends React.Component {
           })
           .catch((error) => {
             this.setState({ submitting: false });
-            error.response.json().then((data) => {
-              setFields({
-                email: {
-                  value: values.email,
-                  errors: [new Error(intl.formatMessage({ id: data.error.type }))],
-                },
-              });
+            setFields({
+              email: {
+                value: values.email,
+                errors: [new Error(intl.formatMessage({ id: error.type }))],
+              },
             });
           });
       } else {

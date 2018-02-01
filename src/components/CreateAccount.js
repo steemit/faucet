@@ -78,10 +78,8 @@ class CreateAccount extends Component {
           }
         })
         .catch((error) => {
-          error.response.json().then((data) => {
-            this.setState({ step: 'error', error: intl.formatMessage({ id: data.error }) });
-            logStep('confirm_account_error', -1);
-          });
+          this.setState({ step: 'error', error: intl.formatMessage({ id: error.type }) });
+          logStep('confirm_account_error', -1);
         });
     }
   }
