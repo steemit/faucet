@@ -99,29 +99,29 @@ router.get('/', apiMiddleware(async () => {
  * and his account created in the Steem blockchain
  * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
-router.get('/request_email', apiMiddleware(async (req) => {
+router.post('/request_email', apiMiddleware(async (req) => {
   const location = req.geoip.get(req.ip);
   let skipRecaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
   }
-  if (!skipRecaptcha && !req.query.recaptcha) {
+  if (!skipRecaptcha && !req.body.recaptcha) {
     throw new ApiError({ type: 'error_api_recaptcha_required', field: 'recaptcha' });
   }
 
-  if (!req.query.email) {
+  if (!req.body.email) {
     throw new ApiError({ type: 'error_api_email_required', field: 'email' });
   }
-  if (!validator.isEmail(req.query.email)) {
+  if (!validator.isEmail(req.body.email)) {
     throw new ApiError({ type: 'error_api_email_format', field: 'email' });
   }
-  if (badDomains.includes(req.query.email.split('@')[1])) {
+  if (badDomains.includes(req.body.email.split('@')[1])) {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
 
   const userCount = await req.db.users.count({
     where: {
-      email: req.query.email,
+      email: req.body.email,
       email_is_verified: true,
     },
   });
@@ -130,7 +130,7 @@ router.get('/request_email', apiMiddleware(async (req) => {
   }
 
   const emailRegistered = await conveyor.api.signedCall(
-    'conveyor.is_email_registered', [req.query.email],
+    'conveyor.is_email_registered', [req.body.email],
     conveyorAccount, conveyorKey,
   );
   if (emailRegistered) {
@@ -139,7 +139,7 @@ router.get('/request_email', apiMiddleware(async (req) => {
 
   if (!skipRecaptcha) {
     try {
-      await verifyCaptcha(req.query.recaptcha, req.ip);
+      await verifyCaptcha(req.body.recaptcha, req.ip);
     } catch (cause) {
       throw new ApiError({ type: 'error_api_recaptcha_invalid', field: 'recaptcha', cause });
     }
@@ -147,18 +147,18 @@ router.get('/request_email', apiMiddleware(async (req) => {
 
   const userExist = await req.db.users.count({
     where: {
-      email: req.query.email,
+      email: req.body.email,
     },
   });
 
   const token = jwt.sign({
     type: 'signup',
-    email: req.query.email,
+    email: req.body.email,
   }, process.env.JWT_SECRET);
 
   if (userExist === 0) {
     await req.db.users.create({
-      email: req.query.email,
+      email: req.body.email,
       email_is_verified: false,
       last_attempt_verify_email: null,
       phone_number: '',
@@ -168,16 +168,16 @@ router.get('/request_email', apiMiddleware(async (req) => {
       account_is_created: false,
       created_at: new Date(),
       updated_at: null,
-      fingerprint: JSON.parse(req.query.fingerprint),
-      metadata: { query: JSON.parse(req.query.query) },
-      username: req.query.username,
+      fingerprint: JSON.parse(req.body.fingerprint),
+      metadata: { query: JSON.parse(req.body.query) },
+      username: req.body.username,
       username_booked_at: new Date(),
     });
   } else {
     await req.db.users.update({
-      username: req.query.username,
+      username: req.body.username,
       username_booked_at: new Date(),
-    }, { where: { email: req.query.email } });
+    }, { where: { email: req.body.email } });
   }
 
   return { success: true, token };
@@ -187,23 +187,23 @@ router.get('/request_email', apiMiddleware(async (req) => {
  * Checks the phone validity and use with the conveyor
  * The user can only request one code every minute to prevent flood
  */
-router.get('/request_sms', apiMiddleware(async (req) => {
-  const decoded = verifyToken(req.query.token, 'signup');
+router.post('/request_sms', apiMiddleware(async (req) => {
+  const decoded = verifyToken(req.body.token, 'signup');
 
-  if (!req.query.phoneNumber) {
+  if (!req.body.phoneNumber) {
     throw new ApiError({ type: 'error_api_phone_required', field: 'phoneNumber' });
   }
-  if (!req.query.prefix) {
+  if (!req.body.prefix) {
     throw new ApiError({ type: 'error_api_country_code_required', field: 'prefix' });
   }
 
-  const countryCode = req.query.prefix.split('_')[1];
+  const countryCode = req.body.prefix.split('_')[1];
   if (!countryCode) {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
   const phoneNumber = phoneUtil.format(
-    phoneUtil.parse(req.query.phoneNumber, countryCode),
+    phoneUtil.parse(req.body.phoneNumber, countryCode),
     PNF.INTERNATIONAL,
   );
   const user = await req.db.users.findOne({
@@ -329,10 +329,10 @@ const sendAccountInformation = async (req, email) => {
  * Verify the SMS code and then ask the gatekeeper for the status of the account
  * do decide the next step
  */
-router.get('/confirm_sms', apiMiddleware(async (req) => {
-  const decoded = verifyToken(req.query.token, 'signup');
+router.post('/confirm_sms', apiMiddleware(async (req) => {
+  const decoded = verifyToken(req.body.token, 'signup');
 
-  if (!req.query.code) {
+  if (!req.body.code) {
     throw new ApiError({ field: 'code', type: 'error_api_code_required' });
   }
 
@@ -351,7 +351,7 @@ router.get('/confirm_sms', apiMiddleware(async (req) => {
   if (user.phone_code_attempts >= 5) {
     throw new ApiError({ field: 'code', type: 'error_api_phone_too_many' });
   }
-  if (user.phone_code !== req.query.code) {
+  if (user.phone_code !== req.body.code) {
     req.db.users.update(
       { phone_code_attempts: user.phone_code_attempts + 1 },
       { where: { email: decoded.email } },
@@ -386,8 +386,8 @@ router.get('/guess_country', apiMiddleware(async (req) => {
  * and initialize his username if it's still available
  * Rejected accounts are marked as pending review
  */
-router.get('/confirm_account', apiMiddleware(async (req) => {
-  const decoded = verifyToken(req.query.token, 'create_account');
+router.post('/confirm_account', apiMiddleware(async (req) => {
+  const decoded = verifyToken(req.body.token, 'create_account');
   const user = await req.db.users.findOne({ where: { email: decoded.email } });
   if (!user) {
     throw new ApiError({ type: 'error_api_user_exists_not' });
@@ -417,8 +417,9 @@ router.get('/confirm_account', apiMiddleware(async (req) => {
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
-router.get('/create_account', apiMiddleware(async (req) => {
-  const { username, public_keys, token, email } = req.query; // eslint-disable-line camelcase
+
+router.post('/create_account', apiMiddleware(async (req) => {
+  const { username, public_keys, token, email } = req.body; // eslint-disable-line camelcase
   const decoded = verifyToken(token, 'create_account');
   if (!username) {
     throw new ApiError({ type: 'error_api_username_required' });
