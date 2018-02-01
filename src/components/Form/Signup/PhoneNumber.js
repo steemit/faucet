@@ -115,6 +115,7 @@ class PhoneNumber extends React.Component {
             <Input
               prefix={<Icon type="mobile" />}
               placeholder={intl.formatMessage({ id: 'phone_number' })}
+              type="tel"
             />,
           )}
         </Form.Item>
