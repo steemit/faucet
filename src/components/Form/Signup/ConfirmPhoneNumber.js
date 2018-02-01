@@ -2,8 +2,7 @@
 import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { message, Form, Icon, Input, Button } from 'antd';
-import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
+import apiCall from '../../../utils/api';
 
 class ConfirmPhoneNumber extends React.Component {
   constructor(props) {
@@ -20,9 +19,10 @@ class ConfirmPhoneNumber extends React.Component {
     const { form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl } = this.props;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/confirm_sms?token=${token}&code=${values.code}`)
-          .then(checkStatus)
-          .then(parseJSON)
+        apiCall('/api/confirm_sms', {
+          token,
+          code: values.code,
+        })
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
@@ -33,16 +33,11 @@ class ConfirmPhoneNumber extends React.Component {
           })
           .catch((error) => {
             this.setState({ submitting: false });
-            error.response.json().then((data) => {
-              const codeError = data.errors.find(o => o.field === 'code');
-              if (codeError) {
-                setFields({
-                  code: {
-                    value: values.code,
-                    errors: [new Error(intl.formatMessage({ id: codeError.error }))],
-                  },
-                });
-              }
+            setFields({
+              code: {
+                value: values.code,
+                errors: [new Error(intl.formatMessage({ id: error.type }))],
+              },
             });
           });
       } else {
@@ -53,17 +48,19 @@ class ConfirmPhoneNumber extends React.Component {
 
   resendCode = () => {
     const { token, phoneNumber, prefix, intl } = this.props;
-    fetch(`/api/request_sms?token=${token}&phoneNumber=${phoneNumber}&prefix=${prefix}`)
-      .then(checkStatus)
-      .then(parseJSON)
+    apiCall('/api/request_sms', {
+      token,
+      phoneNumber,
+      prefix,
+    })
       .then((data) => {
         this.setState({ submitting: false });
         if (data.success) {
           message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
         }
       })
-      .catch((error) => {
-        error.response.json().then((data) => {
+      .catch((err) => {
+        err.response.json().then((data) => {
           message.error(intl.formatMessage({ id: data.errors[0].error }));
         });
       });

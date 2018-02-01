@@ -2,8 +2,7 @@
 import React, { PropTypes } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
-import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
+import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import { validateEmail, validateEmailDomain } from '../../../utils/validator';
 
@@ -39,9 +38,7 @@ class Email extends React.Component {
   }
 
   componentDidMount() {
-    fetch('/api/gt_challenge')
-      .then(checkStatus)
-      .then(parseJSON)
+    apiCall('/api/gt_challenge', {})
       .then((data) => {
         // eslint-disable-next-line no-undef
         initGeetest({
@@ -78,9 +75,12 @@ class Email extends React.Component {
         });
         this.setState({ submitting: false });
       } else if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${fingerprint}&query=${query}&username=${username}&geetest_challenge=${captchaRes.geetest_challenge}&geetest_seccode=${captchaRes.geetest_seccode}&geetest_validate=${captchaRes.geetest_validate}`)
-          .then(checkStatus)
-          .then(parseJSON)
+        apiCall('/api/request_email', {
+          email: values.email,
+          fingerprint,
+          query,
+          username,
+        })
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
@@ -94,16 +94,11 @@ class Email extends React.Component {
           })
           .catch((error) => {
             this.setState({ submitting: false });
-            error.response.json().then((data) => {
-              const emailError = data.errors.find(o => o.field === 'email');
-              if (emailError) {
-                setFields({
-                  email: {
-                    value: values.email,
-                    errors: [new Error(intl.formatMessage({ id: emailError.error }))],
-                  },
-                });
-              }
+            setFields({
+              email: {
+                value: values.email,
+                errors: [new Error(intl.formatMessage({ id: error.type }))],
+              },
             });
             window.geetest_captcha.reset();
           });
