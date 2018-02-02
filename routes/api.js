@@ -466,39 +466,39 @@ router.post('/create_account', apiMiddleware(async (req) => {
     account_auths: accountAuths,
     key_auths: [[publicKeys.posting, 1]],
   };
-  const newCreationHash = await req.db.sequelize.query(
+  const [activeCreationHash] = await req.db.sequelize.query(
     'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ?',
     {
       replacements: [decoded.email],
       type: req.db.sequelize.QueryTypes.SELECT,
     },
   );
-  if (newCreationHash[0].creation_hash === creationHash) {
-    try {
-      await steem.broadcast.accountCreateWithDelegationAsync(
-        process.env.DELEGATOR_ACTIVE_WIF,
-        process.env.CREATE_ACCOUNT_FEE,
-        process.env.CREATE_ACCOUNT_DELEGATION,
-        process.env.DELEGATOR_USERNAME,
-        username,
-        owner,
-        active,
-        posting,
-        publicKeys.memo,
-        metadata,
-        [],
-      );
-    } catch (cause) {
-      await req.db.users.update({
-        creation_hash: null,
-      }, { where: { email: decoded.email } });
-      // steem-js error messages are so long that the log is clipped causing errors in scalyr parsing
-      cause.message = cause.message.split('\n').slice(0, 2);
-      throw new ApiError({ type: 'error_api_create_account', cause });
-    }
-  } else {
+  if (!activeCreationHash || activeCreationHash.creation_hash !== creationHash) {
     throw new ApiError({ type: 'error_api_account_creation_progress' });
   }
+  try {
+    await steem.broadcast.accountCreateWithDelegationAsync(
+      process.env.DELEGATOR_ACTIVE_WIF,
+      process.env.CREATE_ACCOUNT_FEE,
+      process.env.CREATE_ACCOUNT_DELEGATION,
+      process.env.DELEGATOR_USERNAME,
+      username,
+      owner,
+      active,
+      posting,
+      publicKeys.memo,
+      metadata,
+      [],
+    );
+  } catch (cause) {
+    await req.db.users.update({
+      creation_hash: null,
+    }, { where: { email: decoded.email } });
+    // steem-js error messages are so long that the log is clipped causing errors in scalyr parsing
+    cause.message = cause.message.split('\n').slice(0, 2);
+    throw new ApiError({ type: 'error_api_create_account', cause });
+  }
+
   const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
   conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
     const rv = req.db.users.destroy({ where: { email: decoded.email } });
