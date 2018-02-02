@@ -67,6 +67,9 @@ module.exports = {
       metadata: {
         type: Sequelize.JSON,
       },
+      creation_hash: {
+        type: Sequelize.STRING,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),

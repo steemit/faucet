@@ -3,6 +3,8 @@ const util = require('util');
 const express = require('express');
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
+const { hash } = require('@steemit/steem-js/lib/auth/ecc');
+const crypto = require('crypto');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
@@ -438,7 +440,13 @@ router.post('/create_account', apiMiddleware(async (req) => {
   if (user.status !== 'approved') {
     throw new ApiError({ type: 'error_api_account_verification_pending' });
   }
-
+  const creationHash = hash.sha256(crypto.randomBytes(32)).toString('hex');
+  await req.db.users.update({
+    creation_hash: creationHash,
+  }, { where: {
+    email: decoded.email,
+    creation_hash: null,
+  } });
   const weightThreshold = 1;
   const accountAuths = [];
   const publicKeys = JSON.parse(public_keys);
@@ -458,7 +466,16 @@ router.post('/create_account', apiMiddleware(async (req) => {
     account_auths: accountAuths,
     key_auths: [[publicKeys.posting, 1]],
   };
-
+  const [activeCreationHash] = await req.db.sequelize.query(
+    'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ?',
+    {
+      replacements: [decoded.email],
+      type: req.db.sequelize.QueryTypes.SELECT,
+    },
+  );
+  if (!activeCreationHash || activeCreationHash.creation_hash !== creationHash) {
+    throw new ApiError({ type: 'error_api_account_creation_progress' });
+  }
   try {
     await steem.broadcast.accountCreateWithDelegationAsync(
       process.env.DELEGATOR_ACTIVE_WIF,
@@ -474,6 +491,9 @@ router.post('/create_account', apiMiddleware(async (req) => {
       [],
     );
   } catch (cause) {
+    await req.db.users.update({
+      creation_hash: null,
+    }, { where: { email: decoded.email } });
     // steem-js error messages are so long that the log is clipped causing errors in scalyr parsing
     cause.message = cause.message.split('\n').slice(0, 2);
     throw new ApiError({ type: 'error_api_create_account', cause });
@@ -541,6 +561,5 @@ router.post('/check_username', apiMiddleware(async (req) => {
   }
   return { success: true };
 }));
-
 
 module.exports = router;
