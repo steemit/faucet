@@ -72,7 +72,7 @@
   "error_validation_account_segment_start": "Each username segment should start with a letter",
   "finish_text_1": "After validating your signup request, we will look it over for approval. As soon as your turn is up and you're approved, you will be sent a link to finalize your account.",
   "finish_text_2": "You will be among the earliest members of the Steem community!",
-  "generate_new_password": "Generate new password",
+  "generate_new_password": "Generate a new password",
   "get_started": "Get started",
   "go_back": "Go back",
   "oops": "Oops!",
