@@ -138,6 +138,7 @@ class Email extends React.Component {
             <Input
               prefix={<Icon type="mail" />}
               placeholder={intl.formatMessage({ id: 'email' })}
+              type="email"
             />,
           )}
         </Form.Item>

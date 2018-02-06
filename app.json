@@ -57,6 +57,12 @@
     "CONVEYOR_POSTING_WIF": {
       "required": true
     },
+    "CREATE_USER_SECRET": {
+      "required": true
+    },
+    "CREATE_USER_URL": {
+      "required": true
+    },
     "STEEMJS_URL": {
       "required": true
     },
