@@ -3,9 +3,8 @@ import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Select, Button } from 'antd';
 import _ from 'lodash';
-import fetch from 'isomorphic-fetch';
+import apiCall from '../../../utils/api';
 import countries from '../../../../countries.json';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
 
 class PhoneNumber extends React.Component {
   constructor(props) {
@@ -33,9 +32,11 @@ class PhoneNumber extends React.Component {
     const { form: { validateFieldsAndScroll, setFields }, token, onSubmit, intl } = this.props;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_sms?token=${token}&phoneNumber=${values.phoneNumber}&prefix=${values.prefix}`)
-          .then(checkStatus)
-          .then(parseJSON)
+        apiCall('/api/request_sms', {
+          token,
+          phoneNumber: values.phoneNumber,
+          prefix: values.prefix,
+        })
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
@@ -46,26 +47,24 @@ class PhoneNumber extends React.Component {
           })
           .catch((error) => {
             this.setState({ submitting: false });
-            error.response.json().then((data) => {
-              if (data.error.field === 'phoneNumber') {
-                setFields({
-                  phoneNumber: {
-                    value: values.phoneNumber,
-                    errors: [
-                      new Error(intl.formatMessage({ id: data.error.type })),
-                    ],
-                  },
-                });
-              }
-              if (error.field === 'prefix') {
-                setFields({
-                  prefix: {
-                    value: values.prefix,
-                    errors: [new Error(intl.formatMessage({ id: error.type }))],
-                  },
-                });
-              }
-            });
+            if (error.field === 'phoneNumber') {
+              setFields({
+                phoneNumber: {
+                  value: values.phoneNumber,
+                  errors: [
+                    new Error(intl.formatMessage({ id: error.type })),
+                  ],
+                },
+              });
+            }
+            if (error.field === 'prefix') {
+              setFields({
+                prefix: {
+                  value: values.prefix,
+                  errors: [new Error(intl.formatMessage({ id: error.type }))],
+                },
+              });
+            }
           });
       } else {
         this.setState({ submitting: false });
@@ -116,6 +115,7 @@ class PhoneNumber extends React.Component {
             <Input
               prefix={<Icon type="mobile" />}
               placeholder={intl.formatMessage({ id: 'phone_number' })}
+              type="tel"
             />,
           )}
         </Form.Item>
