@@ -3079,6 +3079,12 @@ growl@1.9.2:
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.9.2.tgz#0ea7743715db8d8de2c5ede1775e1b45ac85c02f"
 
+gt3-sdk@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/gt3-sdk/-/gt3-sdk-2.0.0.tgz#0adf4e89bfd06bf373852e93e7130872187b483e"
+  dependencies:
+    request "^2.81.0"
+
 hammerjs@^2.0.8:
   version "2.0.8"
   resolved "https://registry.yarnpkg.com/hammerjs/-/hammerjs-2.0.8.tgz#04ef77862cff2bb79d30f7692095930222bf60f1"

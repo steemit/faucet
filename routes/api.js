@@ -7,6 +7,7 @@ const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const Geetest = require('gt3-sdk');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
@@ -46,6 +47,22 @@ async function verifyCaptcha(recaptcha, ip) {
   if (!response.success) {
     const codes = (response['error-codes'] || ['unknown']);
     throw new Error(`Captcha verification failed: ${codes.join()}`);
+  }
+}
+
+async function verifyGeetestCaptcha(geetestChallenge, geetestValidate, geetestSeccode) {
+  const captcha = new Geetest({
+    geetest_id: process.env.GEETEST_ID,
+    geetest_key: process.env.GEETEST_SECRET,
+  });
+  const geetestValidatePromise = util.promisify(captcha.validate).bind(captcha);
+  const geetestRes = await geetestValidatePromise(false, {
+    geetest_challenge: geetestChallenge,
+    geetest_validate: geetestValidate,
+    geetest_seccode: geetestSeccode,
+  });
+  if (!geetestRes) {
+    throw new Error('Invalid geetest captcha');
   }
 }
 
@@ -103,14 +120,17 @@ router.get('/', apiMiddleware(async () => {
  */
 router.post('/request_email', apiMiddleware(async (req) => {
   const location = req.geoip.get(req.ip);
-  let skipRecaptcha = false;
+  let useChineseCaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
-    skipRecaptcha = true;
+    useChineseCaptcha = true;
   }
-  if (!skipRecaptcha && !req.body.recaptcha) {
+  if (!useChineseCaptcha && !req.body.recaptcha) {
     throw new ApiError({ type: 'error_api_recaptcha_required', field: 'recaptcha' });
   }
-
+  if (useChineseCaptcha && !req.body.geetest_challenge
+    && !req.body.geetest_seccode && !req.body.geetest_validate) {
+    throw new ApiError({ type: 'error_api_geetestcaptcha_required', field: 'geetestCaptcha' });
+  }
   if (!req.body.email) {
     throw new ApiError({ type: 'error_api_email_required', field: 'email' });
   }
@@ -139,11 +159,20 @@ router.post('/request_email', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
 
-  if (!skipRecaptcha) {
+  if (!useChineseCaptcha) {
     try {
       await verifyCaptcha(req.body.recaptcha, req.ip);
     } catch (cause) {
       throw new ApiError({ type: 'error_api_recaptcha_invalid', field: 'recaptcha', cause });
+    }
+  } else {
+    try {
+      await verifyGeetestCaptcha(
+        req.body.geetest_challenge,
+        req.body.geetest_validate,
+        req.body.geetest_seccode);
+    } catch (cause) {
+      throw new ApiError({ type: 'error_api_geetestcaptcha_invalid', field: 'geetestCaptcha', cause });
     }
   }
 
@@ -561,5 +590,19 @@ router.post('/check_username', apiMiddleware(async (req) => {
   }
   return { success: true };
 }));
+
+router.post('/gt_challenge', (req, res) => {
+  const captcha = new Geetest({
+    geetest_id: process.env.GEETEST_ID,
+    geetest_key: process.env.GEETEST_SECRET,
+  });
+  captcha.register(null, (err, data) => {
+    if (err) {
+      res.status(400).send({ err });
+    } else {
+      res.send(data);
+    }
+  });
+});
 
 module.exports = router;
