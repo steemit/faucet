@@ -6,7 +6,6 @@
   },
   "bin": "./bin/www",
   "main": "./bin/www",
-  "private": false,
   "scripts": {
     "start": "./bin/www",
     "start-dev": "nodemon --ignore src ./bin/www | bunyan -o short",
