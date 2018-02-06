@@ -3,7 +3,7 @@ import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
 import apiCall from '../../../utils/api';
-import { validateAccountName } from '../../../utils/validator';
+import { validateAccountName } from '../../../../helpers/validator';
 
 class Username extends React.Component {
   constructor(props) {

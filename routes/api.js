@@ -13,6 +13,8 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+const { ApiError } = require('../helpers/ApiError');
+const { validateAccountName } = require('../helpers/validator');
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
@@ -27,19 +29,6 @@ if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USE
 
 conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
 conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
-
-class ApiError extends Error {
-  constructor({ type = 'error_api_general', field = 'general', status = 400, cause }) {
-    super(`${field}:${type}`);
-    this.type = type;
-    this.field = field;
-    this.status = status;
-    this.cause = cause;
-  }
-  toJSON() {
-    return { type: this.type, field: this.field };
-  }
-}
 
 async function verifyCaptcha(recaptcha, ip) {
   const url = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${recaptcha}&remoteip=${ip}`;
@@ -137,6 +126,10 @@ router.post('/request_email', apiMiddleware(async (req) => {
   if (!validator.isEmail(req.body.email)) {
     throw new ApiError({ type: 'error_api_email_format', field: 'email' });
   }
+  if (!req.body.username) {
+    throw new ApiError({ type: 'error_api_username_required', field: 'username' });
+  }
+  validateAccountName(null, req.body.username);
   if (badDomains.includes(req.body.email.split('@')[1])) {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
