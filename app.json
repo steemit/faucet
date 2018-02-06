@@ -33,6 +33,12 @@
     "RECAPTCHA_SITE_KEY": {
       "required": true
     },
+    "GEETEST_ID": {
+      "required": true
+    },
+    "GEETEST_SECRET": {
+      "required": true
+    },
     "DELEGATOR_ACTIVE_WIF": {
       "required": true
     },
@@ -49,6 +55,12 @@
       "required": true
     },
     "CONVEYOR_POSTING_WIF": {
+      "required": true
+    },
+    "CREATE_USER_SECRET": {
+      "required": true
+    },
+    "CREATE_USER_URL": {
       "required": true
     },
     "STEEMJS_URL": {

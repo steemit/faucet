@@ -16,6 +16,7 @@
   "enter_email": "输入E-mail地址",
   "enter_phone": "输入你的手机号码",
   "error_api_account_created": "账号已存在",
+  "error_api_account_creation_progress": "An account creation is in progress",
   "error_api_account_longer": "用户名应该更长",
   "error_api_account_verification_pending": "账号还未被确认",
   "error_api_code_invalid": "无效的验证码",

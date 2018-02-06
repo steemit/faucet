@@ -3,8 +3,7 @@ import React, { PropTypes } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
-import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
+import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import { validateEmail, validateEmailDomain } from '../../../utils/validator';
 
@@ -70,9 +69,13 @@ class Email extends React.Component {
     const { fingerprint, query } = this.state;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
-        fetch(`/api/request_email?email=${encodeURIComponent(values.email)}&fingerprint=${fingerprint}&query=${query}&username=${username}&recaptcha=${window.grecaptcha.getResponse()}`)
-          .then(checkStatus)
-          .then(parseJSON)
+        apiCall('/api/request_email', {
+          email: values.email,
+          fingerprint,
+          query,
+          username,
+          recaptcha: window.grecaptcha.getResponse(),
+        })
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
@@ -86,15 +89,13 @@ class Email extends React.Component {
           })
           .catch((error) => {
             this.setState({ submitting: false });
-            error.response.json().then((data) => {
-              setFields({
-                email: {
-                  value: values.email,
-                  errors: [new Error(intl.formatMessage({ id: data.error.type }))],
-                },
-              });
-              window.grecaptcha.reset();
+            setFields({
+              email: {
+                value: values.email,
+                errors: [new Error(intl.formatMessage({ id: error.type }))],
+              },
             });
+            window.grecaptcha.reset();
           });
       } else {
         this.setState({ submitting: false });
@@ -128,6 +129,7 @@ class Email extends React.Component {
             <Input
               prefix={<Icon type="mail" />}
               placeholder={intl.formatMessage({ id: 'email' })}
+              type="email"
             />,
           )}
         </Form.Item>

@@ -70,6 +70,9 @@ module.exports = {
       locale: {
         type: Sequelize.STRING,
       },
+      creation_hash: {
+        type: Sequelize.STRING,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),

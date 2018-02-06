@@ -1,14 +1,13 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
-import fetch from 'isomorphic-fetch';
 import { Button, Form, Icon, Popover } from 'antd';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import LanguageItem from './LanguageItem';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
-import { checkStatus, parseJSON } from '../utils/fetch';
+import apiCall from '../utils/api';
 import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
@@ -50,6 +49,7 @@ class CreateAccount extends Component {
       username: '',
       password: '',
       reservedUsername: '',
+      email: '',
       query: {},
     };
   }
@@ -60,9 +60,9 @@ class CreateAccount extends Component {
       this.setState({ step: 'error', error: intl.formatMessage({ id: 'error_token_required' }) });
       logStep('error', -1);
     } else {
-      fetch(`/api/confirm_account?token=${token}`)
-        .then(checkStatus)
-        .then(parseJSON)
+      apiCall('/api/confirm_account', {
+        token,
+      })
         .then((data) => {
           if (data.success) {
             this.setState({
@@ -70,6 +70,7 @@ class CreateAccount extends Component {
               stepNumber: data.username === '' ? 0 : 1,
               username: data.username,
               reservedUsername: data.reservedUsername,
+              email: data.email,
               query: data.query,
             });
             if (data.locale) {
@@ -82,10 +83,8 @@ class CreateAccount extends Component {
           }
         })
         .catch((error) => {
-          error.response.json().then((data) => {
-            this.setState({ step: 'error', error: intl.formatMessage({ id: data.error }) });
-            logStep('confirm_account_error', -1);
-          });
+          this.setState({ step: 'error', error: intl.formatMessage({ id: error.type }) });
+          logStep('confirm_account_error', -1);
         });
     }
   }
@@ -133,12 +132,14 @@ class CreateAccount extends Component {
 
   handleSubmit = () => {
     const { location: { query: { token } }, intl } = this.props;
-    const { username, password } = this.state;
+    const { username, password, email } = this.state;
     const publicKeys = steem.auth.generateKeys(username, password, ['owner', 'active', 'posting', 'memo']);
-
-    fetch(`/api/create_account?token=${token}&username=${username}&public_keys=${JSON.stringify(publicKeys)}`)
-      .then(checkStatus)
-      .then(parseJSON)
+    apiCall('/api/create_account', {
+      token,
+      username,
+      email,
+      public_keys: JSON.stringify(publicKeys),
+    })
       .then((data) => {
         if (data.success) {
           this.setState({ step: 'created' });
