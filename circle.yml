@@ -4,7 +4,7 @@ general:
     - "npm-debug.log"
 jobs:
   build:
-    working_directory: ~/sc2-signup
+    working_directory: ~/faucet
     docker:
       - image: circleci/node:8.1.4
     steps:
