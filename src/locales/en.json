@@ -99,5 +99,22 @@
   "username_know": "Start with a username. Your username is how you'll be known on all Steem-based apps.",
   "username_know_steemit": "Start with a username. Your username is how you'll be known on Steemit and other Steem-based apps.",
   "username_steemit_login": "Do you already have an account? {link}",
-  "welcome": "Welcome"
+  "welcome": "Welcome",
+  "email_templates": {
+    "create_account": {
+      "from": "Steemit <noreply@steemit.com>",
+      "subject_en" : "One last step to set up your account",
+      "text_en": "Hi again,\n\nGood news! Your account information has been verified.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"
+    },
+    "reject_account": {
+      "from": "Steemit <noreply@steemit.com>",
+      "subject" : "Your account is under review",
+      "text": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
+    },
+    "account_created": {
+      "from": "Steemit <noreply@steemit.com>",
+      "subject" : "Account created",
+      "text": "Welcome {username},\nYou can now enjoy Steem and all its features.\n\n Cheers,\nYour friends at Steemit"
+    }
+  }
 }
