@@ -90,17 +90,21 @@ class CreateAccount extends Component {
   }
 
   componentDidUpdate() {
-    const { step, query, username } = this.state;
+    const { step } = this.state;
     if (step === 'created') {
       if (this.isWhistle()) {
         window.postMessage('whistle_signup_complete');
       } else {
-        const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
         setTimeout(() => {
-          window.location.href = `${window.config.DEFAULT_REDIRECT_URI}?user=${username}&${urlParameters}`;
+          window.location.href = this.getRedirect();
         }, 5000);
       }
     }
+  }
+
+  getRedirect = () => {
+    const { username } = this.state;
+    return window.config.DEFAULT_REDIRECT_URI.replace(new RegExp(window.config.USERNAME_REGEX, 'g'), username);
   }
 
   isWhistle = () => {
@@ -156,9 +160,9 @@ class CreateAccount extends Component {
   }
 
   render() {
-    const { step, stepNumber, error, username, reservedUsername, password, query } = this.state;
+    const { step, stepNumber, error, username, reservedUsername, password } = this.state;
     const { setLocale, locale } = this.props;
-    const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
+
     return (
       <div className="Signup_main">
         <div className="signup-bg-left" />
@@ -228,7 +232,7 @@ class CreateAccount extends Component {
               {!this.isWhistle() &&
               <Form.Item>
                 <a
-                  href={`${window.config.DEFAULT_REDIRECT_URI}?user=${username}&${urlParameters}`}
+                  href={this.getRedirect()}
                   className="redirect-btn"
                 >
                   <FormattedMessage id="redirect_button_text" />

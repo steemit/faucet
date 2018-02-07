@@ -9,6 +9,7 @@ function getClientConfig() {
     'RECAPTCHA_SITE_KEY',
     'STEEMJS_URL',
     'DEFAULT_REDIRECT_URI',
+    'USERNAME_REGEX',
   ];
 
   return JSON.stringify(envVars.reduce((config, prop) => {

@@ -67,7 +67,8 @@
       "required": true
     },
     "LOG_FORMAT": "short",
-    "DEFAULT_REDIRECT_URI": ""
+    "DEFAULT_REDIRECT_URI": "",
+    "USERNAME_REGEX": ""
   },
   "formation": {
   },
