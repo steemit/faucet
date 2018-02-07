@@ -14,7 +14,6 @@ import './CreateAccount.less';
 import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 
-
 @connect(
   state => ({
     locale: state.appLocale.locale,
@@ -104,7 +103,16 @@ class CreateAccount extends Component {
 
   getRedirect = () => {
     const { username } = this.state;
-    return window.config.DEFAULT_REDIRECT_URI.replace(new RegExp(window.config.USERNAME_REGEX, 'g'), username);
+    const { location: { query } } = this.props;
+    let redirectUri = window.config.DEFAULT_REDIRECT_URI;
+    redirectUri = redirectUri.replace(new RegExp(window.config.USERNAME_REGEX, 'g'), username);
+    if (query) {
+      // eslint-disable-next-line array-callback-return
+      Object.keys(query).map((param) => {
+        redirectUri = redirectUri.replace(new RegExp(`{{${param}}}`, 'g'), query[param]);
+      });
+    }
+    return redirectUri;
   }
 
   isWhistle = () => {
