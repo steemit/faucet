@@ -90,14 +90,14 @@ class CreateAccount extends Component {
   }
 
   componentDidUpdate() {
-    const { step, query } = this.state;
+    const { step, query, username } = this.state;
     if (step === 'created') {
       if (this.isWhistle()) {
         window.postMessage('whistle_signup_complete');
       } else {
         const urlParameters = query && Object.keys(query).map(param => `${param}=${query[param]}`).join('&');
         setTimeout(() => {
-          window.location.href = `${window.config.DEFAULT_REDIRECT_URI}?${urlParameters}`;
+          window.location.href = `${window.config.DEFAULT_REDIRECT_URI}?user=${username}&${urlParameters}`;
         }, 5000);
       }
     }
@@ -228,7 +228,7 @@ class CreateAccount extends Component {
               {!this.isWhistle() &&
               <Form.Item>
                 <a
-                  href={`${window.config.DEFAULT_REDIRECT_URI}?${urlParameters}`}
+                  href={`${window.config.DEFAULT_REDIRECT_URI}?user=${username}&${urlParameters}`}
                   className="redirect-btn"
                 >
                   <FormattedMessage id="redirect_button_text" />
