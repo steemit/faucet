@@ -15,7 +15,13 @@ class Username extends React.Component {
   }
 
   validateAccountNameIntl = (rule, value, callback) => {
-    validateAccountName(rule, value, callback, this.props.intl);
+    const { intl } = this.props;
+    const error = validateAccountName(value);
+    if (error) {
+      callback(intl.formatMessage({ id: error }));
+    } else {
+      callback();
+    }
   }
 
   validateUsername = (rule, value, callback) => {
