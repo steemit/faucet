@@ -19,7 +19,6 @@ module.exports = {
         username: 'fabien2017',
         username_booked_at: new Date(),
         metadata: JSON.stringify({ query: { uid: '12345' } }),
-        locale: 'fr',
         creation_hash: '5a234b0a964be4a73c0bf78df675038e1e297c4726cd7340bfeeaf036ceeb885',
       },
     ], {})
