@@ -1,5 +1,3 @@
-const cloneDeep = require('lodash/cloneDeep');
-const util = require('util');
 const express = require('express');
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
@@ -15,7 +13,8 @@ const badDomains = require('../bad-domains');
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
-const conveyor = cloneDeep(steem);
+
+steem.api.setOptions({ url: process.env.STEEMJS_URL });
 
 if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_URL.length < 1) {
   throw new Error('Missing CREATE_USER_URL');
@@ -23,9 +22,6 @@ if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_U
 if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USER_SECRET.length < 1) {
   throw new Error('Missing CREATE_USER_SECRET');
 }
-
-conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
-conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
 
 class ApiError extends Error {
   constructor({ type = 'error_api_general', field = 'general', status = 400, cause }) {
@@ -131,7 +127,7 @@ router.post('/request_email', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
 
-  const emailRegistered = await conveyor.api.signedCall(
+  const emailRegistered = await steem.api.signedCallAsync(
     'conveyor.is_email_registered', [req.body.email],
     conveyorAccount, conveyorKey,
   );
@@ -239,7 +235,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
-  const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
+  const phoneRegistered = await steem.api.signedCallAsync('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
   if (phoneRegistered) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
@@ -500,7 +496,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
   }
 
   const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-  conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
+  steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
     const rv = req.db.users.destroy({ where: { email: decoded.email } });
     return rv;
   }).catch((error) => {
