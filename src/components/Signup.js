@@ -236,7 +236,6 @@ class Signup extends Component {
                 token={token}
                 phoneNumber={phoneNumber}
                 prefix={prefix}
-                locale={locale}
                 goBack={this.goBack}
               />
             </div>

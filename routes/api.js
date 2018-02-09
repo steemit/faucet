@@ -306,22 +306,22 @@ router.get('/check', (req, res) => {
   }
 });
 
-const rejectAccount = async (req, email, locale) => {
+const rejectAccount = async (req, email) => {
   await req.db.users.update({
     status: 'rejected',
   }, { where: { email } });
-  await req.mail.send(email, 'reject_account', locale, {});
+  await req.mail.send(email, 'reject_account', {});
 };
 
 /**
  * Send the email to user to continue the account creation process
  */
-const approveAccount = async (req, email, locale) => {
+const approveAccount = async (req, email) => {
   const mailToken = jwt.sign({
     type: 'create_account',
     email,
   }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  await req.mail.send(email, 'create_account', locale, {
+  await req.mail.send(email, 'create_account', {
     url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
   });
 };
@@ -330,7 +330,7 @@ const approveAccount = async (req, email, locale) => {
  * Check for the status of an account using the steemit gatekeeper
  * An account can have approved, rejected or manual_review status
  */
-const sendAccountInformation = async (req, email, locale) => {
+const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
   if (user && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
@@ -345,9 +345,9 @@ const sendAccountInformation = async (req, email, locale) => {
     }
 
     if (result === 'rejected') {
-      await rejectAccount(req, email, locale);
+      await rejectAccount(req, email);
     } else if (result === 'approved') {
-      await approveAccount(req, email, locale);
+      await approveAccount(req, email);
     } else {
       await req.db.users.update({
         status: result,
@@ -395,10 +395,9 @@ router.post('/confirm_sms', apiMiddleware(async (req) => {
   await req.db.users.update({
     phone_number_is_verified: true,
     phone_code_attempts: user.phone_code_attempts + 1,
-    locale: req.body.locale || 'en',
   }, { where: { email: decoded.email } });
 
-  sendAccountInformation(req, decoded.email, req.query.locale || 'en').catch((error) => {
+  sendAccountInformation(req, decoded.email).catch((error) => {
     // TODO: this should be put in a queue and retry on error
     req.log.error(error, 'Unable to send verification mail');
   });
@@ -439,9 +438,9 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
 
   const accounts = await steem.api.getAccountsAsync([user.username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-    return { success: true, username: '', reservedUsername: user.username, email: user.email, locale: user.locale };
+    return { success: true, username: '', reservedUsername: user.username, email: user.email };
   }
-  return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email, locale: user.locale };
+  return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email };
 }));
 
 /**
@@ -530,10 +529,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
   }
 
   const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-  conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(async () => {
-    await req.mail.send(decoded.email, 'account_created', user.locale, {
-      username,
-    });
+  conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
     const rv = req.db.users.destroy({ where: { email: decoded.email } });
     return rv;
   }).catch((error) => {
@@ -567,10 +563,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
  */
 router.get('/approve_account', apiMiddleware(async (req) => {
   const decoded = verifyToken(req.query.token);
-  await Promise.all(decoded.emails.map(async (email) => {
-    const user = await req.db.users.findOne({ where: { email } });
-    approveAccount(req, email, user.locale);
-  }));
+  await Promise.all(decoded.emails.map(email => approveAccount(req, email)));
   return { success: true };
 }));
 

@@ -98,22 +98,5 @@
   "username_know": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom pour toutes les applications Steem.",
   "username_know_steemit": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom sur Steemit et toutes les autres applications Steem.",
   "username_steemit_login": "Vous avez déjà un compte ? {link}",
-  "welcome": "Welcome",
-  "email_templates": {
-    "create_account": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Encore une étape pour créer votre compte",
-      "text": "Bonjour,\n\nBonne nouvelle ! Les informations de votre compte ont été vérifiées.\n\nCliquez sur le lien suivante pour terminer la création de votre compte.\n\n{url}\n\n Cordialement,\nL'équipe Steemit"
-    },
-    "reject_account": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Votre compte est en cours d'étude",
-      "text": "Merci de vous être inscrit sur Steemit. Votre demande de création de compte est en cours d'étude. Nous reviendrons vers vous dès que possible.\n\n Cordialement,\nL'équipe Steemit"
-    },
-    "account_created": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Votre compte est créé",
-      "text": "Bienvenue {username},\nVous pouvez profiter de Steem et de toutes ses fonctionnalités.\n\n Cordialement,\nL'équipe Steemit"
-    }
-  }
+  "welcome": "Welcome"
 }
