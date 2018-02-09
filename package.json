@@ -1,11 +1,12 @@
 {
-  "name": "faucet",
+  "name": "sc2-signup",
   "version": "0.0.1",
   "engines": {
     "node": ">=8.1.4"
   },
   "bin": "./bin/www",
   "main": "./bin/www",
+  "private": true,
   "scripts": {
     "start": "./bin/www",
     "start-dev": "nodemon --ignore src ./bin/www | bunyan -o short",
