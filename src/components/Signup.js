@@ -56,7 +56,7 @@ class Signup extends Component {
       phoneNumber: '',
       phoneNumberFormatted: '',
       token: props.location.query.token || '',
-      ref: props.location.query.ref || '',
+      ref: props.location.query.ref || 'steemit',
       countryCode: '',
       prefix: '',
       completed: false,
