@@ -56,7 +56,7 @@ class Signup extends Component {
       phoneNumber: '',
       phoneNumberFormatted: '',
       token: props.location.query.token || '',
-      ref: props.location.query.ref || '',
+      ref: props.location.query.ref || 'steemit',
       countryCode: '',
       prefix: '',
       completed: false,
@@ -236,7 +236,6 @@ class Signup extends Component {
                 token={token}
                 phoneNumber={phoneNumber}
                 prefix={prefix}
-                locale={locale}
                 goBack={this.goBack}
               />
             </div>

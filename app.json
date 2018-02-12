@@ -1,5 +1,5 @@
 {
-  "name": "faucet",
+  "name": "sc2-signup",
   "scripts": {
   },
   "env": {
@@ -31,12 +31,6 @@
       "required": true
     },
     "RECAPTCHA_SITE_KEY": {
-      "required": true
-    },
-    "GEETEST_ID": {
-      "required": true
-    },
-    "GEETEST_SECRET": {
       "required": true
     },
     "DELEGATOR_ACTIVE_WIF": {
