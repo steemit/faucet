@@ -509,7 +509,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
-  const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
+  const params = [username, { phone: user.phone_number.replace(/[^+0-9]+/g, ''), email: user.email }];
   steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
     const rv = req.db.users.destroy({ where: { email: decoded.email } });
     return rv;
