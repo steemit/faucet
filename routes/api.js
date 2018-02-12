@@ -200,13 +200,13 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
-  let phoneNumber
+  let phoneNumber;
   try {
     phoneNumber = phoneUtil.format(
       phoneUtil.parse(req.body.phoneNumber, countryCode),
       PNF.INTERNATIONAL,
     );
-    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '')
+    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '');
   } catch (cause) {
     throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
   }
