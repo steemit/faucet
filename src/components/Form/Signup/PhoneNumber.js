@@ -106,7 +106,7 @@ class PhoneNumber extends React.Component {
         </Form.Item>
         <Form.Item>
           {getFieldDecorator('phoneNumber', {
-            normalize: ((d) => d.replace(/[^0-9+]+/g, '')),
+            normalize: (d => d.replace(/[^0-9+]+/g, '')),
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_phone_required' }) },
               { pattern: /^\+?\d+$/, message: intl.formatMessage({ id: 'error_phone_format' }) },
