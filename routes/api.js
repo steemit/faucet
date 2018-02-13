@@ -10,6 +10,11 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+const moment = require('moment');
+const db = require('./../db/models');
+
+const {Sequelize} = db;
+const {Op} = Sequelize;
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
@@ -42,6 +47,21 @@ async function verifyCaptcha(recaptcha, ip) {
   if (!response.success) {
     const codes = (response['error-codes'] || ['unknown']);
     throw new Error(`Captcha verification failed: ${codes.join()}`);
+  }
+}
+
+/**
+ * Throws if user or ip exceeds number of allowed actions within time period.
+ */
+async function actionLimit(ip, user_id = null) {
+  const created_at = {[Op.gte]: moment().subtract(20, 'hours').toDate()}
+  const promises = [db.actions.count({where: {ip, created_at, action: {[Op.ne]: 'check_username'}}})]
+  if (user_id) {
+    promises.push(db.actions.count({where: {user_id, created_at}}))
+  }
+  const [ipActions, userActions] = await Promise.all(promises);
+  if (userActions > 4 || ipActions > 32) {
+    throw new ApiError({ type: 'error_api_actionlimit' });
   }
 }
 
@@ -116,6 +136,14 @@ router.post('/request_email', apiMiddleware(async (req) => {
   if (badDomains.includes(req.body.email.split('@')[1])) {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
+
+  await actionLimit(req.ip);
+
+  await req.db.actions.create({
+    action: 'request_email',
+    ip: req.ip,
+    metadata: {email: req.body.email},
+  });
 
   const userCount = await req.db.users.count({
     where: {
@@ -220,12 +248,11 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_unknown_user' });
   }
 
-  const date = new Date();
-  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
+  await actionLimit(req.ip, user.id);
 
   if (
     user.last_attempt_verify_phone_number &&
-    user.last_attempt_verify_phone_number.getTime() > oneMinLater
+    user.last_attempt_verify_phone_number.getTime() > Date.now() - 2 * 60 * 1000
   ) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
   }
@@ -253,6 +280,13 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     phone_number: phoneNumber,
     phone_code_attempts: 0,
   }, { where: { email: decoded.email } });
+
+  await req.db.actions.create({
+    action: 'send_sms',
+    ip: req.ip,
+    metadata: {phoneNumber},
+    user_id: user.id,
+  });
 
   try {
     await req.twilio.messages.create({
@@ -557,6 +591,11 @@ router.post('/check_username', apiMiddleware(async (req) => {
   if (!username || username.length < 3) {
     throw new ApiError({ type: 'error_api_username_invalid' });
   }
+  await req.db.actions.create({
+    action: 'check_username',
+    ip: req.ip,
+    metadata: {username},
+  });
   const accounts = await steem.api.getAccountsAsync([username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
     throw new ApiError({ type: 'error_api_username_used', code: 200 });
