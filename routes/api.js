@@ -13,8 +13,8 @@ const badDomains = require('../bad-domains');
 const moment = require('moment');
 const db = require('./../db/models');
 
-const {Sequelize} = db;
-const {Op} = Sequelize;
+const { Sequelize } = db;
+const { Op } = Sequelize;
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
@@ -54,10 +54,10 @@ async function verifyCaptcha(recaptcha, ip) {
  * Throws if user or ip exceeds number of allowed actions within time period.
  */
 async function actionLimit(ip, user_id = null) {
-  const created_at = {[Op.gte]: moment().subtract(20, 'hours').toDate()}
-  const promises = [db.actions.count({where: {ip, created_at, action: {[Op.ne]: 'check_username'}}})]
+  const created_at = { [Op.gte]: moment().subtract(20, 'hours').toDate() };
+  const promises = [db.actions.count({ where: { ip, created_at, action: { [Op.ne]: 'check_username' } } })];
   if (user_id) {
-    promises.push(db.actions.count({where: {user_id, created_at}}))
+    promises.push(db.actions.count({ where: { user_id, created_at } }));
   }
   const [ipActions, userActions] = await Promise.all(promises);
   if (userActions > 4 || ipActions > 32) {
@@ -142,7 +142,7 @@ router.post('/request_email', apiMiddleware(async (req) => {
   await req.db.actions.create({
     action: 'request_email',
     ip: req.ip,
-    metadata: {email: req.body.email},
+    metadata: { email: req.body.email },
   });
 
   const userCount = await req.db.users.count({
@@ -252,7 +252,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
 
   if (
     user.last_attempt_verify_phone_number &&
-    user.last_attempt_verify_phone_number.getTime() > Date.now() - 2 * 60 * 1000
+    user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
   ) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
   }
@@ -284,7 +284,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
   await req.db.actions.create({
     action: 'send_sms',
     ip: req.ip,
-    metadata: {phoneNumber},
+    metadata: { phoneNumber },
     user_id: user.id,
   });
 
@@ -591,7 +591,7 @@ router.post('/check_username', apiMiddleware(async (req) => {
   await req.db.actions.create({
     action: 'check_username',
     ip: req.ip,
-    metadata: {username},
+    metadata: { username },
   });
   const accounts = await steem.api.getAccountsAsync([username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
