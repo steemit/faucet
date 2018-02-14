@@ -44,9 +44,6 @@ if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USE
   throw new Error('Missing CREATE_USER_SECRET');
 }
 
-conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
-conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
-
 async function verifyCaptcha(recaptcha, ip) {
   const url = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${recaptcha}&remoteip=${ip}`;
   const response = await (await fetch(url)).json();
