@@ -7,6 +7,7 @@ yarn install
 ```
 
 ## Init database
+
 Set up and run migrations directly from the terminal using Sequelize CLI. Here is how to do:
 ```
 yarn exec -- sequelize db:migrate --url 'mysql://username:password@hostname:port/database'

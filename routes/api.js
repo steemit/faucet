@@ -200,10 +200,16 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
-  const phoneNumber = phoneUtil.format(
-    phoneUtil.parse(req.body.phoneNumber, countryCode),
-    PNF.INTERNATIONAL,
-  );
+  let phoneNumber;
+  try {
+    phoneNumber = phoneUtil.format(
+      phoneUtil.parse(req.body.phoneNumber, countryCode),
+      PNF.INTERNATIONAL,
+    );
+    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '');
+  } catch (cause) {
+    throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
+  }
   const user = await req.db.users.findOne({
     where: {
       email: decoded.email,
@@ -235,7 +241,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
-  const phoneRegistered = await steem.api.signedCallAsync('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
+  const phoneRegistered = await steem.api.signedCallAsync('conveyor.is_phone_registered', [phoneNumber], conveyorAccount, conveyorKey);
   if (phoneRegistered) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
@@ -248,11 +254,19 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     phone_code_attempts: 0,
   }, { where: { email: decoded.email } });
 
-  await req.twilio.messages.create({
-    body: `${phoneCode} is your Steem confirmation code`,
-    to: phoneNumber,
-    from: process.env.TWILIO_PHONE_NUMBER,
-  });
+  try {
+    await req.twilio.messages.create({
+      body: `${phoneCode} is your Steem confirmation code`,
+      to: phoneNumber,
+      from: process.env.TWILIO_PHONE_NUMBER,
+    });
+  } catch (cause) {
+    if (cause.code === 21614 || cause.code === 21211) {
+      throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
+    } else {
+      throw cause;
+    }
+  }
 
   return { success: true, phoneNumber };
 }));
@@ -495,7 +509,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
-  const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
+  const params = [username, { phone: user.phone_number.replace(/[^+0-9]+/g, ''), email: user.email }];
   steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
     const rv = req.db.users.destroy({ where: { email: decoded.email } });
     return rv;
