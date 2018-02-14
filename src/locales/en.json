@@ -3,7 +3,7 @@
   "choose_carefully": "Choose it carefully. You cannot change it later",
   "choose_username": "Choose a username",
   "confirm_account": "Confirm your account",
-  "confirm_existence": "We need to confirm that you exist",
+  "confirm_existence": "We need to know how to contact you",
   "confirm_password": "Please enter your password to confirm it.",
   "confirmation_code": "Confirmation code",
   "continue": "Continue",
@@ -29,8 +29,6 @@
   "error_api_email_required": "Email address required",
   "error_api_email_used": "Email address already in use",
   "error_api_email_verified": "Email address already verified",
-  "error_api_geetestcaptcha_invalid": "Captcha is invalid",
-  "error_api_geetestcaptcha_required": "Captcha is required",
   "error_api_general": "An unexpected error occurred. Please try again later",
   "error_api_phone_required": "Phone number required",
   "error_api_phone_too_many": "Too many attempts. Please request a new code",
@@ -53,7 +51,6 @@
   "error_confirmation_code_required": "'Please input the code you received",
   "error_country_code_required": "Please select your country code",
   "error_email_required": "Please input your email address",
-  "error_geetestcaptcha_required": "Please validate the captcha",
   "error_password_match": "Passwords don't match",
   "error_password_required": "Password required",
   "error_phone_format": "Phone number invalid",
@@ -73,7 +70,7 @@
   "error_validation_account_segment_end": "Each username segment should end with a letter or digit",
   "error_validation_account_segment_min": "Each username segment should be longer",
   "error_validation_account_segment_start": "Each username segment should start with a letter",
-  "finish_text_1": "After validating your signup request, we will look it over for approval. As soon as you're approved, you will be sent a link to finalize your account.",
+  "finish_text_1": "After validating your signup request, we will look it over for approval. Please be patient, as it may take time to review the account. As soon as you're approved, you will be sent a link to finalize your account.",
   "finish_text_2": "You will be among the earliest members of the Steem community!",
   "generate_new_password": "Generate a new password",
   "get_started": "Get started",
@@ -99,22 +96,5 @@
   "username_know": "Start with a username. Your username is how you'll be known on all Steem-based apps.",
   "username_know_steemit": "Start with a username. Your username is how you'll be known on Steemit and other Steem-based apps.",
   "username_steemit_login": "Do you already have an account? {link}",
-  "welcome": "Welcome",
-  "email_templates": {
-    "create_account": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject_en" : "One last step to set up your account",
-      "text_en": "Hi again,\n\nGood news! Your account information has been verified.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"
-    },
-    "reject_account": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Your account is under review",
-      "text": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
-    },
-    "account_created": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Account created",
-      "text": "Welcome {username},\nYou can now enjoy Steem and all its features.\n\n Cheers,\nYour friends at Steemit"
-    }
-  }
+  "welcome": "Welcome"
 }
