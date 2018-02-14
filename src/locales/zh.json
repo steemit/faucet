@@ -48,6 +48,7 @@
   "error_api_username_reserved": "用户名已被占用",
   "error_api_username_used": "用户名已被占用",
   "error_api_wait": "重试需要间隔1分钟",
+  "error_api_actionlimit": "You are doing that too much, please try again tomorrow",
   "error_confirmation_code_required": "'请输入你收到的验证码",
   "error_country_code_required": "请选择你的地区",
   "error_email_required": "请输入E-mail",
