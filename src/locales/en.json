@@ -48,6 +48,7 @@
   "error_api_username_reserved": "Username reserved",
   "error_api_username_used": "This username is already in use",
   "error_api_wait": "Please wait at least one minute between retries",
+  "error_api_actionlimit": "You are doing that too much, please try again tomorrow",
   "error_confirmation_code_required": "'Please input the code you received",
   "error_country_code_required": "Please select your country code",
   "error_email_required": "Please input your email address",
