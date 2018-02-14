@@ -47,6 +47,7 @@
   "error_api_username_reserved": "L'utilisateur est réservé",
   "error_api_username_used": "L'utilisateur existe déjà",
   "error_api_wait": "Veuillez patienter au moins une minute entre les essais",
+  "error_api_actionlimit": "You are doing that too much, please try again tomorrow",
   "error_confirmation_code_required": "Veuillez saisir le code reçu",
   "error_country_code_required": "Veuillez sélectionner votre pays",
   "error_email_required": "Veuillez saisir votre adresse email",
