@@ -36,6 +36,12 @@ async function cleanupDb() {
   if (numActions > 0) {
     logger.info('removed %d old actions', numActions)
   }
+  const numUsers = await db.users.destroy({
+    where: {updated_at: {[Op.gt]: moment().subtract(60, 'days').toDate()}}
+  })
+  if (numUsers > 0) {
+    logger.info('removed %d old users', numUsers)
+  }
 }
 setInterval(() => {
   logger.debug('running db cleanup')

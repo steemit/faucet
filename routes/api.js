@@ -544,10 +544,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
   }
 
   const params = [username, { phone: user.phone_number.replace(/[^+0-9]+/g, ''), email: user.email }];
-  steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
-    const rv = req.db.users.destroy({ where: { email: decoded.email } });
-    return rv;
-  }).catch((error) => {
+  steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).catch((error) => {
     // TODO: this should be put in a queue and retry on error
     req.log.error(error, 'Unable to store user data in conveyor');
   });
