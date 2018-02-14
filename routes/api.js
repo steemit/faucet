@@ -10,6 +10,7 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+const sendSMS = require('../helpers/twilio');
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
@@ -255,11 +256,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
   }, { where: { email: decoded.email } });
 
   try {
-    await req.twilio.messages.create({
-      body: `${phoneCode} is your Steem confirmation code`,
-      to: phoneNumber,
-      from: process.env.TWILIO_PHONE_NUMBER,
-    });
+    await sendSMS(phoneNumber, `${phoneCode} is your Steem confirmation code`);
   } catch (cause) {
     if (cause.code === 21614 || cause.code === 21211) {
       throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
