@@ -10,6 +10,10 @@ const db = require('./db/models');
 const geoip = require('./helpers/maxmind');
 const getClientConfig = require('./helpers/getClientConfig');
 const logger = require('./helpers/logger');
+const moment = require('moment');
+
+const { Sequelize } = db;
+const { Op } = Sequelize;
 
 const clientConfig = getClientConfig();
 
@@ -21,6 +25,29 @@ http.globalAgent.maxSockets = 100;
 https.globalAgent.maxSockets = 100;
 const app = express();
 const server = http.Server(app);
+
+// database cleanup task
+// removes actions and completed requests older than 60 days
+async function cleanupDb() {
+  const numActions = await db.actions.destroy({
+    where: { created_at: { [Op.lt]: moment().subtract(60, 'days').toDate() } },
+  });
+  if (numActions > 0) {
+    logger.info('removed %d old actions', numActions);
+  }
+  const numUsers = await db.users.destroy({
+    where: { updated_at: { [Op.lt]: moment().subtract(60, 'days').toDate() } },
+  });
+  if (numUsers > 0) {
+    logger.info('removed %d old users', numUsers);
+  }
+}
+setInterval(() => {
+  logger.debug('running db cleanup');
+  cleanupDb().catch((error) => {
+    logger.error(error, 'error cleaning database');
+  });
+}, 60 * 60 * 1000);
 
 // logging middleware
 app.use((req, res, next) => {
