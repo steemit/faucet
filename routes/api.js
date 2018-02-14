@@ -238,11 +238,17 @@ router.post('/request_sms', apiMiddleware(async (req) => {
   });
 
   if (phoneExists > 0) {
+    await req.db.users.update({
+      phone_number_attempts: user.phone_number_attempts + 1,
+    }, { where: { email: decoded.email } });
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
   const phoneRegistered = await steem.api.signedCallAsync('conveyor.is_phone_registered', [phoneNumber], conveyorAccount, conveyorKey);
   if (phoneRegistered) {
+    await req.db.users.update({
+      phone_number_attempts: user.phone_number_attempts + 1,
+    }, { where: { email: decoded.email } });
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
@@ -262,6 +268,9 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     });
   } catch (cause) {
     if (cause.code === 21614 || cause.code === 21211) {
+      await req.db.users.update({
+        phone_number_attempts: user.phone_number_attempts + 1,
+      }, { where: { email: decoded.email } });
       throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
     } else {
       throw cause;

@@ -7,6 +7,7 @@ module.exports = {
         last_attempt_verify_email: new Date(),
         phone_number: '+66102030405',
         phone_number_is_verified: false,
+        phone_number_attempts: 1,
         phone_code_attempts: 1,
         phone_code: '84576',
         last_attempt_verify_phone_number: new Date(),
