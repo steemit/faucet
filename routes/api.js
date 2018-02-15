@@ -104,7 +104,6 @@ function apiMiddleware(handler) {
 
 const router = express.Router(); // eslint-disable-line new-cap
 
-
 router.get('/', apiMiddleware(async () => {
   const rv = { ok: true };
   return rv;
