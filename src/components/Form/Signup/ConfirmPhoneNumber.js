@@ -53,16 +53,13 @@ class ConfirmPhoneNumber extends React.Component {
       phoneNumber,
       prefix,
     })
-      .then((data) => {
+      .then(() => {
         this.setState({ submitting: false });
-        if (data.success) {
-          message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
-        }
+        message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
       })
-      .catch((err) => {
-        err.response.json().then((data) => {
-          message.error(intl.formatMessage({ id: data.errors[0].error }));
-        });
+      .catch((error) => {
+        this.setState({ submitting: false });
+        message.error(intl.formatMessage({ id: error.type }));
       });
   }
 
