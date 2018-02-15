@@ -463,7 +463,6 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
-
 router.post('/create_account', apiMiddleware(async (req) => {
   const { username, public_keys, token, email } = req.body; // eslint-disable-line camelcase
   const decoded = verifyToken(token, 'create_account');
