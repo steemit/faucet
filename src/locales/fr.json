@@ -29,8 +29,6 @@
   "error_api_email_required": "L'email est obligatoire",
   "error_api_email_used": "Email déjà utilisé",
   "error_api_email_verified": "Email déjà vérifié",
-  "error_api_geetestcaptcha_invalid": "Le captcha est invalide",
-  "error_api_geetestcaptcha_required": "Le captcha est obligatoire",
   "error_api_general": "Une erreur inattendue s'est produite, veuillez réessayer ultérieurement",
   "error_api_phone_required": "Le téléphone est obligatoire",
   "error_api_phone_too_many": "Trop d'essais, veuillez demander un nouveau code",
@@ -49,10 +47,10 @@
   "error_api_username_reserved": "L'utilisateur est réservé",
   "error_api_username_used": "L'utilisateur existe déjà",
   "error_api_wait": "Veuillez patienter au moins une minute entre les essais",
+  "error_api_actionlimit": "You are doing that too much, please try again tomorrow",
   "error_confirmation_code_required": "Veuillez saisir le code reçu",
   "error_country_code_required": "Veuillez sélectionner votre pays",
   "error_email_required": "Veuillez saisir votre adresse email",
-  "error_geetestcaptcha_required": "Veuillez valider le captcha",
   "error_password_match": "Les mots de passe ne sont pas identiques",
   "error_password_required": "Le mot de passe est obligatoire",
   "error_phone_format": "Numéro de téléphone non valide",
@@ -98,22 +96,5 @@
   "username_know": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom pour toutes les applications Steem.",
   "username_know_steemit": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom sur Steemit et toutes les autres applications Steem.",
   "username_steemit_login": "Vous avez déjà un compte ? {link}",
-  "welcome": "Welcome",
-  "email_templates": {
-    "create_account": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Encore une étape pour créer votre compte",
-      "text": "Bonjour,\n\nBonne nouvelle ! Les informations de votre compte ont été vérifiées.\n\nCliquez sur le lien suivante pour terminer la création de votre compte.\n\n{url}\n\n Cordialement,\nL'équipe Steemit"
-    },
-    "reject_account": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Votre compte est en cours d'étude",
-      "text": "Merci de vous être inscrit sur Steemit. Votre demande de création de compte est en cours d'étude. Nous reviendrons vers vous dès que possible.\n\n Cordialement,\nL'équipe Steemit"
-    },
-    "account_created": {
-      "from": "Steemit <noreply@steemit.com>",
-      "subject" : "Votre compte est créé",
-      "text": "Bienvenue {username},\nVous pouvez profiter de Steem et de toutes ses fonctionnalités.\n\n Cordialement,\nL'équipe Steemit"
-    }
-  }
+  "welcome": "Welcome"
 }

@@ -1,5 +1,3 @@
-const cloneDeep = require('lodash/cloneDeep');
-const util = require('util');
 const express = require('express');
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
@@ -7,16 +5,21 @@ const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
-const Geetest = require('gt3-sdk');
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+const moment = require('moment');
+const db = require('./../db/models');
+
+const { Sequelize } = db;
+const { Op } = Sequelize;
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
-const conveyor = cloneDeep(steem);
+
+steem.api.setOptions({ url: process.env.STEEMJS_URL });
 
 if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_URL.length < 1) {
   throw new Error('Missing CREATE_USER_URL');
@@ -24,9 +27,6 @@ if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_U
 if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USER_SECRET.length < 1) {
   throw new Error('Missing CREATE_USER_SECRET');
 }
-
-conveyor.api.setOptions({ url: 'https://conveyor.steemitdev.com' });
-conveyor.api.signedCall = util.promisify(conveyor.api.signedCall).bind(conveyor.api);
 
 class ApiError extends Error {
   constructor({ type = 'error_api_general', field = 'general', status = 400, cause }) {
@@ -50,19 +50,18 @@ async function verifyCaptcha(recaptcha, ip) {
   }
 }
 
-async function verifyGeetestCaptcha(geetestChallenge, geetestValidate, geetestSeccode) {
-  const captcha = new Geetest({
-    geetest_id: process.env.GEETEST_ID,
-    geetest_key: process.env.GEETEST_SECRET,
-  });
-  const geetestValidatePromise = util.promisify(captcha.validate).bind(captcha);
-  const geetestRes = await geetestValidatePromise(false, {
-    geetest_challenge: geetestChallenge,
-    geetest_validate: geetestValidate,
-    geetest_seccode: geetestSeccode,
-  });
-  if (!geetestRes) {
-    throw new Error('Invalid geetest captcha');
+/**
+ * Throws if user or ip exceeds number of allowed actions within time period.
+ */
+async function actionLimit(ip, user_id = null) {
+  const created_at = { [Op.gte]: moment().subtract(20, 'hours').toDate() };
+  const promises = [db.actions.count({ where: { ip, created_at, action: { [Op.ne]: 'check_username' } } })];
+  if (user_id) {
+    promises.push(db.actions.count({ where: { user_id, created_at } }));
+  }
+  const [ipActions, userActions] = await Promise.all(promises);
+  if (userActions > 4 || ipActions > 32) {
+    throw new ApiError({ type: 'error_api_actionlimit' });
   }
 }
 
@@ -120,17 +119,14 @@ router.get('/', apiMiddleware(async () => {
  */
 router.post('/request_email', apiMiddleware(async (req) => {
   const location = req.geoip.get(req.ip);
-  let useChineseCaptcha = false;
+  let skipRecaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
-    useChineseCaptcha = true;
+    skipRecaptcha = true;
   }
-  if (!useChineseCaptcha && !req.body.recaptcha) {
+  if (!skipRecaptcha && !req.body.recaptcha) {
     throw new ApiError({ type: 'error_api_recaptcha_required', field: 'recaptcha' });
   }
-  if (useChineseCaptcha && !req.body.geetest_challenge
-    && !req.body.geetest_seccode && !req.body.geetest_validate) {
-    throw new ApiError({ type: 'error_api_geetestcaptcha_required', field: 'geetestCaptcha' });
-  }
+
   if (!req.body.email) {
     throw new ApiError({ type: 'error_api_email_required', field: 'email' });
   }
@@ -140,6 +136,14 @@ router.post('/request_email', apiMiddleware(async (req) => {
   if (badDomains.includes(req.body.email.split('@')[1])) {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
+
+  await actionLimit(req.ip);
+
+  await req.db.actions.create({
+    action: 'request_email',
+    ip: req.ip,
+    metadata: { email: req.body.email },
+  });
 
   const userCount = await req.db.users.count({
     where: {
@@ -151,7 +155,7 @@ router.post('/request_email', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
 
-  const emailRegistered = await conveyor.api.signedCall(
+  const emailRegistered = await steem.api.signedCallAsync(
     'conveyor.is_email_registered', [req.body.email],
     conveyorAccount, conveyorKey,
   );
@@ -159,20 +163,11 @@ router.post('/request_email', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
 
-  if (!useChineseCaptcha) {
+  if (!skipRecaptcha) {
     try {
       await verifyCaptcha(req.body.recaptcha, req.ip);
     } catch (cause) {
       throw new ApiError({ type: 'error_api_recaptcha_invalid', field: 'recaptcha', cause });
-    }
-  } else {
-    try {
-      await verifyGeetestCaptcha(
-        req.body.geetest_challenge,
-        req.body.geetest_validate,
-        req.body.geetest_seccode);
-    } catch (cause) {
-      throw new ApiError({ type: 'error_api_geetestcaptcha_invalid', field: 'geetestCaptcha', cause });
     }
   }
 
@@ -233,10 +228,16 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
-  const phoneNumber = phoneUtil.format(
-    phoneUtil.parse(req.body.phoneNumber, countryCode),
-    PNF.INTERNATIONAL,
-  );
+  let phoneNumber;
+  try {
+    phoneNumber = phoneUtil.format(
+      phoneUtil.parse(req.body.phoneNumber, countryCode),
+      PNF.INTERNATIONAL,
+    );
+    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '');
+  } catch (cause) {
+    throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
+  }
   const user = await req.db.users.findOne({
     where: {
       email: decoded.email,
@@ -247,12 +248,11 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_unknown_user' });
   }
 
-  const date = new Date();
-  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
+  await actionLimit(req.ip, user.id);
 
   if (
     user.last_attempt_verify_phone_number &&
-    user.last_attempt_verify_phone_number.getTime() > oneMinLater
+    user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
   ) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
   }
@@ -268,7 +268,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
-  const phoneRegistered = await conveyor.api.signedCall('conveyor.is_phone_registered', [phoneNumber.replace(/\s*/g, '')], conveyorAccount, conveyorKey);
+  const phoneRegistered = await steem.api.signedCallAsync('conveyor.is_phone_registered', [phoneNumber], conveyorAccount, conveyorKey);
   if (phoneRegistered) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
@@ -281,11 +281,26 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     phone_code_attempts: 0,
   }, { where: { email: decoded.email } });
 
-  await req.twilio.messages.create({
-    body: `${phoneCode} is your Steem confirmation code`,
-    to: phoneNumber,
-    from: process.env.TWILIO_PHONE_NUMBER,
+  await req.db.actions.create({
+    action: 'send_sms',
+    ip: req.ip,
+    metadata: { phoneNumber },
+    user_id: user.id,
   });
+
+  try {
+    await req.twilio.messages.create({
+      body: `${phoneCode} is your Steem confirmation code`,
+      to: phoneNumber,
+      from: process.env.TWILIO_PHONE_NUMBER,
+    });
+  } catch (cause) {
+    if (cause.code === 21614 || cause.code === 21211) {
+      throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
+    } else {
+      throw cause;
+    }
+  }
 
   return { success: true, phoneNumber };
 }));
@@ -306,22 +321,22 @@ router.get('/check', (req, res) => {
   }
 });
 
-const rejectAccount = async (req, email, locale) => {
+const rejectAccount = async (req, email) => {
   await req.db.users.update({
     status: 'rejected',
   }, { where: { email } });
-  await req.mail.send(email, 'reject_account', locale, {});
+  await req.mail.send(email, 'reject_account', {});
 };
 
 /**
  * Send the email to user to continue the account creation process
  */
-const approveAccount = async (req, email, locale) => {
+const approveAccount = async (req, email) => {
   const mailToken = jwt.sign({
     type: 'create_account',
     email,
   }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  await req.mail.send(email, 'create_account', locale, {
+  await req.mail.send(email, 'create_account', {
     url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
   });
 };
@@ -330,7 +345,7 @@ const approveAccount = async (req, email, locale) => {
  * Check for the status of an account using the steemit gatekeeper
  * An account can have approved, rejected or manual_review status
  */
-const sendAccountInformation = async (req, email, locale) => {
+const sendAccountInformation = async (req, email) => {
   const user = await req.db.users.findOne({ where: { email } });
   if (user && user.phone_number_is_verified) {
     // TODO change to the steemit endpoint
@@ -345,9 +360,9 @@ const sendAccountInformation = async (req, email, locale) => {
     }
 
     if (result === 'rejected') {
-      await rejectAccount(req, email, locale);
+      await rejectAccount(req, email);
     } else if (result === 'approved') {
-      await approveAccount(req, email, locale);
+      await approveAccount(req, email);
     } else {
       await req.db.users.update({
         status: result,
@@ -395,10 +410,9 @@ router.post('/confirm_sms', apiMiddleware(async (req) => {
   await req.db.users.update({
     phone_number_is_verified: true,
     phone_code_attempts: user.phone_code_attempts + 1,
-    locale: req.body.locale || 'en',
   }, { where: { email: decoded.email } });
 
-  sendAccountInformation(req, decoded.email, req.query.locale || 'en').catch((error) => {
+  sendAccountInformation(req, decoded.email).catch((error) => {
     // TODO: this should be put in a queue and retry on error
     req.log.error(error, 'Unable to send verification mail');
   });
@@ -439,9 +453,9 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
 
   const accounts = await steem.api.getAccountsAsync([user.username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-    return { success: true, username: '', reservedUsername: user.username, email: user.email, locale: user.locale };
+    return { success: true, username: '', reservedUsername: user.username, email: user.email };
   }
-  return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email, locale: user.locale };
+  return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email };
 }));
 
 /**
@@ -529,19 +543,17 @@ router.post('/create_account', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
-  const params = [username, { phone: user.phone_number.replace(/\s*/g, ''), email: user.email }];
-  conveyor.api.signedCall('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(async () => {
-    await req.mail.send(decoded.email, 'account_created', user.locale, {
-      username,
-    });
-    const rv = req.db.users.destroy({ where: { email: decoded.email } });
-    return rv;
-  }).catch((error) => {
+  await req.db.users.update({
+    status: 'created',
+  }, { where: { email: decoded.email } });
+
+  const params = [username, { phone: user.phone_number.replace(/[^+0-9]+/g, ''), email: user.email }];
+  steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).catch((error) => {
     // TODO: this should be put in a queue and retry on error
     req.log.error(error, 'Unable to store user data in conveyor');
   });
 
-  await fetch(process.env.CREATE_USER_URL, {
+  fetch(process.env.CREATE_USER_URL, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -567,10 +579,7 @@ router.post('/create_account', apiMiddleware(async (req) => {
  */
 router.get('/approve_account', apiMiddleware(async (req) => {
   const decoded = verifyToken(req.query.token);
-  await Promise.all(decoded.emails.map(async (email) => {
-    const user = await req.db.users.findOne({ where: { email } });
-    approveAccount(req, email, user.locale);
-  }));
+  await Promise.all(decoded.emails.map(email => approveAccount(req, email)));
   return { success: true };
 }));
 
@@ -583,6 +592,11 @@ router.post('/check_username', apiMiddleware(async (req) => {
   if (!username || username.length < 3) {
     throw new ApiError({ type: 'error_api_username_invalid' });
   }
+  await req.db.actions.create({
+    action: 'check_username',
+    ip: req.ip,
+    metadata: { username },
+  });
   const accounts = await steem.api.getAccountsAsync([username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
     throw new ApiError({ type: 'error_api_username_used', code: 200 });
@@ -597,19 +611,5 @@ router.post('/check_username', apiMiddleware(async (req) => {
   }
   return { success: true };
 }));
-
-router.post('/gt_challenge', (req, res) => {
-  const captcha = new Geetest({
-    geetest_id: process.env.GEETEST_ID,
-    geetest_key: process.env.GEETEST_SECRET,
-  });
-  captcha.register(null, (err, data) => {
-    if (err) {
-      res.status(400).send({ err });
-    } else {
-      res.send(data);
-    }
-  });
-});
 
 module.exports = router;

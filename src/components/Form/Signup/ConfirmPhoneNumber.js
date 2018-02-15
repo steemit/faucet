@@ -16,15 +16,12 @@ class ConfirmPhoneNumber extends React.Component {
     e.preventDefault();
     if (this.state.submitting) return;
     this.setState({ submitting: true });
-    const {
-      form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl, locale,
-    } = this.props;
+    const { form: { validateFieldsAndScroll, setFields }, onSubmit, token, intl } = this.props;
     validateFieldsAndScroll((err, values) => {
       if (!err) {
         apiCall('/api/confirm_sms', {
           token,
           code: values.code,
-          locale,
         })
           .then((data) => {
             this.setState({ submitting: false });
@@ -56,16 +53,13 @@ class ConfirmPhoneNumber extends React.Component {
       phoneNumber,
       prefix,
     })
-      .then((data) => {
+      .then(() => {
         this.setState({ submitting: false });
-        if (data.success) {
-          message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
-        }
+        message.success(intl.formatMessage({ id: 'success_new_code_sent' }));
       })
-      .catch((err) => {
-        err.response.json().then((data) => {
-          message.error(intl.formatMessage({ id: data.errors[0].error }));
-        });
+      .catch((error) => {
+        this.setState({ submitting: false });
+        message.error(intl.formatMessage({ id: error.type }));
       });
   }
 
