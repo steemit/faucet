@@ -51,6 +51,8 @@ class Username extends React.Component {
     });
   };
 
+  normalizeUsername = value => value.toLowerCase()
+
   render() {
     const { form: {
       getFieldDecorator,
@@ -67,6 +69,7 @@ class Username extends React.Component {
           hasFeedback
         >
           {getFieldDecorator('username', {
+            normalize: this.normalizeUsername,
             validateFirst: true,
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_username_required' }) },
