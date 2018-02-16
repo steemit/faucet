@@ -26,6 +26,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      phone_number_attempts: {
+        type: Sequelize.INTEGER,
+        default: 0,
+      },
       last_attempt_verify_phone_number: {
         type: Sequelize.DATE,
       },
