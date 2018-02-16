@@ -60,7 +60,7 @@
   "error_token_required": "Token required.",
   "error_username_required": "Please input your username",
   "error_username_taken": "The username you chose {username} has already been taken. Please choose another username.",
-  "error_validation_account_alpha": "Account name should contain only letters, digits, and dashes",
+  "error_validation_account_alpha": "Account name should contain only letters, digits, periods, and dashes",
   "error_validation_account_dash": "Account name should contain only one dash in a row",
   "error_validation_account_end": "Account name should end with a letter or digit",
   "error_validation_account_max": "Account name should be shorter",
