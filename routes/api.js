@@ -306,7 +306,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
 }));
 
 /**
- * Mocking route of the steemit gatekeeper
+ * Mocking route of the steemit gatekeeper 
  */
 router.get('/check', (req, res) => {
   // mocking the response according to
