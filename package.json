@@ -1,18 +1,16 @@
 {
-  "name": "sc2-signup",
+  "name": "faucet",
   "version": "0.0.1",
   "engines": {
     "node": ">=8.1.4"
   },
   "bin": "./bin/www",
   "main": "./bin/www",
-  "private": true,
   "scripts": {
     "start": "./bin/www",
     "start-dev": "nodemon --ignore src ./bin/www | bunyan -o short",
-    "eslint-autofix": "eslint --fix \"src/**/*.js\" \"*.js\"",
-    "test": "yarn run lint && nsp check --output summary",
-    "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
+    "test": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\" && nsp check --output summary",
+    "lint": "eslint --fix \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "build": "webpack --progress -p --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress -p --config webpack/webpack.config.js"
   },
@@ -28,6 +26,7 @@
     "jsonwebtoken": "8.1.1",
     "lodash": "4.17.4",
     "maxmind": "2.4.0",
+    "moment": "2.20.1",
     "mysql2": "1.5.1",
     "sequelize": "4.32.1",
     "twilio": "3.11.1",
@@ -85,6 +84,7 @@
     "redux": "3.5.2",
     "redux-actions": "0.12.0",
     "redux-thunk": "2.1.0",
+    "sequelize-cli": "3.2.0",
     "style-loader": "0.13.1",
     "webpack": "1.15.0",
     "webpack-dev-server": "1.15.1",
