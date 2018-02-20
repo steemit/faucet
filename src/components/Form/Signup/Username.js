@@ -2,8 +2,7 @@
 import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
-import fetch from 'isomorphic-fetch';
-import { checkStatus, parseJSON } from '../../../utils/fetch';
+import apiCall from '../../../utils/api';
 import { validateAccountName } from '../../../utils/validator';
 
 class Username extends React.Component {
@@ -24,19 +23,14 @@ class Username extends React.Component {
       if (window.usernameTimeout) {
         window.clearTimeout(window.usernameTimeout);
       }
-      const { email, intl } = this.props;
+      const { intl } = this.props;
       window.usernameTimeout = setTimeout(() => {
-        fetch(`/api/check_username?username=${value}&email=${email}`)
-          .then(checkStatus)
-          .then(parseJSON)
-          .then((data) => {
-            if (data.error) {
-              callback(intl.formatMessage({ id: data.error }));
-            } else {
-              this.setState({ username: value });
-              callback();
-            }
-          });
+        apiCall('/api/check_username', { username: value }).then(() => {
+          this.setState({ username: value });
+          callback();
+        }).catch((error) => {
+          callback(intl.formatMessage({ id: error.type }));
+        });
       }, 500);
     } else {
       callback();
@@ -84,6 +78,10 @@ class Username extends React.Component {
             <Input
               prefix={<Icon type="user" />}
               placeholder={intl.formatMessage({ id: 'username' })}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
             />,
           )}
         </Form.Item>
