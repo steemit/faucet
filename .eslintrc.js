@@ -15,8 +15,20 @@ module.exports = {
   },
   extends: 'airbnb',
   rules: {
-    'import/no-extraneous-dependencies': 0,
-    'react/jsx-filename-extension': [1, { extensions: ['.js'] }],
+    'arrow-parens': ['error', 'as-needed'],
     'camelcase': 0,
+    'comma-dangle': ['error', {
+      'arrays': 'only-multiline',
+      'objects': 'only-multiline',
+      'imports': 'never',
+      'exports': 'never',
+      'functions': 'ignore'
+    }],
+    'import/no-extraneous-dependencies': 0,
+    'indent': ['error', 4, { "SwitchCase": 1 }],
+    'no-mixed-operators': 0,
+    'react/jsx-filename-extension': [1, { extensions: ['.js'] }],
+    'react/jsx-indent': ['error', 4],
+    'react/jsx-indent-props': ['error', 4]
   },
 };

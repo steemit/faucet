@@ -5,8 +5,8 @@ import Signup from './components/Signup';
 import CreateAccount from './components/CreateAccount';
 
 export default (
-  <Route path="/" component={Wrapper}>
-    <IndexRoute component={Signup} />
-    <Route path="create-account" component={CreateAccount} />
-  </Route>
+    <Route path="/" component={Wrapper}>
+        <IndexRoute component={Signup} />
+        <Route path="create-account" component={CreateAccount} />
+    </Route>
 );
