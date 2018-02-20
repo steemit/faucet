@@ -7,7 +7,6 @@ const https = require('https');
 const steem = require('@steemit/steem-js');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
-const twilio = require('./helpers/twilio');
 const geoip = require('./helpers/maxmind');
 const getClientConfig = require('./helpers/getClientConfig');
 const logger = require('./helpers/logger');
@@ -93,7 +92,6 @@ app.disable('x-powered-by');
 
 app.use((req, res, next) => {
   req.steem = steem;
-  req.twilio = twilio;
   req.mail = mail;
   req.db = db;
   req.geoip = geoip;

@@ -10,6 +10,7 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+const sendSMS = require('../helpers/twilio');
 const moment = require('moment');
 const db = require('./../db/models');
 
@@ -102,7 +103,6 @@ function apiMiddleware(handler) {
 }
 
 const router = express.Router(); // eslint-disable-line new-cap
-
 
 router.get('/', apiMiddleware(async () => {
   const rv = { ok: true };
@@ -289,11 +289,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
   });
 
   try {
-    await req.twilio.messages.create({
-      body: `${phoneCode} is your Steem confirmation code`,
-      to: phoneNumber,
-      from: process.env.TWILIO_PHONE_NUMBER,
-    });
+    await sendSMS(phoneNumber, `${phoneCode} is your Steem confirmation code`);
   } catch (cause) {
     if (cause.code === 21614 || cause.code === 21211) {
       throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
@@ -463,7 +459,6 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
-
 router.post('/create_account', apiMiddleware(async (req) => {
   const { username, public_keys, token, email } = req.body; // eslint-disable-line camelcase
   const decoded = verifyToken(token, 'create_account');
