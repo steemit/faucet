@@ -25,7 +25,7 @@ module.exports = {
       'functions': 'ignore'
     }],
     'import/no-extraneous-dependencies': 0,
-    'indent': ['error', 4, { "SwitchCase": 1 }],
+    'indent': ['error', 4, { 'SwitchCase': 1 }],
     'no-mixed-operators': 0,
     'react/jsx-filename-extension': [1, { extensions: ['.js'] }],
     'react/jsx-indent': ['error', 4],
