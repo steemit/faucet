@@ -11,6 +11,12 @@ const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
 const { validateAccountName } = require('../helpers/validator');
+const sendSMS = require('../helpers/twilio');
+const moment = require('moment');
+const db = require('./../db/models');
+
+const { Sequelize } = db;
+const { Op } = Sequelize;
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
@@ -53,6 +59,21 @@ async function verifyCaptcha(recaptcha, ip) {
   }
 }
 
+/**
+ * Throws if user or ip exceeds number of allowed actions within time period.
+ */
+async function actionLimit(ip, user_id = null) {
+  const created_at = { [Op.gte]: moment().subtract(20, 'hours').toDate() };
+  const promises = [db.actions.count({ where: { ip, created_at, action: { [Op.ne]: 'check_username' } } })];
+  if (user_id) {
+    promises.push(db.actions.count({ where: { user_id, created_at } }));
+  }
+  const [ipActions, userActions] = await Promise.all(promises);
+  if (userActions > 4 || ipActions > 32) {
+    throw new ApiError({ type: 'error_api_actionlimit' });
+  }
+}
+
 function verifyToken(token, type) {
   if (!token) {
     throw new ApiError({ type: 'error_api_token_required', field: 'phoneNumber' });
@@ -90,7 +111,6 @@ function apiMiddleware(handler) {
 }
 
 const router = express.Router(); // eslint-disable-line new-cap
-
 
 router.get('/', apiMiddleware(async () => {
   const rv = { ok: true };
@@ -131,6 +151,14 @@ router.post('/request_email', apiMiddleware(async (req) => {
   if (usernameError) {
     throw new ApiError({ type: usernameError, field: 'username' });
   }
+
+  await actionLimit(req.ip);
+
+  await req.db.actions.create({
+    action: 'request_email',
+    ip: req.ip,
+    metadata: { email: req.body.email },
+  });
 
   const userCount = await req.db.users.count({
     where: {
@@ -235,12 +263,11 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_unknown_user' });
   }
 
-  const date = new Date();
-  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
+  await actionLimit(req.ip, user.id);
 
   if (
     user.last_attempt_verify_phone_number &&
-    user.last_attempt_verify_phone_number.getTime() > oneMinLater
+    user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
   ) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
   }
@@ -261,7 +288,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
-  const phoneCode = generateCode(5);
+  const phoneCode = user.phone_code || generateCode(5);
   await req.db.users.update({
     last_attempt_verify_phone_number: new Date(),
     phone_code: phoneCode,
@@ -269,12 +296,15 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     phone_code_attempts: 0,
   }, { where: { email: decoded.email } });
 
+  await req.db.actions.create({
+    action: 'send_sms',
+    ip: req.ip,
+    metadata: { phoneNumber },
+    user_id: user.id,
+  });
+
   try {
-    await req.twilio.messages.create({
-      body: `${phoneCode} is your Steem confirmation code`,
-      to: phoneNumber,
-      from: process.env.TWILIO_PHONE_NUMBER,
-    });
+    await sendSMS(phoneNumber, `${phoneCode} is your Steem confirmation code`);
   } catch (cause) {
     if (cause.code === 21614 || cause.code === 21211) {
       throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
@@ -444,7 +474,6 @@ router.post('/confirm_account', apiMiddleware(async (req) => {
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
  */
-
 router.post('/create_account', apiMiddleware(async (req) => {
   const { username, public_keys, token, email } = req.body; // eslint-disable-line camelcase
   const decoded = verifyToken(token, 'create_account');
@@ -524,16 +553,17 @@ router.post('/create_account', apiMiddleware(async (req) => {
     throw new ApiError({ type: 'error_api_create_account', cause });
   }
 
+  await req.db.users.update({
+    status: 'created',
+  }, { where: { email: decoded.email } });
+
   const params = [username, { phone: user.phone_number.replace(/[^+0-9]+/g, ''), email: user.email }];
-  steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).then(() => {
-    const rv = req.db.users.destroy({ where: { email: decoded.email } });
-    return rv;
-  }).catch((error) => {
+  steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).catch((error) => {
     // TODO: this should be put in a queue and retry on error
     req.log.error(error, 'Unable to store user data in conveyor');
   });
 
-  await fetch(process.env.CREATE_USER_URL, {
+  fetch(process.env.CREATE_USER_URL, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -572,6 +602,11 @@ router.post('/check_username', apiMiddleware(async (req) => {
   if (!username || username.length < 3) {
     throw new ApiError({ type: 'error_api_username_invalid' });
   }
+  await req.db.actions.create({
+    action: 'check_username',
+    ip: req.ip,
+    metadata: { username },
+  });
   const accounts = await steem.api.getAccountsAsync([username]);
   if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
     throw new ApiError({ type: 'error_api_username_used', code: 200 });
