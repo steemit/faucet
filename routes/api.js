@@ -273,7 +273,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
   }
 
-  const phoneCode = generateCode(5);
+  const phoneCode = user.phone_code || generateCode(5);
   await req.db.users.update({
     last_attempt_verify_phone_number: new Date(),
     phone_code: phoneCode,
