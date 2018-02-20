@@ -7,132 +7,186 @@ import apiCall from '../../../utils/api';
 import countries from '../../../../countries.json';
 
 class PhoneNumber extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      submitting: false,
-    };
-  }
-
-  getPrefixDefaultValue = () => {
-    const { countryCode } = this.props;
-    if (countryCode) {
-      const country = countries.find(c => c.iso === countryCode);
-      if (country) {
-        return `${country.prefix}_${country.iso}`;
-      }
+    constructor(props) {
+        super(props);
+        this.state = {
+            submitting: false,
+        };
     }
-    return undefined;
-  }
 
-  handleSubmit = (e) => {
-    e.preventDefault();
-    if (this.state.submitting) return;
-    this.setState({ submitting: true });
-    const { form: { validateFieldsAndScroll, setFields }, token, onSubmit, intl } = this.props;
-    validateFieldsAndScroll((err, values) => {
-      if (!err) {
-        apiCall('/api/request_sms', {
-          token,
-          phoneNumber: values.phoneNumber,
-          prefix: values.prefix,
-        })
-          .then((data) => {
-            this.setState({ submitting: false });
-            if (data.success) {
-              if (onSubmit) {
-                onSubmit({ ...values, phoneNumberFormatted: data.phoneNumber });
-              }
+    getPrefixDefaultValue = () => {
+        const { countryCode } = this.props;
+        if (countryCode) {
+            const country = countries.find(c => c.iso === countryCode);
+            if (country) {
+                return `${country.prefix}_${country.iso}`;
             }
-          })
-          .catch((error) => {
-            this.setState({ submitting: false });
-            if (error.field === 'phoneNumber') {
-              setFields({
-                phoneNumber: {
-                  value: values.phoneNumber,
-                  errors: [
-                    new Error(intl.formatMessage({ id: error.type })),
-                  ],
-                },
-              });
-            }
-            if (error.field === 'prefix') {
-              setFields({
-                prefix: {
-                  value: values.prefix,
-                  errors: [new Error(intl.formatMessage({ id: error.type }))],
-                },
-              });
-            }
-          });
-      } else {
-        this.setState({ submitting: false });
-      }
-    });
-  };
+        }
+        return undefined;
+    };
 
-  render() {
-    const { form: { getFieldDecorator }, intl, prefix, phoneNumber, goBack } = this.props;
+    handleSubmit = e => {
+        e.preventDefault();
+        if (this.state.submitting) return;
+        this.setState({ submitting: true });
+        const {
+            form: { validateFieldsAndScroll, setFields },
+            token,
+            onSubmit,
+            intl,
+        } = this.props;
+        validateFieldsAndScroll((err, values) => {
+            if (!err) {
+                apiCall('/api/request_sms', {
+                    token,
+                    phoneNumber: values.phoneNumber,
+                    prefix: values.prefix,
+                })
+                    .then(data => {
+                        this.setState({ submitting: false });
+                        if (data.success) {
+                            if (onSubmit) {
+                                onSubmit({
+                                    ...values,
+                                    phoneNumberFormatted: data.phoneNumber,
+                                });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        this.setState({ submitting: false });
+                        if (error.field === 'phoneNumber') {
+                            setFields({
+                                phoneNumber: {
+                                    value: values.phoneNumber,
+                                    errors: [
+                                        new Error(
+                                            intl.formatMessage({
+                                                id: error.type,
+                                            })
+                                        ),
+                                    ],
+                                },
+                            });
+                        }
+                        if (error.field === 'prefix') {
+                            setFields({
+                                prefix: {
+                                    value: values.prefix,
+                                    errors: [
+                                        new Error(
+                                            intl.formatMessage({
+                                                id: error.type,
+                                            })
+                                        ),
+                                    ],
+                                },
+                            });
+                        }
+                    });
+            } else {
+                this.setState({ submitting: false });
+            }
+        });
+    };
 
-    const prefixSelector = getFieldDecorator('prefix', {
-      rules: [
-        { required: true, message: intl.formatMessage({ id: 'error_country_code_required' }) },
-      ],
-      initialValue: prefix || this.getPrefixDefaultValue(),
-    })(
-      <Select
-        placeholder={intl.formatMessage({ id: 'country_code_select' })}
-        showSearch
-        optionFilterProp="children"
-        filterOption={(input, option) =>
-          option.props.label.toLowerCase().includes(input.toLowerCase())}
-      >
-        {countries.map(country => (
-          <Select.Option
-            key={_.uniqueId()}
-            value={`${country.prefix}_${country.iso}`}
-            label={`${country.name} (+${country.prefix})`}
-          >
-            {`${country.name} (+${country.prefix})`}
-          </Select.Option>
-        ))}
-      </Select>,
-    );
-    return (
-      <Form onSubmit={this.handleSubmit} className="signup-form">
-        <Form.Item>
-          {prefixSelector}
-        </Form.Item>
-        <Form.Item>
-          {getFieldDecorator('phoneNumber', {
+    render() {
+        const {
+            form: { getFieldDecorator },
+            intl,
+            prefix,
+            phoneNumber,
+            goBack,
+        } = this.props;
+
+        const prefixSelector = getFieldDecorator('prefix', {
             rules: [
-              { required: true, message: intl.formatMessage({ id: 'error_phone_required' }) },
-              { pattern: /^(\+\d{1,3}[- ]?)?\d{10}$/, message: intl.formatMessage({ id: 'error_phone_format' }) },
+                {
+                    required: true,
+                    message: intl.formatMessage({
+                        id: 'error_country_code_required',
+                    }),
+                },
             ],
-            initialValue: phoneNumber,
-          })(
-            <Input
-              prefix={<Icon type="mobile" />}
-              placeholder={intl.formatMessage({ id: 'phone_number' })}
-              type="tel"
-            />,
-          )}
-        </Form.Item>
-        <div className="form-actions">
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
-          </Form.Item>
-          {goBack &&
-          <Form.Item>
-            <Button htmlType="button" className="back" onClick={() => goBack('email', 1)}>
-              <FormattedMessage id="go_back" />
-            </Button>
-          </Form.Item>}
-        </div>
-      </Form>
-    );
-  }
+            initialValue: prefix || this.getPrefixDefaultValue(),
+        })(
+            <Select
+                placeholder={intl.formatMessage({ id: 'country_code_select' })}
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                    option.props.label
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                }
+            >
+                {countries.map(country => (
+                    <Select.Option
+                        key={_.uniqueId()}
+                        value={`${country.prefix}_${country.iso}`}
+                        label={`${country.name} (+${country.prefix})`}
+                    >
+                        {`${country.name} (+${country.prefix})`}
+                    </Select.Option>
+                ))}
+            </Select>
+        );
+        return (
+            <Form onSubmit={this.handleSubmit} className="signup-form">
+                <Form.Item>{prefixSelector}</Form.Item>
+                <Form.Item>
+                    {getFieldDecorator('phoneNumber', {
+                        normalize: d => d.replace(/[^0-9+]+/g, ''),
+                        rules: [
+                            {
+                                required: true,
+                                message: intl.formatMessage({
+                                    id: 'error_phone_required',
+                                }),
+                            },
+                            {
+                                pattern: /^\+?\d+$/,
+                                message: intl.formatMessage({
+                                    id: 'error_phone_format',
+                                }),
+                            },
+                        ],
+                        initialValue: phoneNumber,
+                    })(
+                        <Input
+                            prefix={<Icon type="mobile" />}
+                            placeholder={intl.formatMessage({
+                                id: 'phone_number',
+                            })}
+                            type="tel"
+                        />
+                    )}
+                </Form.Item>
+                <div className="form-actions">
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            loading={this.state.submitting}
+                        >
+                            <FormattedMessage id="continue" />
+                        </Button>
+                    </Form.Item>
+                    {goBack && (
+                        <Form.Item>
+                            <Button
+                                htmlType="button"
+                                className="back"
+                                onClick={() => goBack('email', 1)}
+                            >
+                                <FormattedMessage id="go_back" />
+                            </Button>
+                        </Form.Item>
+                    )}
+                </div>
+            </Form>
+        );
+    }
 }
 
 export default Form.create()(injectIntl(PhoneNumber));

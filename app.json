@@ -33,12 +33,6 @@
     "RECAPTCHA_SITE_KEY": {
       "required": true
     },
-    "GEETEST_ID": {
-      "required": true
-    },
-    "GEETEST_SECRET": {
-      "required": true
-    },
     "DELEGATOR_ACTIVE_WIF": {
       "required": true
     },
