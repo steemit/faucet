@@ -5,7 +5,10 @@ module.exports = (sequelize, DataTypes) => (
     last_attempt_verify_email: DataTypes.DATE,
     phone_number: DataTypes.STRING,
     phone_number_is_verified: DataTypes.BOOLEAN,
-    phone_code_attempts: DataTypes.INTEGER,
+    phone_code_attempts: {
+      type: DataTypes.INTEGER,
+      default: 0,
+    },
     phone_code: DataTypes.STRING,
     last_attempt_verify_phone_number: DataTypes.DATE,
     ip: DataTypes.STRING,
