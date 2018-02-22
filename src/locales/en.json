@@ -32,7 +32,7 @@
   "error_api_general": "An unexpected error occurred. Please try again later",
   "error_api_phone_required": "Phone number required",
   "error_api_phone_too_many": "Too many attempts. Please request a new code",
-  "error_api_phone_used": "This phone number is already in use by an existing account, or is linked to an account that is still pending review",
+  "error_api_phone_used": "This phone number is already in use by an existing account, or is linked to an account that is still under review",
   "error_api_phone_verified": "Phone number already verified",
   "error_api_prefix_invalid": "Invalid prefix",
   "error_api_public_keys_required": "Public keys required",
