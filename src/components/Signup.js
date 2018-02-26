@@ -91,7 +91,7 @@ class Signup extends Component {
   handleIntroContinue = () => {
     this.setState({
       step: 'username',
-      stepNumber: 1
+      stepNumber: 1,
     });
     logStep('username', 1);
   }
