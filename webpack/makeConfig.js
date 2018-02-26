@@ -89,8 +89,13 @@ function makeConfig(options) {
     devtool: isDevelopment ? 'cheap-eval-source-map' : 'source-map',
     entry: (isDevelopment ? [
       'webpack-hot-middleware/client?reload=true',
-    ] : []).concat([
-      path.join(options.baseDir, 'src/index.js')
+      path.join(options.baseDir, 'node_modules/es6-shim/es6-shim.js'),
+      path.join(options.baseDir, 'node_modules/intl/dist/Intl.js'),
+    ] : [
+      path.join(options.baseDir, 'node_modules/es6-shim/es6-shim.js'),
+      path.join(options.baseDir, 'node_modules/intl/dist/Intl.js'),
+    ]).concat([
+      path.join(options.baseDir, 'src/index.js'),
     ]),
     output: {
       path: path.join(options.baseDir, '/public/js'),
