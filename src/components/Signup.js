@@ -88,11 +88,10 @@ class Signup extends Component {
     this.setState({ step, stepNumber });
   };
 
-  handleIntroContinue = (values) => {
+  handleIntroContinue = () => {
     this.setState({
       step: 'username',
-      stepNumber: 1,
-      username: values.username,
+      stepNumber: 1
     });
     logStep('username', 1);
   }
@@ -179,11 +178,14 @@ class Signup extends Component {
               {ref === 'steemit' &&
                 <object data="img/steemit-logo.svg" type="image/svg+xml" id="app-logo" aria-label="logo" />
               }
-              <h1><FormattedMessage id="get_started" /></h1>
+              <h1><FormattedMessage id="welcome" /></h1>
               <p>
-                {ref === 'steemit' && <FormattedMessage id="username_know_steemit" />}
-                {ref !== 'steemit' && <FormattedMessage id="username_know" />}
+                Account creation on the Steem blockchain has a fee to prevent name squatting. <a href="//steemit.com" target="_blank">SteemIt.com</a> can pay this fee for you, however we require some proof you are a real person.
               </p>
+              <p>
+                If you prefer more speed or anonymity, there are other ways to pay for accounts listed on the <a href="//steemit.com/faq.html#What_are_other_ways_to_create_an_account_on_the_blockchain_besides_using_Steemit_com" target="_blank">SteemIt FAQ</a>.
+              </p>
+              <Button type="primary" className="continue_button" onClick={this.handleIntroContinue}><FormattedMessage id="continue" /></Button>
             </div>}
             {step === 'username' &&
             <div className="form-content">
@@ -269,15 +271,15 @@ class Signup extends Component {
             </div>
             }
           </div>
-          <div className={`Signup__icons ${step === 'username' ? 'username-icons' : ''}`}>
-            {step === 'username' &&
+          <div className={`Signup__icons ${(step === 'intro' || step === 'username') ? 'username-icons' : ''}`}>
+            {(step === 'intro' || step === 'username') &&
             <div>
               <h3><FormattedMessage id="signup_username_right_title" /></h3>
               <p>
                 <FormattedMessage id="signup_username_right_text" />
               </p>
             </div>}
-            {step === 'username' && <img src="/img/signup-username.png" id="signup-username" aria-label="signup-username" alt="signup-username" />}
+            {(step === 'intro' || step === 'username') && <img src="/img/signup-username.png" id="signup-username" aria-label="signup-username" alt="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
             {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
