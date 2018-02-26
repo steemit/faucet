@@ -180,10 +180,10 @@ class Signup extends Component {
               }
               <h1><FormattedMessage id="welcome" /></h1>
               <p>
-                Account creation on the Steem blockchain has a fee to prevent name squatting. <a href="//steemit.com" target="_blank">SteemIt.com</a> can pay this fee for you, however we require some proof you are a real person.
+                Account creation on the Steem blockchain has a fee to prevent name squatting. <a href="//steemit.com" target="_blank" rel="noopener noreferrer">SteemIt.com</a> can pay this fee for you, however we require some proof you are a real person.
               </p>
               <p>
-                If you prefer more speed or anonymity, there are other ways to pay for accounts listed on the <a href="//steemit.com/faq.html#What_are_other_ways_to_create_an_account_on_the_blockchain_besides_using_Steemit_com" target="_blank">SteemIt FAQ</a>.
+                If you prefer more speed or anonymity, there are other ways to pay for accounts listed on the <a href="//steemit.com/faq.html#What_are_other_ways_to_create_an_account_on_the_blockchain_besides_using_Steemit_com" target="_blank" rel="noopener noreferrer">SteemIt FAQ</a>.
               </p>
               <Button type="primary" className="continue_button" onClick={this.handleIntroContinue}><FormattedMessage id="continue" /></Button>
             </div>}
