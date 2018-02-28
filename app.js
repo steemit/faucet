@@ -82,6 +82,7 @@ if (process.env.NODE_ENV !== 'production') {
 const hbs = require('hbs');
 
 hbs.registerHelper('clientConfig', () => clientConfig);
+hbs.registerHelper('contentPolicySecurity', () => new hbs.SafeString(`<meta http-equiv="Content-Security-Policy" content="${JSON.parse(clientConfig).CONTENT_SECURITY_POLICY}" />`));
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
 hbs.registerPartials(`${__dirname}/views/partials`);
 app.set('views', path.join(__dirname, 'views'));
