@@ -14,7 +14,7 @@ function makePlugins(options) {
   const isDevelopment = options.isDevelopment;
 
   let plugins = [
-    new webpack.optimize.OccurenceOrderPlugin(),
+    new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.DefinePlugin({
       'process.env': {
         // This has effect on the react lib size
@@ -25,25 +25,26 @@ function makePlugins(options) {
     }),
     new LodashModuleReplacementPlugin({ collections: true, paths: true }),
     new Visualizer({
-      filename: './statistics.html'
+      filename: './statistics.html',
     }),
   ];
 
   if (isDevelopment) {
     plugins = plugins.concat([
-      new webpack.optimize.OccurenceOrderPlugin(),
+      new webpack.optimize.OccurrenceOrderPlugin(),
       new webpack.HotModuleReplacementPlugin(),
-      new webpack.NoErrorsPlugin(),
+      new webpack.NoEmitOnErrorsPlugin(),
     ]);
   } else {
     plugins = plugins.concat([
-      new webpack.optimize.DedupePlugin(),
+      new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
       new webpack.optimize.UglifyJsPlugin({
+        sourceMap: true,
         minimize: true,
         compress: {
           warnings: false,
-        }
+        },
       }),
       new webpack.optimize.AggressiveMergingPlugin(),
       new ExtractTextPlugin('../css/base.css'),
@@ -59,9 +60,9 @@ function makeStyleLoaders(options) {
       {
         test: /\.less$/,
         loaders: [
-          'style',
-          'css?sourceMap?importLoaders=1',
-          'postcss-loader?sourceMap&browsers=last 2 version',
+          'style-loader',
+          'css-loader?sourceMap?importLoaders=1',
+          'postcss-loader?browsers=last 2 version',
           'less-loader',
         ],
       },
@@ -71,10 +72,10 @@ function makeStyleLoaders(options) {
   return [
     {
       test: /\.less$/,
-      loader: ExtractTextPlugin.extract(
-        'style-loader',
-        'css?importLoaders=1!postcss-loader?browsers=last 2 version!less'
-      ),
+      loader: ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: 'css-loader?importLoaders=1!postcss-loader?browsers=last 2 version!less-loader',
+      }),
     },
   ];
 }
@@ -100,24 +101,24 @@ function makeConfig(options) {
     output: {
       path: path.join(options.baseDir, '/public/js'),
       filename: 'app.min.js',
-      publicPath: '/js/'
+      publicPath: '/js/',
     },
     plugins: makePlugins(options),
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.js?$/,
           exclude: /node_modules/,
-          loader: 'babel',
+          loader: 'babel-loader',
         },
         {
           test: /\.json?$/,
-          loader: 'json',
+          loader: 'json-loader',
         },
         {
           loader: 'file-loader?name=[name].[hash].[ext]&limit=1',
           test: /\.(eot|ttf|woff|woff2)(\?.+)?$/,
-        }
+        },
       ].concat(makeStyleLoaders(options)),
     },
   };
