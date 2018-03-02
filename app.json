@@ -61,7 +61,28 @@
       "required": true
     },
     "LOG_FORMAT": "short",
-    "DEFAULT_REDIRECT_URI": ""
+    "DEFAULT_REDIRECT_URI": "",
+    "CSP_DEFAULT": {
+      "required": true
+    },
+    "CSP_SCRIPT_SRC": {
+      "required": true
+    },
+    "CSP_CONNECT_SRC": {
+      "required": true
+    },
+    "CSP_FRAME_SRC": {
+      "required": true
+    },
+    "CSP_STYLE_SRC": {
+      "required": true
+    },
+    "CSP_IMG_SRC": {
+      "required": true
+    },
+    "CSP_FONT_SRC": {
+      "required": true
+    }
   },
   "formation": {
   },

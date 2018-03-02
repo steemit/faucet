@@ -5,12 +5,13 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('@steemit/steem-js');
+const moment = require('moment');
+const csp = require('express-csp-header');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const geoip = require('./helpers/maxmind');
 const getClientConfig = require('./helpers/getClientConfig');
 const logger = require('./helpers/logger');
-const moment = require('moment');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -49,6 +50,18 @@ setInterval(() => {
   });
 }, 60 * 60 * 1000);
 
+app.use(csp({
+  policies: {
+    'default-src': process.env.CSP_DEFAULT.split(','),
+    'script-src': process.env.CSP_SCRIPT_SRC.split(','),
+    'connect-src': process.env.CSP_CONNECT_SRC.split(','),
+    'frame-src': process.env.CSP_FRAME_SRC.split(','),
+    'style-src': process.env.CSP_STYLE_SRC.split(','),
+    'img-src': process.env.CSP_IMG_SRC.split(','),
+    'font-src': process.env.CSP_FONT_SRC.split(','),
+  },
+}));
+
 // logging middleware
 app.use((req, res, next) => {
   const start = process.hrtime();
@@ -82,7 +95,6 @@ if (process.env.NODE_ENV !== 'production') {
 const hbs = require('hbs');
 
 hbs.registerHelper('clientConfig', () => clientConfig);
-hbs.registerHelper('contentPolicySecurity', () => new hbs.SafeString(`<meta http-equiv="Content-Security-Policy" content="${JSON.parse(clientConfig).CONTENT_SECURITY_POLICY}" />`));
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
 hbs.registerPartials(`${__dirname}/views/partials`);
 app.set('views', path.join(__dirname, 'views'));
