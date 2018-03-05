@@ -1,0 +1,8 @@
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    .Signup__container .Signup__header {
+        min-height: 100px !important;
+    }
+    .Signup__container .Signup__form .form-content.two-actions {
+        margin-top: 30px !important;
+    }
+}
