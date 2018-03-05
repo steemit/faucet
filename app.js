@@ -43,16 +43,12 @@ async function cleanupDb() {
     logger.info('removed %d old users', numUsers);
   }
 }
-setInterval(() => {
-  logger.debug('running db cleanup');
-  cleanupDb().catch((error) => {
-    logger.error(error, 'error cleaning database');
-  });
-}, 60 * 60 * 1000);
-
 async function sendReminderEmail() {
   const users = await db.users.findAll({
-    where: { updated_at: { [Op.lt]: moment().subtract(7, 'days').toDate() } },
+    where: {
+      updated_at: { [Op.lt]: moment().subtract(7, 'days').toDate() },
+      status: 'approved',
+    },
   });
 
   users.map(async (user) => {
@@ -69,6 +65,10 @@ async function sendReminderEmail() {
   });
 }
 setInterval(() => {
+  logger.debug('running db cleanup');
+  cleanupDb().catch((error) => {
+    logger.error(error, 'error cleaning database');
+  });
   logger.debug('running email reminder');
   sendReminderEmail().catch((error) => {
     logger.error(error, 'error sending email reminder');
