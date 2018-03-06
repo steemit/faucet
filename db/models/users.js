@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => (
     phone_number_is_verified: DataTypes.BOOLEAN,
     phone_code_attempts: {
       type: DataTypes.INTEGER,
-      default: 0,
+      defaultValue: 0,
     },
     phone_code: DataTypes.STRING,
     last_attempt_verify_phone_number: DataTypes.DATE,
