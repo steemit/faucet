@@ -32,7 +32,7 @@
   "error_api_general": "错误API一般",
   "error_api_phone_required": "手机号码是必填的",
   "error_api_phone_too_many": "尝试次数过多，请申请一个新的验证码",
-  "error_api_phone_used": "手机号码已被使用",
+  "error_api_phone_used": "此电话号码已连结至现有帐户或仍在审核中的帐户",
   "error_api_phone_verified": "手机号码已被验证",
   "error_api_prefix_invalid": "无效的前缀",
   "error_api_public_keys_required": "公钥是必须的",
