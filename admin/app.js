@@ -6,13 +6,10 @@ const cookieSession = require('cookie-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const passport = require('passport');
-const Raven = require('raven');
 const config = require('./config.json');
 const db = require('./../db/models');
 const auth = require('./helpers/auth');
 const logger = require('./../helpers/logger');
-
-Raven.config(process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN).install();
 
 var app = express();
 app.locals.moment = moment;
@@ -51,7 +48,6 @@ if (process.env.NODE_ENV !== 'production') {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(Raven.requestHandler());
 auth(passport);
 app.use(passport.initialize());
 app.use(function(req, res, next) {
@@ -84,7 +80,6 @@ app.use(function(req, res, next) {
 });
 
 // error handler
-app.use(Raven.errorHandler());
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
