@@ -4,9 +4,17 @@
  * Module dependencies.
  */
 
-const app = require('../app').app;
 const logger = require('../helpers/logger');
 const http = require('http');
+
+let app
+if (process.env.FAUCET_ADMIN) {
+  logger.info('starting faucet admin');
+  app = require('../admin/app');
+} else {
+  logger.info('starting faucet');
+  app = require('../app');
+}
 
 /**
  * Get port from environment and store in Express.
@@ -19,7 +27,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-const server = require('../app').server;
+const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.

@@ -1,0 +1,23 @@
+{
+  "name": "faucet-admin",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "body-parser": "~1.18.2",
+    "bunyan": "^1.8.12",
+    "cookie-parser": "~1.4.3",
+    "cookie-session": "^2.0.0-beta.3",
+    "debug": "~2.6.9",
+    "ejs": "~2.5.7",
+    "express": "~4.15.5",
+    "isomorphic-fetch": "^2.2.1",
+    "jsonwebtoken": "^8.1.0",
+    "moment": "^2.19.2",
+    "mysql2": "^1.5.0",
+    "passport": "^0.4.0",
+    "passport-google-oauth": "^1.0.0",
+    "raven": "^2.2.1",
+    "sequelize": "^4.22.6",
+    "serve-favicon": "~2.4.5"
+  }
+}

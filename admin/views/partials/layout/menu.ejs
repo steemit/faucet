@@ -1,0 +1,43 @@
+<aside class="sidebar">
+    <div class="sidebar-container">
+        <div class="sidebar-header">
+            <div class="brand">
+                Faucet Admin
+            </div>
+        </div>
+        <nav class="menu">
+            <ul class="sidebar-menu metismenu" id="sidebar-menu">
+                <li class="<%= url.includes('/dashboard') ? 'active' : '' %>">
+                    <a href="/dashboard">
+                        <i class="fa fa-home"></i> Dashboard</a>
+                </li>
+                <li class="<%= url.includes('/user') ? 'active open' : '' %>">
+                    <a href="">
+                        <i class="fa fa-users"></i> Users
+                        <i class="fa arrow"></i>
+                    </a>
+                    <ul class="sidebar-nav">
+                        <li class="<%= url.includes('/users/ongoing') ? 'active' : '' %>">
+                            <a href="/users/ongoing"> Ongoing </a>
+                        </li>
+                        <li class="<%= url.includes('/users/pending') ? 'active' : '' %>">
+                            <a href="/users/pending"> Pending </a>
+                        </li>
+                        <li class="<%= url.includes('/users/approved') ? 'active' : '' %>">
+                            <a href="/users/approved"> Approved </a>
+                        </li>
+                        <li class="<%= url.includes('/users/rejected') ? 'active' : '' %>">
+                            <a href="/users/rejected"> Rejected </a>
+                        </li>
+                        <li class="<%= url.includes('/users/created') ? 'active' : '' %>">
+                            <a href="/users/created"> Created </a>
+                        </li>
+                        <li class="<%= url.includes('/users/all') ? 'active' : '' %>">
+                            <a href="/users/all"> All </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</aside>

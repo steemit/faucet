@@ -1,7 +1,7 @@
 const bunyan = require('bunyan');
 
 const logger = bunyan.createLogger({
-  name: 'faucet',
+  name: process.env.FAUCET_ADMIN ? 'faucet-admin' : 'faucet',
   serializers: bunyan.stdSerializers,
   streams: [{
     level: process.env.LOG_LEVEL || 'info',
