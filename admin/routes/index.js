@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const fetch = require('isomorphic-fetch');
+const Sequelize = require('sequelize');
+const moment = require('moment');
 const authenticate = require('../helpers/middleware').authenticate;
 
-const elements = 25;
+const itemsPerPage = 25;
 
 class AppError extends Error {
   constructor({ type = 'error_api_general', status = 400, cause }) {
@@ -152,8 +154,8 @@ const listUser = async(req, options) => {
   const users = await req.db.users.findAll(
     {
       order: [['updated_at', 'DESC']],
-      offset: parseInt((page - 1) * elements),
-      limit: elements,
+      offset: parseInt((page - 1) * itemsPerPage),
+      limit: itemsPerPage,
       where: options.where
     }
   );
@@ -162,11 +164,13 @@ const listUser = async(req, options) => {
     view: 'users',
     data: {
       page: page,
-      showLast: count > page * elements,
+      showLast: count > page * itemsPerPage,
       location: options.location,
       showActions: options.showActions,
       title: options.title,
-      users: users
+      users: users,
+      maxPage: Math.ceil(count / itemsPerPage),
+      totalElements: count,
     }
   };
 };
@@ -208,6 +212,78 @@ router.post('/reject', authenticate(), routeMiddleware(async (req) => {
     data: {
       success: true,
       ids: req.body['ids[]'],
+    }
+  }
+}));
+
+router.get('/search', authenticate(), (req, res, next) => {
+  res.render('search', {
+    title: 'Search database',
+    users: [],
+    page: 1,
+    showLast: false,
+    maxPage: 0,
+    totalElements: 0,
+    search: '',
+    status: null,
+    items: itemsPerPage,
+    startDate: '',
+    endDate: '',
+  });
+});
+
+router.post('/search', authenticate(), routeMiddleware(async (req) => {
+  const page = parseInt(req.body.page) || 1;
+  const { search, status, startDate, endDate } = req.body;
+  const Op = Sequelize.Op;
+  const where = {
+    [Op.and]: [
+      {
+        [Op.or]: [
+          {email: {[Op.like]: `%${search}%`}},
+          {username: {[Op.like]: `%${search}%`}},
+          {phone_number: {[Op.like]: `%${search}%`}},
+          {ip: {[Op.like]: `%${search}%`}},
+          {fingerprint: {[Op.like]: `%${search}%`}},
+        ]
+      }
+    ]
+  };
+  if(status !== 'all') {
+    where[Object.getOwnPropertySymbols(where)[0]].push({ status });
+  }
+  if(startDate) {
+    where[Object.getOwnPropertySymbols(where)[0]].push({ created_at: { [Op.gte]: moment(startDate, 'YYYYMMDD')} });
+  }
+  if(endDate) {
+    where[Object.getOwnPropertySymbols(where)[0]].push({ created_at: { [Op.lte]: moment(endDate, 'YYYYMMDD')} });
+  }
+  const count = await req.db.users.count({ where });
+  const items = req.body.items || itemsPerPage;
+  const users = await req.db.users.findAll(
+    {
+      order: [['updated_at', 'DESC']],
+      offset: parseInt((page - 1) * items),
+      limit: parseInt(items),
+      page,
+      where
+    }
+  );
+
+  return {
+    view: 'search',
+    data: {
+      title: 'Search database',
+      page,
+      showLast: count > page * items,
+      maxPage: Math.ceil(count / items),
+      totalElements: count,
+      users,
+      search,
+      startDate,
+      endDate,
+      status,
+      items
     }
   }
 }));
