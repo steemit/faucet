@@ -1506,7 +1506,9 @@ span a {
     color: #fff;
     border-color: #52BCD3;
     background-color: #52BCD3; }
-
+.page-separator {
+  margin: 0 10px;
+}
 #nprogress .bar {
   background: #52BCD3 !important; }
   #nprogress .bar .peg {
@@ -2766,4 +2768,24 @@ span a {
 
 .user-table tr td:first-child{
   min-width: 200px;
+}
+.nav-current-page {
+  margin: 0 10px;
+}
+.nav-page {
+  margin: 0 15px;
+}
+
+.nav-page input {
+  width: 50px;
+  height: 30px;
+}
+.pagination li {
+  line-height: 40px;
+}
+button {
+  cursor: pointer;
+}
+.page-link {
+  cursor: pointer;
 }
