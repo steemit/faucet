@@ -97,7 +97,18 @@ class Signup extends Component {
     logStep('email', 1);
   }
 
-  handleSubmitEmail = (values, token) => {
+  handleSubmitEmail1 = (values, token) => {
+    this.setState({
+      step: 'checkYourEmail',
+      stepNumber: 666,
+      email: values.email,
+      token,
+    });
+    // TODO: Determine conveyor step name.
+    // logStep('checkYourEmail', 666);
+  };
+
+  handleSubmitEmail2 = (values, token) => {
     this.setState({
       step: 'phoneNumber',
       stepNumber: 2,
@@ -187,14 +198,14 @@ class Signup extends Component {
               <p><FormattedMessage id="confirm_existence" /></p>
               {countryCode !== 'CN' &&
               <FormSignupEmail
-                onSubmit={this.handleSubmitEmail}
+                onSubmit={this.handleSubmitEmail1}
                 username={username}
                 email={email}
                 goBack={this.goBack}
               />}
               {countryCode === 'CN' &&
               <FormSignupEmailChinese
-                onSubmit={this.handleSubmitEmail}
+                onSubmit={this.handleSubmitEmail1}
                 username={username}
                 email={email}
                 goBack={this.goBack}
@@ -238,6 +249,12 @@ class Signup extends Component {
                 prefix={prefix}
                 goBack={this.goBack}
               />
+            </div>
+            }
+            {step === 'checkYourEmail' &&
+            <div className="form-content">
+              <h1><FormattedMessage id="almost_there" /></h1>
+              <p><FormattedMessage id="finish_text_3" /></p>
             </div>
             }
             {step === 'finish' &&

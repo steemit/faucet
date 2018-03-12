@@ -110,6 +110,51 @@ router.get('/', apiMiddleware(async () => {
 }));
 
 /**
+ * Send the email to user asking them to confirm their email address.
+ */
+const sendConfirmationEmail = async (req, res) => {
+  const date = new Date();
+  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
+
+  const user = await req.db.users.findOne({ where: { email: req.query.email } });
+
+  if (user.email_is_verified) {
+    const errors = [{ field: 'email', error: 'error_api_email_verified' }];
+    res.status(400).json({ errors });
+  } else if (
+    !user.last_attempt_verify_email ||
+    user.last_attempt_verify_email.getTime() < oneMinLater
+  ) {
+    // create an email token valid for 24 hours
+    const mailToken = jwt.sign({
+      type: 'confirm_email',
+      email: req.query.email,
+    }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    req.mail.send(req.query.email, 'confirm_email', {
+      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
+    },
+    (err) => {
+      if (!err) {
+        const token = jwt.sign({
+          type: 'signup',
+          email: req.query.email,
+        }, process.env.JWT_SECRET);
+        req.db.users.update({
+          last_attempt_verify_email: new Date(),
+        }, { where: { email: req.query.email } });
+        res.json({ success: true, token });
+      } else {
+        const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
+        res.status(500).json({ errors });
+      }
+    });
+  } else {
+    const errors = [{ field: 'email', error: 'error_api_wait' }];
+    res.status(400).json({ errors });
+  }
+};
+
+/**
  * Checks for the email step
  * Recaptcha, bad domains and existence with conveyor are verified
  * A token containing the email is generated for the next steps
@@ -117,8 +162,9 @@ router.get('/', apiMiddleware(async () => {
  * and his account created in the Steem blockchain
  * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
-router.post('/request_email', apiMiddleware(async (req) => {
+router.post('/request_email', apiMiddleware(async (req, res) => {
   const location = req.geoip.get(req.ip);
+
   let skipRecaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
@@ -126,7 +172,6 @@ router.post('/request_email', apiMiddleware(async (req) => {
   if (!skipRecaptcha && !req.body.recaptcha) {
     throw new ApiError({ type: 'error_api_recaptcha_required', field: 'recaptcha' });
   }
-
   if (!req.body.email) {
     throw new ApiError({ type: 'error_api_email_required', field: 'email' });
   }
@@ -177,11 +222,6 @@ router.post('/request_email', apiMiddleware(async (req) => {
     },
   });
 
-  const token = jwt.sign({
-    type: 'signup',
-    email: req.body.email,
-  }, process.env.JWT_SECRET);
-
   if (userExist === 0) {
     await req.db.users.create({
       email: req.body.email,
@@ -198,15 +238,15 @@ router.post('/request_email', apiMiddleware(async (req) => {
       metadata: { query: JSON.parse(req.body.query) },
       username: req.body.username,
       username_booked_at: new Date(),
-    });
+    }).then(async () => { await sendConfirmationEmail(req, res); });
   } else {
-    await req.db.users.update({
+    req.db.users.update({
       username: req.body.username,
       username_booked_at: new Date(),
-    }, { where: { email: req.body.email } });
+    }, { where: { email: req.body.email } }).then(async () => {
+      await sendConfirmationEmail(req, res);
+    });
   }
-
-  return { success: true, token };
 }));
 
 /**
@@ -367,6 +407,46 @@ const sendAccountInformation = async (req, email) => {
   }
 };
 
+
+router.get('/confirm_email', async (req, res) => {
+  if (!req.query.token) {
+    res.status(400).json({ error: 'error_api_token_required' });
+  } else {
+    let decoded;
+    try {
+      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+      if (decoded.type === 'confirm_email') {
+        const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        const token = jwt.sign({
+          type: 'signup',
+          email: decoded.email,
+        }, process.env.JWT_SECRET);
+        if (!user) {
+          res.status(400).json({ error: 'error_api_email_exists_not' });
+        } else {
+          if (!user.email_is_verified) {
+            await req.db.users.update({
+              email_is_verified: true,
+            }, { where: { email: decoded.email } });
+            await sendAccountInformation(req, decoded.email);
+          }
+          res.json({
+            success: true,
+            completed: user.phone_number_is_verified,
+            email: user.email,
+            username: user.username,
+            token,
+          });
+        }
+      } else {
+        res.status(400).json({ error: 'error_api_token_invalid' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: 'error_api_token_invalid' });
+    }
+  }
+});
+
 /**
  * Verify the SMS code and then ask the gatekeeper for the status of the account
  * do decide the next step
@@ -413,7 +493,7 @@ router.post('/confirm_sms', apiMiddleware(async (req) => {
     req.log.error(error, 'Unable to send verification mail');
   });
 
-  return { success: true };
+  return { success: true, completed: user.email_is_verified };
 }));
 
 /** Return the country code using maxmind database */
