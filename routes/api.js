@@ -228,16 +228,22 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
-  let phoneNumber;
+  let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
+
+  const isValid = phoneUtil.isValidNumber(phoneNumber);
+
+  if (!isValid) {
+    throw new ApiError({ field: 'phoneNumber', type: 'error_phone_invalid' });
+  }
   try {
     phoneNumber = phoneUtil.format(
-      phoneUtil.parse(req.body.phoneNumber, countryCode),
-      PNF.INTERNATIONAL,
+      phoneNumber,
+      PNF.E164,
     );
-    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '');
   } catch (cause) {
     throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
   }
+
   const user = await req.db.users.findOne({
     where: {
       email: decoded.email,
