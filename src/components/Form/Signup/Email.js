@@ -79,6 +79,8 @@ class Email extends React.Component {
           .then((data) => {
             this.setState({ submitting: false });
             if (data.success) {
+              alert(`Ola! the link sent was: ${data.emailLink}, check your console...`);
+              console.log(data.emailLink);
               if (onSubmit) {
                 onSubmit(
                   values,

@@ -116,7 +116,13 @@ const sendConfirmationEmail = async (req, res) => {
   const date = new Date();
   const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
 
-  const user = await req.db.users.findOne({ where: { email: req.query.email } });
+  // const user = await req.db.users.findOne({ where: { email: req.query.email } });
+  const user = {
+    email_is_verified: false,
+    phone_number_is_verified: false,
+    email: 'foo@bar.com',
+    username: 'foo',
+  };
 
   if (user.email_is_verified) {
     const errors = [{ field: 'email', error: 'error_api_email_verified' }];
@@ -130,24 +136,29 @@ const sendConfirmationEmail = async (req, res) => {
       type: 'confirm_email',
       email: req.query.email,
     }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    /*
     req.mail.send(req.query.email, 'confirm_email', {
       url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
     },
     (err) => {
       if (!err) {
-        const token = jwt.sign({
-          type: 'signup',
-          email: req.query.email,
-        }, process.env.JWT_SECRET);
-        req.db.users.update({
-          last_attempt_verify_email: new Date(),
-        }, { where: { email: req.query.email } });
-        res.json({ success: true, token });
-      } else {
+    */
+    const emailLink = `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`;
+    const token = jwt.sign({
+      type: 'signup',
+      email: req.query.email,
+    }, process.env.JWT_SECRET);
+    req.db.users.update({
+      last_attempt_verify_email: new Date(),
+    }, { where: { email: req.query.email } });
+    res.json({ success: true, token, emailLink });
+    /*
+    } else {
         const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
         res.status(500).json({ errors });
       }
     });
+    */
   } else {
     const errors = [{ field: 'email', error: 'error_api_wait' }];
     res.status(400).json({ errors });
@@ -165,7 +176,8 @@ const sendConfirmationEmail = async (req, res) => {
 router.post('/request_email', apiMiddleware(async (req, res) => {
   const location = req.geoip.get(req.ip);
 
-  let skipRecaptcha = false;
+  let skipRecaptcha = true;
+
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
   }
@@ -182,7 +194,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
 
-  await actionLimit(req.ip);
+  // await actionLimit(req.ip);
 
   await req.db.actions.create({
     action: 'request_email',
@@ -199,7 +211,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
   if (userCount > 0) {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
-
+  /*
   const emailRegistered = await steem.api.signedCallAsync(
     'conveyor.is_email_registered', [req.body.email],
     conveyorAccount, conveyorKey,
@@ -207,6 +219,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
   if (emailRegistered) {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
+  */
 
   if (!skipRecaptcha) {
     try {
@@ -416,7 +429,13 @@ router.get('/confirm_email', async (req, res) => {
     try {
       decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
       if (decoded.type === 'confirm_email') {
-        const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        // const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        const user = {
+          email_is_verified: true,
+          phone_number_is_verified: false,
+          email: 'foo@bar.com',
+          username: 'foo',
+        };
         const token = jwt.sign({
           type: 'signup',
           email: decoded.email,
