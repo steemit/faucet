@@ -116,32 +116,32 @@ const sendConfirmationEmail = async (req, res) => {
   const date = new Date();
   const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
 
-  const user = await req.db.users.findOne({ where: { email: req.query.email } });
+  const user = await req.db.users.findOne({ where: { email: req.body.email } });
 
   if (user.email_is_verified) {
     const errors = [{ field: 'email', error: 'error_api_email_verified' }];
     res.status(400).json({ errors });
   } else if (
     !user.last_attempt_verify_email ||
-    user.last_attempt_verify_email.getTime() < oneMinLater
+  user.last_attempt_verify_email.getTime() < oneMinLater
   ) {
     // create an email token valid for 24 hours
     const mailToken = jwt.sign({
       type: 'confirm_email',
-      email: req.query.email,
+      email: req.body.email,
     }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    req.mail.send(req.query.email, 'confirm_email', {
+    req.mail.send(req.body.email, 'confirm_email', {
       url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
     },
     (err) => {
       if (!err) {
         const token = jwt.sign({
           type: 'signup',
-          email: req.query.email,
+          email: req.body.email,
         }, process.env.JWT_SECRET);
         req.db.users.update({
           last_attempt_verify_email: new Date(),
-        }, { where: { email: req.query.email } });
+        }, { where: { email: req.body.email } });
         res.json({ success: true, token });
       } else {
         const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
@@ -292,7 +292,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
 
   if (
     user.last_attempt_verify_phone_number &&
-    user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
+  user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
   ) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
   }
@@ -680,7 +680,7 @@ router.post('/check_username', apiMiddleware(async (req) => {
   const oneWeek = 7 * 24 * 60 * 60 * 1000;
   if (
     user &&
-    (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()
+  (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()
   ) {
     throw new ApiError({ type: 'error_api_username_reserved', code: 200 });
   }
