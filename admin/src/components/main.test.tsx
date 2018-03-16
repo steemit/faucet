@@ -5,6 +5,6 @@ import { BrowserRouter } from 'react-router-dom'
 import Main from './main'
 
 it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<BrowserRouter><Main /></BrowserRouter>, div);
-});
+    const div = document.createElement('div')
+    ReactDOM.render(<BrowserRouter><Main /></BrowserRouter>, div)
+})

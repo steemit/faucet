@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 class Main extends React.Component {
-  render() {
+  public render() {
     return (
       <h1>Dashboard</h1>
     )

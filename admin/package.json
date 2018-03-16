@@ -12,7 +12,8 @@
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom"
+    "test": "react-scripts-ts test --env=jsdom",
+    "lint": "tslint --fix \"src/**/*.+(ts|tsx)\""
   },
   "devDependencies": {
     "@types/antd": "^1.0.0",
