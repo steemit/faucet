@@ -212,7 +212,6 @@ class Signup extends Component {
                 countryCode={countryCode}
                 prefix={prefix}
                 phoneNumber={phoneNumber}
-                goBack={this.goBack}
               />
             </div>
             }
