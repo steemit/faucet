@@ -109,49 +109,82 @@ router.get('/', apiMiddleware(async () => {
   return rv;
 }));
 
+const emailError = (m) => { throw new ApiError({ field: 'email', type: m }); };
+
+const where = (user, attr) => {
+  const matches = {};
+  matches[attr] = user[attr];
+  return ({ where: matches });
+};
+
+const getUser = async (database, userInfo, findBy) => {
+  try {
+    return await database.users.findOne(where(userInfo, findBy));
+  } catch (error) {
+    emailError('error_api_get_user');
+    return false;
+  }
+};
+
+const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
+  const updateObj = {};
+  updateObj[attr] = value;
+  try {
+    return await database.users.update(updateObj, where(userInfo, findBy));
+  } catch (error) {
+    emailError('error_api_update_user');
+    return false;
+  }
+};
+
+const sendEmail = async (req, mailToken) => {
+  try {
+    return await req.mail.send(req.body.email, 'confirm_email', {
+      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
+    });
+  } catch (error) {
+    emailError('error_api_send_email');
+    return false;
+  }
+};
+
 /**
  * Send the email to user asking them to confirm their email address.
  */
 const sendConfirmationEmail = async (req, res) => {
   const date = new Date();
-  const oneMinLater = new Date(date.setTime(date.getTime() - 60000));
+  const minusOneMinute = new Date(date.setTime(date.getTime() - 60000));
+  const user = await getUser(req.db, req.body, 'email');
 
-  const user = await req.db.users.findOne({ where: { email: req.body.email } });
+  // Throw if user has already verified their email.
+  if (user.email_is_verified) emailError('email_already_verified');
 
-  if (user.email_is_verified) {
-    const errors = [{ field: 'email', error: 'error_api_email_verified' }];
-    res.status(400).json({ errors });
-  } else if (
-    !user.last_attempt_verify_email ||
-  user.last_attempt_verify_email.getTime() < oneMinLater
-  ) {
-    // create an email token valid for 24 hours
-    const mailToken = jwt.sign({
-      type: 'confirm_email',
-      email: req.body.email,
-    }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    req.mail.send(req.body.email, 'confirm_email', {
-      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
-    },
-    (err) => {
-      if (!err) {
-        const token = jwt.sign({
-          type: 'signup',
-          email: req.body.email,
-        }, process.env.JWT_SECRET);
-        req.db.users.update({
-          last_attempt_verify_email: new Date(),
-        }, { where: { email: req.body.email } });
-        res.json({ success: true, token });
-      } else {
-        const errors = [{ field: 'email', error: 'error_api_sent_email_failed' }];
-        res.status(500).json({ errors });
-      }
-    });
-  } else {
-    const errors = [{ field: 'email', error: 'error_api_wait' }];
-    res.status(400).json({ errors });
-  }
+  // Generate a mail token.
+  const mailToken = jwt.sign({
+    type: 'confirm_email',
+    email: req.body.email,
+  }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+  // If the user has not made a prior attempt, send an email.
+  if (!user.last_attempt_verify_email) sendEmail(req, mailToken);
+
+  // If the user's last attempt was more than a minute ago send an email, otherwise throw an error.
+  if (user.last_attempt_verify_email.getTime() < minusOneMinute) sendEmail(req, mailToken);
+
+  // If the user's last attempt was less than or exactly a minute ago, throw an error.
+  if (user.last_attempt_verify_email.getTime() >= minusOneMinute) emailError('error_api_wait_one_minute');
+
+  // Update the user to reflect that the verification email was sent.
+  updateUserAttr(req.db, req.body, 'last_attempt_verify_email', new Date(), 'email');
+
+  const token = jwt.sign({
+    type: 'signup',
+    email: req.body.email,
+  }, process.env.JWT_SECRET);
+
+  // Return success back to the client.
+  // TODO: find out what token is used for.
+  res.json({ success: true, token });
 };
 
 /**
