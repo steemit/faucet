@@ -154,7 +154,13 @@ const sendEmail = async (req, mailToken) => {
 const sendConfirmationEmail = async (req, res) => {
   const date = new Date();
   const minusOneMinute = new Date(date.setTime(date.getTime() - 60000));
+
+  // Find the user in the database with an email that matches that of the request.
   const user = await getUser(req.db, req.body, 'email');
+
+  const usersLastAttempt = user.last_attempt_verify_email
+    ? user.last_attempt_verify_email.getTime()
+    : false;
 
   // Throw if user has already verified their email.
   if (user.email_is_verified) emailError('email_already_verified');
@@ -166,16 +172,16 @@ const sendConfirmationEmail = async (req, res) => {
   }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
   // If the user has not made a prior attempt, send an email.
-  if (!user.last_attempt_verify_email) sendEmail(req, mailToken);
+  if (!usersLastAttempt) sendEmail(req, mailToken);
 
-  // If the user's last attempt was more than a minute ago send an email, otherwise throw an error.
-  if (user.last_attempt_verify_email.getTime() < minusOneMinute) sendEmail(req, mailToken);
+  // If the user's last attempt was more than a minute ago send an email.
+  if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken);
 
   // If the user's last attempt was less than or exactly a minute ago, throw an error.
-  if (user.last_attempt_verify_email.getTime() >= minusOneMinute) emailError('error_api_wait_one_minute');
+  if (usersLastAttempt && usersLastAttempt >= minusOneMinute) emailError('error_api_wait_one_minute');
 
   // Update the user to reflect that the verification email was sent.
-  updateUserAttr(req.db, req.body, 'last_attempt_verify_email', new Date(), 'email');
+  updateUserAttr(req.db, req.body, 'last_attempt_verify_email', date, 'email');
 
   const token = jwt.sign({
     type: 'signup',
@@ -198,7 +204,7 @@ const sendConfirmationEmail = async (req, res) => {
 router.post('/request_email', apiMiddleware(async (req, res) => {
   const location = req.geoip.get(req.ip);
 
-  let skipRecaptcha = false;
+  let skipRecaptcha = true;
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
   }
@@ -215,7 +221,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
 
-  await actionLimit(req.ip);
+  // await actionLimit(req.ip);
 
   await req.db.actions.create({
     action: 'request_email',
@@ -233,6 +239,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
 
+  /*
   const emailRegistered = await steem.api.signedCallAsync(
     'conveyor.is_email_registered', [req.body.email],
     conveyorAccount, conveyorKey,
@@ -240,6 +247,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
   if (emailRegistered) {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
+  */
 
   if (!skipRecaptcha) {
     try {
@@ -271,7 +279,9 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
       metadata: { query: JSON.parse(req.body.query) },
       username: req.body.username,
       username_booked_at: new Date(),
-    }).then(async () => { await sendConfirmationEmail(req, res); });
+    }).then(async () => {
+      await sendConfirmationEmail(req, res);
+    });
   } else {
     req.db.users.update({
       username: req.body.username,
