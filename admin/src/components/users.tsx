@@ -8,7 +8,7 @@ interface UsersRouteProps {
 interface UsersProps extends RouteComponentProps<UsersRouteProps> {}
 
 class Users extends React.Component <UsersProps> {
-  render() {
+  public render() {
     const {filter} = this.props.match.params
     return (
       <h1>Users: {filter}</h1>
@@ -16,4 +16,4 @@ class Users extends React.Component <UsersProps> {
   }
 }
 
-export default Users;
+export default Users

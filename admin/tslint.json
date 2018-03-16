@@ -1,3 +1,10 @@
 {
-    "extends": ["tslint-react"]
+    "extends": ["tslint:recommended", "tslint-react"],
+    "defaultSeverity": "warning",
+    "rules": {
+        "indent": [true, "spaces", 4],
+        "interface-name": [true, "never-prefix"],
+        "quotemark": [true, "single", "avoid-escape"],
+        "semicolon": [true, "never"]
+    }
 }
