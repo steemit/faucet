@@ -5,7 +5,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Icon, Input, Button } from 'antd';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
-import { validateEmail, validateEmailDomain } from '../../../utils/validator';
+import { validateEmail, validateEmailDomain } from '../../../../helpers/validator';
 
 class Email extends React.Component {
   static contextTypes = {
@@ -103,6 +103,24 @@ class Email extends React.Component {
     });
   };
 
+  validateEmailWrapper = (rule, value, callback) => {
+    const error = validateEmail(value);
+    if (error) {
+      callback(error);
+    } else {
+      callback();
+    }
+  }
+
+  validateEmailDomainWrapper = (rule, value, callback) => {
+    const error = validateEmailDomain(value);
+    if (error) {
+      callback(error);
+    } else {
+      callback();
+    }
+  }
+
   render() {
     const { form: { getFieldDecorator }, intl, email, goBack } = this.props;
     return (
@@ -121,8 +139,8 @@ class Email extends React.Component {
           {getFieldDecorator('email', {
             rules: [
               { required: true, message: intl.formatMessage({ id: 'error_email_required' }) },
-              { validator: validateEmail, message: intl.formatMessage({ id: 'error_api_email_format' }) },
-              { validator: validateEmailDomain, message: intl.formatMessage({ id: 'error_api_domain_blacklisted' }) },
+              { validator: this.validateEmailWrapper, message: intl.formatMessage({ id: 'error_api_email_format' }) },
+              { validator: this.validateEmailDomainWrapper, message: intl.formatMessage({ id: 'error_api_domain_blacklisted' }) },
             ],
             initialValue: email,
           })(

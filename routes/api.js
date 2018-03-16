@@ -10,6 +10,7 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+const { validateAccountName } = require('../helpers/validator');
 const sendSMS = require('../helpers/twilio');
 const moment = require('moment');
 const db = require('./../db/models');
@@ -40,6 +41,13 @@ class ApiError extends Error {
   toJSON() {
     return { type: this.type, field: this.field };
   }
+}
+
+if (typeof process.env.CREATE_USER_URL !== 'string' || process.env.CREATE_USER_URL.length < 1) {
+  throw new Error('Missing CREATE_USER_URL');
+}
+if (typeof process.env.CREATE_USER_SECRET !== 'string' || process.env.CREATE_USER_SECRET.length < 1) {
+  throw new Error('Missing CREATE_USER_SECRET');
 }
 
 async function verifyCaptcha(recaptcha, ip) {
@@ -135,6 +143,13 @@ router.post('/request_email', apiMiddleware(async (req) => {
   }
   if (badDomains.includes(req.body.email.split('@')[1])) {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
+  }
+  if (!req.body.username) {
+    throw new ApiError({ type: 'error_api_username_required', field: 'username' });
+  }
+  const usernameError = validateAccountName(req.body.username);
+  if (usernameError) {
+    throw new ApiError({ type: usernameError, field: 'username' });
   }
 
   await actionLimit(req.ip);
