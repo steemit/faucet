@@ -100,13 +100,12 @@ class Signup extends Component {
   handleSubmitEmail = (values, token) => {
     this.setState({
       step: 'checkYourEmail',
-      // TODO: assign correct step number.
-      stepNumber: 666,
+      stepNumber: 2,
       email: values.email,
       token,
     });
     // TODO: Determine conveyor step name.
-    // logStep('checkYourEmail', 666);
+    // logStep('checkYourEmail', 2);
   };
 
   handleSubmitPhoneNumber = (values) => {
