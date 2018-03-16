@@ -97,25 +97,16 @@ class Signup extends Component {
     logStep('email', 1);
   }
 
-  handleSubmitEmail1 = (values, token) => {
+  handleSubmitEmail = (values, token) => {
     this.setState({
       step: 'checkYourEmail',
+      // TODO: assign correct step number.
       stepNumber: 666,
       email: values.email,
       token,
     });
     // TODO: Determine conveyor step name.
     // logStep('checkYourEmail', 666);
-  };
-
-  handleSubmitEmail2 = (values, token) => {
-    this.setState({
-      step: 'phoneNumber',
-      stepNumber: 2,
-      email: values.email,
-      token,
-    });
-    logStep('phoneNumber', 2);
   };
 
   handleSubmitPhoneNumber = (values) => {
@@ -198,14 +189,14 @@ class Signup extends Component {
               <p><FormattedMessage id="confirm_existence" /></p>
               {countryCode !== 'CN' &&
               <FormSignupEmail
-                onSubmit={this.handleSubmitEmail1}
+                onSubmit={this.handleSubmitEmail}
                 username={username}
                 email={email}
                 goBack={this.goBack}
               />}
               {countryCode === 'CN' &&
               <FormSignupEmailChinese
-                onSubmit={this.handleSubmitEmail1}
+                onSubmit={this.handleSubmitEmail}
                 username={username}
                 email={email}
                 goBack={this.goBack}
@@ -275,6 +266,7 @@ class Signup extends Component {
             </div>}
             {step === 'username' && <img src="/img/signup-username.png" id="signup-username" aria-label="signup-username" alt="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
+            {step === 'checkYourEmail' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
             {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
             {step === 'finish' && <object data="img/signup-email-confirmation.svg" type="image/svg+xml" id="signup-email-confirmation" aria-label="signup-email-confirmation" />}
