@@ -158,7 +158,7 @@ class Signup extends Component {
           <div className="Signup__form">
             <div className="Signup__header">
               <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
-              {step !== 'finish' && <div className="Signup__steps">
+              {step !== 'finish' && step !== 'checkYourEmail' && <div className="Signup__steps">
                 <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
