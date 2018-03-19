@@ -204,7 +204,7 @@ const sendConfirmationEmail = async (req, res) => {
 router.post('/request_email', apiMiddleware(async (req, res) => {
   const location = req.geoip.get(req.ip);
 
-  let skipRecaptcha = true;
+  let skipRecaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
   }
@@ -221,7 +221,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
     throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
   }
 
-  // await actionLimit(req.ip);
+  await actionLimit(req.ip);
 
   await req.db.actions.create({
     action: 'request_email',
@@ -239,7 +239,6 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
 
-  /*
   const emailRegistered = await steem.api.signedCallAsync(
     'conveyor.is_email_registered', [req.body.email],
     conveyorAccount, conveyorKey,
@@ -247,7 +246,6 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
   if (emailRegistered) {
     throw new ApiError({ type: 'error_api_email_used', field: 'email' });
   }
-  */
 
   if (!skipRecaptcha) {
     try {
