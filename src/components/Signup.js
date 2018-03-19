@@ -242,7 +242,7 @@ class Signup extends Component {
             }
             {step === 'checkYourEmail' &&
             <div className="form-content">
-              <h1><FormattedMessage id="almost_there" /></h1>
+              <h1><FormattedMessage id="almost_there_email" /></h1>
               <p><FormattedMessage id="finish_text_3" /></p>
             </div>
             }
