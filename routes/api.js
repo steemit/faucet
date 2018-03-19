@@ -412,7 +412,7 @@ const approveAccount = async (req, email) => {
   const mailToken = jwt.sign({
     type: 'create_account',
     email,
-  }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  }, process.env.JWT_SECRET);
   await req.mail.send(email, 'create_account', {
     url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
   });
