@@ -73,7 +73,7 @@ class PhoneNumber extends React.Component {
   };
 
   render() {
-    const { form: { getFieldDecorator }, intl, prefix, phoneNumber, goBack } = this.props;
+    const { form: { getFieldDecorator }, intl, prefix, phoneNumber } = this.props;
 
     const prefixSelector = getFieldDecorator('prefix', {
       rules: [
@@ -124,12 +124,6 @@ class PhoneNumber extends React.Component {
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={this.state.submitting}><FormattedMessage id="continue" /></Button>
           </Form.Item>
-          {goBack &&
-          <Form.Item>
-            <Button htmlType="button" className="back" onClick={() => goBack('email', 1)}>
-              <FormattedMessage id="go_back" />
-            </Button>
-          </Form.Item>}
         </div>
       </Form>
     );
