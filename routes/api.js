@@ -10,7 +10,7 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
-const sendSMS = require('../helpers/twilio');
+const Twilio = require('../helpers/twilio');
 const moment = require('moment');
 const db = require('./../db/models');
 
@@ -311,16 +311,25 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
-  let phoneNumber;
-  try {
-    phoneNumber = phoneUtil.format(
-      phoneUtil.parse(req.body.phoneNumber, countryCode),
-      PNF.INTERNATIONAL,
-    );
-    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '');
-  } catch (cause) {
-    throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
+  let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
+
+  const isValid = phoneUtil.isValidNumber(phoneNumber);
+
+  if (!isValid) {
+    throw new ApiError({ field: 'phoneNumber', type: 'error_phone_invalid' });
   }
+
+  phoneNumber = phoneUtil.format(
+    phoneNumber,
+    PNF.E164,
+  );
+
+  try {
+    await Twilio.isValidNumber(phoneNumber);
+  } catch (e) {
+    throw new ApiError({ field: 'phoneNumber', type: e.message });
+  }
+
   const user = await req.db.users.findOne({
     where: {
       email: decoded.email,
@@ -335,7 +344,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
 
   if (
     user.last_attempt_verify_phone_number &&
-  user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
+    user.last_attempt_verify_phone_number.getTime() > Date.now() - (2 * 60 * 1000)
   ) {
     throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
   }
@@ -372,7 +381,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
   });
 
   try {
-    await sendSMS(phoneNumber, `${phoneCode} is your Steem confirmation code`);
+    await Twilio.sendMessage(phoneNumber, `${phoneCode} is your Steem confirmation code`);
   } catch (cause) {
     if (cause.code === 21614 || cause.code === 21211) {
       throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
@@ -723,7 +732,7 @@ router.post('/check_username', apiMiddleware(async (req) => {
   const oneWeek = 7 * 24 * 60 * 60 * 1000;
   if (
     user &&
-  (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()
+    (user.username_booked_at.getTime() + oneWeek) >= new Date().getTime()
   ) {
     throw new ApiError({ type: 'error_api_username_reserved', code: 200 });
   }
