@@ -7,7 +7,6 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const mail = {};
 
 mail.send = function sendMail(to, template, params = {}) {
-  
   return new Promise((resolve, reject) => {
     const data = clone(templates[template]);
     for (const key of Object.keys(params)) { // eslint-disable-line no-restricted-syntax
