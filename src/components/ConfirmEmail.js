@@ -76,17 +76,17 @@ class Index extends Component {
                   <p>{error}</p>
                   {!completed &&
                   <p>
-                    <Link to={`/?username=${username}&email=${email}&token=${token}`} className="complete-signup"><FormattedMessage id="complete_signup" /></Link>
+                    <Link to={`/?username=${username}&email=${email}&token=${token}`} className="complete-signup"><FormattedMessage id="continue" /></Link>
                   </p>}
                 </div>
               }
               {status === 'success' &&
                 <div>
-                  <h1><FormattedMessage id="thank_you" /></h1>
+                  <h1><FormattedMessage id="thank_you" />${username}!</h1>
                   <p><FormattedMessage id="email_verified" /></p>
                   {!completed &&
                   <p>
-                    <Link to={`/?username=${username}&email=${email}&token=${token}`} className="complete-signup"><FormattedMessage id="complete_signup" /></Link>
+                    <Link to={`/?username=${username}&email=${email}&token=${token}`} className="complete-signup"><FormattedMessage id="continue" /></Link>
                   </p>}
                 </div>
               }

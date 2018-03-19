@@ -96,7 +96,7 @@
   "sms_code": "We sent the code to you by SMS to {phoneNumber} {editLink}",
   "steem_signup": "Steem signup",
   "success_new_code_sent": "New code sent",
-  "thank_you": "Thank you!",
+  "thank_you": "Thank you",
   "username": "Username",
   "username_available": "Good news! The username {username} is available.",
   "username_know": "Start with a username. Your username is how you'll be known on all Steem-based apps.",
