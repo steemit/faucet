@@ -137,9 +137,10 @@ const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
   }
 };
 
-const sendEmail = async (req, mailToken) => {
+const sendEmail = async (req, mailToken, userName) => {
   try {
     return await req.mail.send(req.body.email, 'confirm_email', {
+      userName,
       url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
     });
   } catch (error) {
@@ -162,6 +163,7 @@ const sendConfirmationEmail = async (req, res) => {
     ? user.last_attempt_verify_email.getTime()
     : false;
 
+  const userName = user.username;
   // Throw if user has already verified their email.
   if (user.email_is_verified) emailError('email_already_verified');
 
@@ -172,10 +174,10 @@ const sendConfirmationEmail = async (req, res) => {
   }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
   // If the user has not made a prior attempt, send an email.
-  if (!usersLastAttempt) sendEmail(req, mailToken);
+  if (!usersLastAttempt) sendEmail(req, mailToken, userName);
 
   // If the user's last attempt was more than a minute ago send an email.
-  if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken);
+  if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken, userName);
 
   // If the user's last attempt was less than or exactly a minute ago, throw an error.
   if (usersLastAttempt && usersLastAttempt >= minusOneMinute) emailError('error_api_wait_one_minute');

@@ -2,7 +2,7 @@
   "confirm_email": {
     "from": "Steemit <noreply@steemit.com>",
     "subject": "Please confirm your email",
-    "text": "On Steemit, you get paid to post and share good content. But first, let's finish setting up your account.\n\nPlease confirm your email address by clicking on this link:\n\n{url}\n\nCheers\nYour friends at Steemit"
+    "text": "Hi, {userName}\n\nOn Steemit, you get paid to post and share good content. But first, let's finish setting up your account.\n\nPlease confirm your email address by clicking on this link:\n\n{url}\n\nCheers\n\nYour friends at Steemit"
   },
   "create_account": {
     "from": "Steemit <noreply@steemit.com>",
