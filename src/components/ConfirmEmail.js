@@ -82,7 +82,7 @@ class Index extends Component {
               }
               {status === 'success' &&
                 <div>
-                  <h1><FormattedMessage id="thank_you" /> {username}</h1>
+                  <h1><FormattedMessage id="thank_you" /> @{username}</h1>
                   <p><FormattedMessage id="email_verified" /></p>
                   {!completed &&
                   <p>
