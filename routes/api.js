@@ -10,7 +10,7 @@ const { checkStatus } = require('../src/utils/fetch');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
-const sendSMS = require('../helpers/twilio');
+const Twilio = require('../helpers/twilio');
 const moment = require('moment');
 const db = require('./../db/models');
 
@@ -109,6 +109,90 @@ router.get('/', apiMiddleware(async () => {
   return rv;
 }));
 
+const emailError = (m) => { throw new ApiError({ field: 'email', type: m }); };
+
+const where = (user, attr) => {
+  const matches = {};
+  matches[attr] = user[attr];
+  return ({ where: matches });
+};
+
+const getUser = async (database, userInfo, findBy) => {
+  try {
+    return await database.users.findOne(where(userInfo, findBy));
+  } catch (error) {
+    emailError('error_api_get_user');
+    return false;
+  }
+};
+
+const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
+  const updateObj = {};
+  updateObj[attr] = value;
+  try {
+    return await database.users.update(updateObj, where(userInfo, findBy));
+  } catch (error) {
+    emailError('error_api_update_user');
+    return false;
+  }
+};
+
+const sendEmail = async (req, mailToken) => {
+  try {
+    return await req.mail.send(req.body.email, 'confirm_email', {
+      url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
+    });
+  } catch (error) {
+    emailError('error_api_send_email');
+    return false;
+  }
+};
+
+/**
+ * Send the email to user asking them to confirm their email address.
+ */
+const sendConfirmationEmail = async (req, res) => {
+  const date = new Date();
+  const minusOneMinute = new Date(date.setTime(date.getTime() - 60000));
+
+  // Find the user in the database with an email that matches that of the request.
+  const user = await getUser(req.db, req.body, 'email');
+
+  const usersLastAttempt = user.last_attempt_verify_email
+    ? user.last_attempt_verify_email.getTime()
+    : false;
+
+  // Throw if user has already verified their email.
+  if (user.email_is_verified) emailError('email_already_verified');
+
+  // Generate a mail token.
+  const mailToken = jwt.sign({
+    type: 'confirm_email',
+    email: req.body.email,
+  }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+  // If the user has not made a prior attempt, send an email.
+  if (!usersLastAttempt) sendEmail(req, mailToken);
+
+  // If the user's last attempt was more than a minute ago send an email.
+  if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken);
+
+  // If the user's last attempt was less than or exactly a minute ago, throw an error.
+  if (usersLastAttempt && usersLastAttempt >= minusOneMinute) emailError('error_api_wait_one_minute');
+
+  // Update the user to reflect that the verification email was sent.
+  updateUserAttr(req.db, req.body, 'last_attempt_verify_email', date, 'email');
+
+  const token = jwt.sign({
+    type: 'signup',
+    email: req.body.email,
+  }, process.env.JWT_SECRET);
+
+  // Return success back to the client.
+  // TODO: find out what token is used for.
+  res.json({ success: true, token });
+};
+
 /**
  * Checks for the email step
  * Recaptcha, bad domains and existence with conveyor are verified
@@ -117,8 +201,9 @@ router.get('/', apiMiddleware(async () => {
  * and his account created in the Steem blockchain
  * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
-router.post('/request_email', apiMiddleware(async (req) => {
+router.post('/request_email', apiMiddleware(async (req, res) => {
   const location = req.geoip.get(req.ip);
+
   let skipRecaptcha = false;
   if (location && location.country && location.country.iso_code === 'CN') {
     skipRecaptcha = true;
@@ -126,7 +211,6 @@ router.post('/request_email', apiMiddleware(async (req) => {
   if (!skipRecaptcha && !req.body.recaptcha) {
     throw new ApiError({ type: 'error_api_recaptcha_required', field: 'recaptcha' });
   }
-
   if (!req.body.email) {
     throw new ApiError({ type: 'error_api_email_required', field: 'email' });
   }
@@ -177,11 +261,6 @@ router.post('/request_email', apiMiddleware(async (req) => {
     },
   });
 
-  const token = jwt.sign({
-    type: 'signup',
-    email: req.body.email,
-  }, process.env.JWT_SECRET);
-
   if (userExist === 0) {
     await req.db.users.create({
       email: req.body.email,
@@ -198,15 +277,17 @@ router.post('/request_email', apiMiddleware(async (req) => {
       metadata: { query: JSON.parse(req.body.query) },
       username: req.body.username,
       username_booked_at: new Date(),
+    }).then(async () => {
+      await sendConfirmationEmail(req, res);
     });
   } else {
-    await req.db.users.update({
+    req.db.users.update({
       username: req.body.username,
       username_booked_at: new Date(),
-    }, { where: { email: req.body.email } });
+    }, { where: { email: req.body.email } }).then(async () => {
+      await sendConfirmationEmail(req, res);
+    });
   }
-
-  return { success: true, token };
 }));
 
 /**
@@ -228,16 +309,25 @@ router.post('/request_sms', apiMiddleware(async (req) => {
     throw new ApiError({ field: 'prefix', type: 'error_api_prefix_invalid' });
   }
 
-  let phoneNumber;
-  try {
-    phoneNumber = phoneUtil.format(
-      phoneUtil.parse(req.body.phoneNumber, countryCode),
-      PNF.INTERNATIONAL,
-    );
-    phoneNumber = phoneNumber.replace(/[^+0-9]+/g, '');
-  } catch (cause) {
-    throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
+  let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
+
+  const isValid = phoneUtil.isValidNumber(phoneNumber);
+
+  if (!isValid) {
+    throw new ApiError({ field: 'phoneNumber', type: 'error_phone_invalid' });
   }
+
+  phoneNumber = phoneUtil.format(
+    phoneNumber,
+    PNF.E164,
+  );
+
+  try {
+    await Twilio.isValidNumber(phoneNumber);
+  } catch (e) {
+    throw new ApiError({ field: 'phoneNumber', type: e.message });
+  }
+
   const user = await req.db.users.findOne({
     where: {
       email: decoded.email,
@@ -289,7 +379,7 @@ router.post('/request_sms', apiMiddleware(async (req) => {
   });
 
   try {
-    await sendSMS(phoneNumber, `${phoneCode} is your Steem confirmation code`);
+    await Twilio.sendMessage(phoneNumber, `${phoneCode} is your Steem confirmation code`);
   } catch (cause) {
     if (cause.code === 21614 || cause.code === 21211) {
       throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
@@ -331,7 +421,7 @@ const approveAccount = async (req, email) => {
   const mailToken = jwt.sign({
     type: 'create_account',
     email,
-  }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  }, process.env.JWT_SECRET);
   await req.mail.send(email, 'create_account', {
     url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
   });
@@ -366,6 +456,46 @@ const sendAccountInformation = async (req, email) => {
     }
   }
 };
+
+
+router.get('/confirm_email', async (req, res) => {
+  if (!req.query.token) {
+    res.status(400).json({ error: 'error_api_token_required' });
+  } else {
+    let decoded;
+    try {
+      decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+      if (decoded.type === 'confirm_email') {
+        const user = await req.db.users.findOne({ where: { email: decoded.email } });
+        const token = jwt.sign({
+          type: 'signup',
+          email: decoded.email,
+        }, process.env.JWT_SECRET);
+        if (!user) {
+          res.status(400).json({ error: 'error_api_email_exists_not' });
+        } else {
+          if (!user.email_is_verified) {
+            await req.db.users.update({
+              email_is_verified: true,
+            }, { where: { email: decoded.email } });
+            await sendAccountInformation(req, decoded.email);
+          }
+          res.json({
+            success: true,
+            completed: user.phone_number_is_verified,
+            email: user.email,
+            username: user.username,
+            token,
+          });
+        }
+      } else {
+        res.status(400).json({ error: 'error_api_token_invalid' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: 'error_api_token_invalid' });
+    }
+  }
+});
 
 /**
  * Verify the SMS code and then ask the gatekeeper for the status of the account
@@ -413,7 +543,7 @@ router.post('/confirm_sms', apiMiddleware(async (req) => {
     req.log.error(error, 'Unable to send verification mail');
   });
 
-  return { success: true };
+  return { success: true, completed: user.email_is_verified };
 }));
 
 /** Return the country code using maxmind database */

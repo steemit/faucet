@@ -99,12 +99,13 @@ class Signup extends Component {
 
   handleSubmitEmail = (values, token) => {
     this.setState({
-      step: 'phoneNumber',
+      step: 'checkYourEmail',
       stepNumber: 2,
       email: values.email,
       token,
     });
-    logStep('phoneNumber', 2);
+    // TODO: Determine conveyor step name.
+    // logStep('checkYourEmail', 2);
   };
 
   handleSubmitPhoneNumber = (values) => {
@@ -157,7 +158,7 @@ class Signup extends Component {
           <div className="Signup__form">
             <div className="Signup__header">
               <object data="img/logo.svg" type="image/svg+xml" id="logo" aria-label="logo" />
-              {step !== 'finish' && <div className="Signup__steps">
+              {step !== 'finish' && step !== 'checkYourEmail' && <div className="Signup__steps">
                 <div className={`Signup__steps-step ${stepNumber === 0 ? 'waiting' : ''} ${stepNumber > 0 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 1 ? 'waiting' : ''} ${stepNumber > 1 ? 'processed' : ''}`} />
                 <div className={`Signup__steps-step ${stepNumber === 2 ? 'waiting' : ''} ${stepNumber > 2 ? 'processed' : ''}`} />
@@ -211,7 +212,6 @@ class Signup extends Component {
                 countryCode={countryCode}
                 prefix={prefix}
                 phoneNumber={phoneNumber}
-                goBack={this.goBack}
               />
             </div>
             }
@@ -240,6 +240,12 @@ class Signup extends Component {
               />
             </div>
             }
+            {step === 'checkYourEmail' &&
+            <div className="form-content">
+              <h1><FormattedMessage id="almost_there_email" /></h1>
+              <p><FormattedMessage id="finish_text_3" /></p>
+            </div>
+            }
             {step === 'finish' &&
             <div className="form-content">
               <h1><FormattedMessage id="almost_there" /></h1>
@@ -258,6 +264,7 @@ class Signup extends Component {
             </div>}
             {step === 'username' && <img src="/img/signup-username.png" id="signup-username" aria-label="signup-username" alt="signup-username" />}
             {step === 'email' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
+            {step === 'checkYourEmail' && <object data="img/signup-email.svg" type="image/svg+xml" id="signup-email" aria-label="signup-email" />}
             {step === 'phoneNumber' && <object data="img/signup-phone.svg" type="image/svg+xml" id="signup-phone" aria-label="signup-phone" />}
             {step === 'confirmPhoneNumber' && <object data="img/signup-sms.svg" type="image/svg+xml" id="signup-sms" aria-label="signup-sms" />}
             {step === 'finish' && <object data="img/signup-email-confirmation.svg" type="image/svg+xml" id="signup-email-confirmation" aria-label="signup-email-confirmation" />}

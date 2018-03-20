@@ -1,0 +1,104 @@
+<table class="table table-sm">
+    <thead class="thead-default">
+        <tr>
+            <% if(showActions) { %>
+                <th><input type="checkbox" onclick="javascript:toggleAll()" id="toggleAll" /></th>
+            <% } %>
+            <th>Created at</th>
+            <th>Email</th>
+            <th>Phone number</th>
+            <th>Username</th>
+        </tr>
+    </thead>
+    <tbody>
+    <% users.forEach(function(user) { %>
+    <tr id="<%= user.id %>">
+        <% if(showActions) { %>
+            <td>
+                <input type="checkbox" value="<%= user.id %>" />
+            </td>
+        <% } %>
+        <td><%= moment(user.created_at).format(moment_format) %></td>
+        <td>
+            <a href="/user/<%= user.id %>"><%= user.email %></a>
+            <% if(user.email_is_verified) { %>
+                <br />
+                <span class="badge badge-success">Verified</span>
+            <% } %>
+        </td>
+        <td>
+            <%= user.phone_number %>
+            <% if(user.phone_number_is_verified) { %>
+                <br />
+                <span class="badge badge-success">Verified (<%= user.phone_code_attempts %> attempts)</span>
+            <% } %>
+        </td>
+        <td><%= user.username %></td>
+    </tr>
+    <% }); %>
+    </tbody>
+</table>
+<% if(showActions) { %>
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#approveUserModal">Approve</button>
+    &nbsp;&nbsp;
+    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#rejectUserModal">Reject</button>
+<% } %>
+<nav aria-label="Page navigation example">
+<ul class="pagination">
+    <% if(page > 1) { %>
+        <li class="page-item"><a class="page-link%>" href="/<%= location %>?page=<%= (page-1) %>">Previous</a></li>
+    <% } %>
+    <% for(var i = 1; i <= Math.min(2, maxPage); i += 1){%>
+        <li class="page-item <% if(page === i){%>active<%}%>"><a class="page-link" href="/<%= location %>?page=<%= i %>"><%= i %></a></li>
+    <% } %>
+    <% if(Math.max(3, Math.min(page - 2, maxPage - 6)) > 3) { %>
+        <li class="page-item page-separator">...</li>
+    <% } %>
+    <% if(maxPage > 2) {
+        for(var i = Math.max(3, Math.min(page - 2, maxPage - 6)); i <= Math.min(maxPage - 3,Math.max(page + 2, 5)); i += 1){
+    %>
+            <li class="page-item <% if(page === i){%>active<%}%>"><a class="page-link" href="/<%= location %>?page=<%= i %>"><%= i %></a></li>
+    <%  }
+       }
+    %>
+    <% if(page < maxPage - 5) { %>
+        <li class="page-item page-separator">...</li>
+    <% } %>
+    <%
+        if(maxPage > 2) {
+            for(var i = Math.max(3,maxPage - 2); i <= maxPage; i += 1){
+    %>
+                <li class="page-item <% if(page === i){%>active<%}%>"><a class="page-link" href="/<%= location %>?page=<%= i %>"><%= i %></a></li>
+    <% }
+            }
+    %>
+    <% if (showLast) { %>
+        <li class="page-item"><a class="page-link" href="/<%= location %>?page=<%= (page + 1)  %>">Next</a></li>
+    <% } %>
+</ul>
+</nav>
+<strong>
+    Total: <%= totalElements %> users
+</strong>
+<% if(showActions) { %>
+<% include ../components/user-modal %>
+<% include ../components/result-modal %>
+<script type="text/javascript">
+    function toggleAll() {
+        var status = $('#toggleAll').is(':checked');
+        $('input[type="checkbox"]').each(
+          function(o) {
+            $(this).prop('checked',status);
+          }
+        );
+    }
+</script>
+<% } %>
+<script type="text/javascript">
+    function goToPage() {
+        var page = $('#page').val();
+        if(parseInt(page) <= parseInt(<%= maxPage %>)) {
+            window.location = '/<%= location %>?page=' + page;
+        }
+    }
+</script>

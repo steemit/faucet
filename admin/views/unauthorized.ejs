@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<% include ./partials/layout/head %>
+<body>
+<div class="main-wrapper">
+    <div class="app" id="app">
+        <article class="content">
+            <section class="section">
+                <div class="auth-container">
+                    <div class="card">
+                        <header class="auth-header">
+                            <h1 class="auth-title">
+                                Unauthorized
+                            </h1>
+                        </header>
+                        <div class="auth-content">
+                            <p class="text-center">LOGIN TO CONTINUE</p>
+                            <form id="login-form" action="/index.html" method="GET" novalidate="novalidate">
+                                <div class="form-group">
+                                    <a href="/auth/google" class="btn btn-block btn-danger">Log in with Google+</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </article>
+    </div>
+</div>
+<% include ./partials/layout/scripts %>
+</body>
+</html>

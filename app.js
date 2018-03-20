@@ -25,7 +25,6 @@ if (process.env.STEEMJS_URL) {
 http.globalAgent.maxSockets = 100;
 https.globalAgent.maxSockets = 100;
 const app = express();
-const server = http.Server(app);
 
 // database cleanup task
 // removes actions and completed requests older than 60 days
@@ -149,4 +148,4 @@ app.use((err, req, res) => {
   res.json(err);
 });
 
-module.exports = { app, server };
+module.exports = app;
