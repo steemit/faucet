@@ -35,7 +35,7 @@
   "error_api_general": "Une erreur inattendue s'est produite, veuillez réessayer ultérieurement",
   "error_api_phone_required": "Le téléphone est obligatoire",
   "error_api_phone_too_many": "Trop d'essais, veuillez demander un nouveau code",
-  "error_api_phone_used": "Le téléphone est déjà utilisé",
+  "error_api_phone_used": "Ce numéro de téléphone est déjà associé à un compte existant ou à un compte encore en cours de révision.",
   "error_api_phone_verified": "Le téléphone est déjà vérifié",
   "error_api_public_keys_required": "Les clés publiques sont requises",
   "error_api_recaptcha_invalid": "La recaptcha est invalide",
