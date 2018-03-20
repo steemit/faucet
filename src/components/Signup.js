@@ -101,12 +101,13 @@ class Signup extends Component {
 
     handleSubmitEmail = (values, token) => {
         this.setState({
-            step: 'phoneNumber',
+            step: 'checkYourEmail',
             stepNumber: 2,
             email: values.email,
             token,
         });
-        logStep('phoneNumber', 2);
+        // TODO: Determine conveyor step name.
+        // logStep('checkYourEmail', 2);
     };
 
     handleSubmitPhoneNumber = values => {
@@ -178,30 +179,55 @@ class Signup extends Component {
                                 id="logo"
                                 aria-label="logo"
                             />
-                            {step !== 'finish' && (
-                                <div className="Signup__steps">
-                                    <div
-                                        className={`Signup__steps-step ${
-                                            stepNumber === 0 ? 'waiting' : ''
-                                        } ${stepNumber > 0 ? 'processed' : ''}`}
-                                    />
-                                    <div
-                                        className={`Signup__steps-step ${
-                                            stepNumber === 1 ? 'waiting' : ''
-                                        } ${stepNumber > 1 ? 'processed' : ''}`}
-                                    />
-                                    <div
-                                        className={`Signup__steps-step ${
-                                            stepNumber === 2 ? 'waiting' : ''
-                                        } ${stepNumber > 2 ? 'processed' : ''}`}
-                                    />
-                                    <div
-                                        className={`Signup__steps-step ${
-                                            stepNumber === 3 ? 'waiting' : ''
-                                        } ${stepNumber > 3 ? 'processed' : ''}`}
-                                    />
-                                </div>
-                            )}
+                            {step !== 'finish' &&
+                                step !== 'checkYourEmail' && (
+                                    <div className="Signup__steps">
+                                        <div
+                                            className={`Signup__steps-step ${
+                                                stepNumber === 0
+                                                    ? 'waiting'
+                                                    : ''
+                                            } ${
+                                                stepNumber > 0
+                                                    ? 'processed'
+                                                    : ''
+                                            }`}
+                                        />
+                                        <div
+                                            className={`Signup__steps-step ${
+                                                stepNumber === 1
+                                                    ? 'waiting'
+                                                    : ''
+                                            } ${
+                                                stepNumber > 1
+                                                    ? 'processed'
+                                                    : ''
+                                            }`}
+                                        />
+                                        <div
+                                            className={`Signup__steps-step ${
+                                                stepNumber === 2
+                                                    ? 'waiting'
+                                                    : ''
+                                            } ${
+                                                stepNumber > 2
+                                                    ? 'processed'
+                                                    : ''
+                                            }`}
+                                        />
+                                        <div
+                                            className={`Signup__steps-step ${
+                                                stepNumber === 3
+                                                    ? 'waiting'
+                                                    : ''
+                                            } ${
+                                                stepNumber > 3
+                                                    ? 'processed'
+                                                    : ''
+                                            }`}
+                                        />
+                                    </div>
+                                )}
                         </div>
                         {step === 'username' && (
                             <div className="form-content">
@@ -272,7 +298,6 @@ class Signup extends Component {
                                     countryCode={countryCode}
                                     prefix={prefix}
                                     phoneNumber={phoneNumber}
-                                    goBack={this.goBack}
                                 />
                             </div>
                         )}
@@ -315,6 +340,16 @@ class Signup extends Component {
                                 />
                             </div>
                         )}
+                        {step === 'checkYourEmail' && (
+                            <div className="form-content">
+                                <h1>
+                                    <FormattedMessage id="almost_there_email" />
+                                </h1>
+                                <p>
+                                    <FormattedMessage id="finish_text_3" />
+                                </p>
+                            </div>
+                        )}
                         {step === 'finish' && (
                             <div className="form-content">
                                 <h1>
@@ -353,6 +388,14 @@ class Signup extends Component {
                             />
                         )}
                         {step === 'email' && (
+                            <object
+                                data="img/signup-email.svg"
+                                type="image/svg+xml"
+                                id="signup-email"
+                                aria-label="signup-email"
+                            />
+                        )}
+                        {step === 'checkYourEmail' && (
                             <object
                                 data="img/signup-email.svg"
                                 type="image/svg+xml"

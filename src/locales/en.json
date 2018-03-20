@@ -1,7 +1,9 @@
 {
     "almost_there": "Almost there",
+    "almost_there_email": "Check your email",
     "choose_carefully": "Choose it carefully. You cannot change it later",
     "choose_username": "Choose a username",
+    "complete_signup": "Complete signup",
     "confirm_account": "Confirm your account",
     "confirm_existence": "We need to know how to contact you",
     "confirm_password": "Please enter your password to confirm it.",
@@ -11,6 +13,7 @@
     "country_code_select": "Select your country code",
     "edit": "Edit",
     "email": "Email",
+    "email_verified": "Your email address has been verified.",
     "enjoy_steem": "You can now enjoy Steem and all its features.",
     "enter_confirmation_code": "Enter the confirmation code",
     "enter_email": "Enter your email address",
@@ -34,7 +37,8 @@
     "error_api_general": "An unexpected error occurred. Please try again later",
     "error_api_phone_required": "Phone number required",
     "error_api_phone_too_many": "Too many attempts. Please request a new code",
-    "error_api_phone_used": "Phone number already used",
+    "error_api_phone_used":
+        "This number is already linked to an existing account, or to an account still under review.",
     "error_api_phone_verified": "Phone number already verified",
     "error_api_prefix_invalid": "Invalid prefix",
     "error_api_public_keys_required": "Public keys required",
@@ -88,6 +92,8 @@
         "After validating your signup request, we will look it over for approval. Please be patient, as it may take time to review the account. As soon as you're approved, you will be sent a link to finalize your account.",
     "finish_text_2":
         "You will be among the earliest members of the Steem community!",
+    "finish_text_3":
+        "You're few steps aways from getting to the top of the list. Check your email and click the email validation link.",
     "generate_new_password": "Generate a new password",
     "get_started": "Get started",
     "go_back": "Go back",
@@ -109,6 +115,7 @@
     "sms_code": "We sent the code to you by SMS to {phoneNumber} {editLink}",
     "steem_signup": "Steem signup",
     "success_new_code_sent": "New code sent",
+    "thank_you": "Thank you",
     "username": "Username",
     "username_available": "Good news! The username {username} is available.",
     "username_know":

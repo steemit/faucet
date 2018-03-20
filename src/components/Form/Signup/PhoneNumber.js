@@ -96,7 +96,6 @@ class PhoneNumber extends React.Component {
             intl,
             prefix,
             phoneNumber,
-            goBack,
         } = this.props;
 
         const prefixSelector = getFieldDecorator('prefix', {
@@ -172,17 +171,6 @@ class PhoneNumber extends React.Component {
                             <FormattedMessage id="continue" />
                         </Button>
                     </Form.Item>
-                    {goBack && (
-                        <Form.Item>
-                            <Button
-                                htmlType="button"
-                                className="back"
-                                onClick={() => goBack('email', 1)}
-                            >
-                                <FormattedMessage id="go_back" />
-                            </Button>
-                        </Form.Item>
-                    )}
                 </div>
             </Form>
         );
