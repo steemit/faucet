@@ -28,10 +28,10 @@ async function sendMessage(to, body) {
 }
 
 async function isValidNumber(numberE164) {
-  return client.lookups.v1.phoneNumbers(numberE164).fetch();
+    return client.lookups.v1.phoneNumbers(numberE164).fetch();
 }
 
 module.exports = {
-  sendMessage,
-  isValidNumber,
+    sendMessage,
+    isValidNumber,
 };
