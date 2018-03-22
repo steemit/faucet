@@ -41,3 +41,27 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 docker build -t="$USER/faucet:$BRANCH" .
 docker run -it -p 3000:3000 --env-file=.env "$USER/faucet:$BRANCH"
 ```
+
+## Debugging
+
+#### VSCode:
+Add the following to `.vscode/launch.json` configurations array:
+```json
+  {
+    "type": "node",
+    "request": "launch",
+    "name": "nodemon",
+    "runtimeExecutable": "${workspaceRoot}/node_modules/nodemon/bin/nodemon.js",
+    "program": "${workspaceFolder}/bin/www",
+    "restart": true,
+    "sourceMaps": true,
+    "outFiles": [],
+    "console": "integratedTerminal",
+    "internalConsoleOptions": "neverOpen",
+    "args": [
+        "--ignore src",
+        "| bunyan -o short"
+    ],
+    "envFile": "${workspaceFolder}/.env",
+  }
+```
