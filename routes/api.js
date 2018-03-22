@@ -13,12 +13,15 @@ const badDomains = require('../bad-domains');
 const Twilio = require('../helpers/twilio');
 const moment = require('moment');
 const db = require('./../db/models');
+const utils = require('../helpers/utils');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
 
 const conveyorAccount = process.env.CONVEYOR_USERNAME;
 const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
+
+const DEBUG_MODE = process.env.DATABASE_NAME === 'development';
 
 steem.api.setOptions({ url: process.env.STEEMJS_URL });
 
@@ -126,9 +129,7 @@ const getUser = async (database, userInfo, findBy) => {
     }
 };
 
-const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
-    const updateObj = {};
-    updateObj[attr] = value;
+const updateUserAttr = async (database, userInfo, updateObj, findBy) => {
     try {
         return await database.users.update(updateObj, where(userInfo, findBy));
     } catch (error) {
@@ -140,7 +141,7 @@ const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
 const sendEmail = async (req, mailToken, emailType, email = undefined) => {
     const emailAddress = email === undefined ? req.body.email : email;
     try {
-        return await req.mail.send(emailAddress, emailType, {
+        return await utils.serviceWrapper('sendGrid', req.mail.send, DEBUG_MODE)(emailAddress, 'confirm_email', {
             url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
         });
     } catch (error) {
@@ -183,7 +184,7 @@ const sendConfirmationEmail = async (req, res) => {
     if (usersLastAttempt && usersLastAttempt >= minusOneMinute) emailError('error_api_wait_one_minute');
 
     // Update the user to reflect that the verification email was sent.
-    updateUserAttr(req.db, req.body, 'last_attempt_verify_email', date, 'email');
+    updateUserAttr(req.db, req.body, { last_attempt_verify_email: date }, 'email');
 
     const token = jwt.sign({
         type: 'signup',
@@ -206,7 +207,8 @@ const sendConfirmationEmail = async (req, res) => {
 router.post('/request_email', apiMiddleware(async (req, res) => {
     const location = req.geoip.get(req.ip);
 
-    let skipRecaptcha = false;
+    let skipRecaptcha = utils.serviceWrapper('recaptcha', () => false, DEBUG_MODE)();
+
     if (location && location.country && location.country.iso_code === 'CN') {
         skipRecaptcha = true;
     }
@@ -223,7 +225,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
         throw new ApiError({ type: 'error_api_domain_blacklisted', field: 'email' });
     }
 
-    await actionLimit(req.ip);
+    await utils.serviceWrapper('actionLimit', actionLimit, DEBUG_MODE)(req.ip);
 
     await req.db.actions.create({
         action: 'request_email',
@@ -237,14 +239,16 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
             email_is_verified: true,
         },
     });
+
     if (userCount > 0) {
         throw new ApiError({ type: 'error_api_email_used', field: 'email' });
     }
 
-    const emailRegistered = await steem.api.signedCallAsync(
+    const emailRegistered = await utils.serviceWrapper('steem', steem.api.signedCallAsync, DEBUG_MODE)(
         'conveyor.is_email_registered', [req.body.email],
         conveyorAccount, conveyorKey,
     );
+
     if (emailRegistered) {
         throw new ApiError({ type: 'error_api_email_used', field: 'email' });
     }
@@ -283,10 +287,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
             await sendConfirmationEmail(req, res);
         });
     } else {
-        req.db.users.update({
-            username: req.body.username,
-            username_booked_at: new Date(),
-        }, { where: { email: req.body.email } }).then(async () => {
+        updateUserAttr(req.db, req.body, { username: req.body.username, username_booked_at: new Date() }, 'email').then(async () => {
             await sendConfirmationEmail(req, res);
         });
     }
@@ -325,7 +326,7 @@ router.post('/request_sms', apiMiddleware(async req => {
     );
 
     try {
-        await Twilio.isValidNumber(phoneNumber);
+        await utils.serviceWrapper('twilio', Twilio.isValidNumber, DEBUG_MODE)(phoneNumber);
     } catch (e) {
         throw new ApiError({ field: 'phoneNumber', type: e.message });
     }
@@ -340,7 +341,7 @@ router.post('/request_sms', apiMiddleware(async req => {
         throw new ApiError({ field: 'phoneNumber', type: 'error_api_unknown_user' });
     }
 
-    await actionLimit(req.ip, user.id);
+    await utils.serviceWrapper('actionLimit', actionLimit, DEBUG_MODE)(req.ip, user.id);
 
     if (
         user.last_attempt_verify_phone_number &&
@@ -349,7 +350,7 @@ router.post('/request_sms', apiMiddleware(async req => {
         throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
     }
 
-    const phoneExists = await req.db.users.count({
+    const phoneExists = req.db.users.count({
         where: {
             phone_number: phoneNumber,
             phone_number_is_verified: true,
@@ -360,7 +361,8 @@ router.post('/request_sms', apiMiddleware(async req => {
         throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
     }
 
-    const phoneRegistered = await steem.api.signedCallAsync('conveyor.is_phone_registered', [phoneNumber], conveyorAccount, conveyorKey);
+    const phoneRegistered = await utils.serviceWrapper('steem', steem.api.signedCallAsync, DEBUG_MODE)('conveyor.is_phone_registered', [phoneNumber], conveyorAccount, conveyorKey);
+
     if (phoneRegistered) {
         throw new ApiError({ field: 'phoneNumber', type: 'error_api_phone_used' });
     }
@@ -381,7 +383,7 @@ router.post('/request_sms', apiMiddleware(async req => {
     });
 
     try {
-        await Twilio.sendMessage(phoneNumber, `${phoneCode} is your Steem confirmation code`);
+        await utils.serviceWrapper('twilio', Twilio.sendMessage, DEBUG_MODE)(phoneNumber, `${phoneCode} is your Steem confirmation code`);
     } catch (cause) {
         if (cause.code === 21614 || cause.code === 21211) {
             throw new ApiError({ cause, field: 'phoneNumber', type: 'error_phone_format' });
@@ -395,6 +397,7 @@ router.post('/request_sms', apiMiddleware(async req => {
 
 /**
  * Mocking route of the steemit gatekeeper
+ * TODO: external sendGrid calls will need to be wrapped in utils.serviceWrapper().
  */
 router.get('/check', (req, res) => {
     // mocking the response according to
@@ -413,7 +416,7 @@ const rejectAccount = async (req, email) => {
     await req.db.users.update({
         status: 'rejected',
     }, { where: { email } });
-    await req.mail.send(email, 'reject_account', {});
+    await utils.serviceWrapper('sendGrid', req.mail.send, DEBUG_MODE)(email, 'reject_account', {});
 };
 
 /**
@@ -424,7 +427,7 @@ const approveAccount = async (req, email) => {
         type: 'create_account',
         email,
     }, process.env.JWT_SECRET);
-    await req.mail.send(email, 'create_account', {
+    await utils.serviceWrapper('sendGrid', req.mail.send, DEBUG_MODE)(email, 'create_account', {
         url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
     });
 };
@@ -509,11 +512,7 @@ router.post('/confirm_sms', apiMiddleware(async req => {
         throw new ApiError({ field: 'code', type: 'error_api_code_required' });
     }
 
-    const user = await req.db.users.findOne({
-        where: {
-            email: decoded.email,
-        },
-    });
+    const user = await req.db.users.findOne({ where: { email: decoded.email } });
 
     if (!user) {
         throw new ApiError({ field: 'code', type: 'error_api_unknown_user' });
@@ -543,7 +542,8 @@ router.post('/confirm_sms', apiMiddleware(async req => {
     // TODO: this should be put in a queue and retry on error
         req.log.error(error, 'Unable to send verification mail');
     });
-
+    // Debug mode - Log a create-account link.
+    if (DEBUG_MODE) await approveAccount(req, decoded.email);
     return { success: true, completed: user.email_is_verified };
 }));
 
@@ -561,27 +561,38 @@ router.get('/guess_country', apiMiddleware(async req => {
  */
 router.post('/confirm_account', apiMiddleware(async req => {
     const decoded = verifyToken(req.body.token, 'create_account');
+    if (DEBUG_MODE) {
+        await req.db.users.update({
+            status: 'approved',
+        }, { where: { email: decoded.email } });
+    }
+
     const user = await req.db.users.findOne({ where: { email: decoded.email } });
     if (!user) {
         throw new ApiError({ type: 'error_api_user_exists_not' });
     }
+
     if (user.status === 'manual_review' || user.status === 'rejected') {
         throw new ApiError({ type: 'error_api_account_verification_pending' });
     }
+
     if (user.status === 'created') {
         throw new ApiError({ type: 'error_api_account_created' });
     }
+
     if (user.status !== 'approved') {
         throw new ApiError({ type: 'error_api_account_verification_pending' });
     }
+
     await req.db.users.update({
         email_is_verified: true,
     }, { where: { email: decoded.email } });
 
-    const accounts = await steem.api.getAccountsAsync([user.username]);
+    const accounts = await utils.serviceWrapper('steemUser', steem.api.getAccountsAsync, DEBUG_MODE)([user.username]);
     if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
         return { success: true, username: '', reservedUsername: user.username, email: user.email };
     }
+
     return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email };
 }));
 
@@ -602,7 +613,6 @@ router.post('/create_account', apiMiddleware(async req => {
     if (!email) {
         throw new ApiError({ type: 'error_api_email_required' });
     }
-
     const user = await req.db.users.findOne({ where: { email: decoded.email } });
     if (!user) {
         throw new ApiError({ type: 'error_api_user_exists_not' });
@@ -643,11 +653,13 @@ router.post('/create_account', apiMiddleware(async req => {
             type: req.db.sequelize.QueryTypes.SELECT,
         },
     );
-    if (!activeCreationHash || activeCreationHash.creation_hash !== creationHash) {
-        throw new ApiError({ type: 'error_api_account_creation_progress' });
+
+    if (!DEBUG_MODE) {
+        if (!activeCreationHash || activeCreationHash.creation_hash !== creationHash) { throw new ApiError({ type: 'error_api_account_creation_progress' }); }
     }
+
     try {
-        await steem.broadcast.accountCreateWithDelegationAsync(
+        await utils.serviceWrapper('steemBroadcast', steem.broadcast.accountCreateWithDelegationAsync, DEBUG_MODE)(
             process.env.DELEGATOR_ACTIVE_WIF,
             process.env.CREATE_ACCOUNT_FEE,
             process.env.CREATE_ACCOUNT_DELEGATION,
@@ -675,12 +687,14 @@ router.post('/create_account', apiMiddleware(async req => {
     }, { where: { email: decoded.email } });
 
     const params = [username, { phone: user.phone_number.replace(/[^+0-9]+/g, ''), email: user.email }];
-    steem.api.signedCallAsync('conveyor.set_user_data', params, conveyorAccount, conveyorKey).catch(error => {
-    // TODO: this should be put in a queue and retry on error
+
+    await utils.serviceWrapper('steem', steem.api.signedCallAsync, DEBUG_MODE)('conveyor.set_user_data', params, conveyorAccount, conveyorKey).catch(error => {
+        // TODO: this should be put in a queue and retry on error
         req.log.error(error, 'Unable to store user data in conveyor');
     });
 
-    fetch(process.env.CREATE_USER_URL, {
+    // Post to Condenser's account recovery endpoint.
+    utils.serviceWrapper('condenser', fetch, DEBUG_MODE)(process.env.CREATE_USER_URL, {
         method: 'POST',
         headers: {
             Accept: 'application/json',
@@ -692,7 +706,10 @@ router.post('/create_account', apiMiddleware(async req => {
             owner_key: publicKeys.owner,
             secret: process.env.CREATE_USER_SECRET,
         }),
-    }).then((checkStatus)).catch(error => {
+    }).then(
+        // TODO: not familiar with this syntax.
+        (checkStatus)
+    ).catch(error => {
         req.log.error(error, 'Unable to send recovery info to condenser');
     });
 
@@ -745,7 +762,8 @@ router.post('/check_username', apiMiddleware(async req => {
         ip: req.ip,
         metadata: { username },
     });
-    const accounts = await steem.api.getAccountsAsync([username]);
+
+    const accounts = await utils.serviceWrapper('steemUser', steem.api.getAccountsAsync, DEBUG_MODE)([username]);
     if (accounts && accounts.length > 0 && accounts.find(a => a.name === username)) {
         throw new ApiError({ type: 'error_api_username_used', code: 200 });
     }
