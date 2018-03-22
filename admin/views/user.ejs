@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <% include ./partials/layout/head %>
+    <body>
+        <div class="main-wrapper">
+            <div class="app" id="app">
+                <% include ./partials/layout/header %>
+                <% include ./partials/layout/menu.ejs %>
+                <article class="content">
+                    <section class="section">
+                        <h1><%= title %></h1>
+                        <div class="card">
+                            <div class="card-block">
+                                <table class="table user-table">
+                                    <tr>
+                                        <td>Created at</td>
+                                        <td><%= user.created_at && moment(user.created_at).format(moment_format) %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Updated at</td>
+                                        <td><%= user.updated_at && moment(user.updated_at).format(moment_format) %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Status</td>
+                                        <td>
+                                            <% if(user.status === 'approved' || user.status === 'created') { %>
+                                                <span class="badge badge-success">
+                                            <% } else if(user.status === 'rejected') { %>
+                                                <span class="badge badge-danger">
+                                            <% } else { %>
+                                                <span class="badge badge-warning">
+                                            <% } %>
+                                                <%= user.status %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Username</td>
+                                        <td><%= user.username %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Username booked at</td>
+                                        <td><%= user.username_booked_at && moment(user.username_booked_at).format(moment_format) %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Email</td>
+                                        <td>
+                                            <%= user.email %>
+                                            <% if(user.email_is_verified) { %>
+                                            <br />
+                                            <span class="badge badge-success">Verified</span>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Last attempt date</td>
+                                        <td><%= user.last_attempt_verify_email && moment(user.last_attempt_verify_email).format(moment_format) %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Phone number</td>
+                                        <td>
+                                            <%= user.phone_number %>
+                                            <% if(user.phone_number_is_verified) { %>
+                                            <br />
+                                            <span class="badge badge-success">Verified (<%= user.phone_code_attempts %> attempts)</span>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Last attempt date</td>
+                                        <td><%= user.last_attempt_verify_phone_number && moment(user.last_attempt_verify_phone_number).format(moment_format) %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Phone code</td>
+                                        <td><%= user.phone_code %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ip</td>
+                                        <td><%= user.ip %></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fingerprint</td>
+                                        <td>
+                                            <div>
+                                                <pre><%= JSON.stringify(user.fingerprint, null, 2) %></pre>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Metadata</td>
+                                        <td>
+                                            <div>
+                                                <pre><%= JSON.stringify(user.metadata, null, 2) %></pre>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <% if(user.status === 'manual_review') { %>
+                                    <button type="button" class="btn btn-success" onclick="javascript:setUser(<%= user.id %>)" data-toggle="modal" data-target="#approveUserModal">Approve</button>
+                                    &nbsp;&nbsp;
+                                    <button type="button" class="btn btn-warning" onclick="javascript:setUser(<%= user.id %>)" data-toggle="modal" data-target="#rejectUserModal">Reject</button>
+                                <% } %>
+                            </div>
+                        </div>
+                    </section>
+                </article>
+            </div>
+        </div>
+        <% include ./components/user-modal %>
+        <% include ./components/result-modal %>
+        <% include ./partials/layout/scripts %>
+    </body>
+</html>
