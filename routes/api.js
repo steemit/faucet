@@ -169,7 +169,7 @@ const sendConfirmationEmail = async (req, res) => {
     const mailToken = jwt.sign({
         type: 'confirm_email',
         email: req.body.email,
-    }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    }, process.env.JWT_SECRET, { expiresIn: '14d' });
 
     // If the user has not made a prior attempt, send an email.
     if (!usersLastAttempt) sendEmail(req, mailToken);
