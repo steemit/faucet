@@ -6,30 +6,32 @@ const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 const serviceSid = process.env.TWILIO_SERVICE_SID;
 
 if (!accountSid || !authToken) {
-  throw new Error('Misconfiguration: Missing twilio credentials');
+    throw new Error('Misconfiguration: Missing twilio credentials');
 }
 
 if (!fromNumber && !serviceSid) {
-  throw new Error('Misconfiguration: Missing twilio from number or service sid');
+    throw new Error(
+        'Misconfiguration: Missing twilio from number or service sid'
+    );
 }
 
 const client = new Twilio(accountSid, authToken);
 
 async function sendMessage(to, body) {
-  const payload = { to, body };
-  if (serviceSid) {
-    payload.messagingServiceSid = serviceSid;
-  } else {
-    payload.from = fromNumber;
-  }
-  return client.messages.create(payload);
+    const payload = { to, body };
+    if (serviceSid) {
+        payload.messagingServiceSid = serviceSid;
+    } else {
+        payload.from = fromNumber;
+    }
+    return client.messages.create(payload);
 }
 
 async function isValidNumber(numberE164) {
-  return client.lookups.v1.phoneNumbers(numberE164).fetch();
+    return client.lookups.v1.phoneNumbers(numberE164).fetch();
 }
 
 module.exports = {
-  sendMessage,
-  isValidNumber,
+    sendMessage,
+    isValidNumber,
 };
