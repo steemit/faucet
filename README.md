@@ -20,8 +20,13 @@ If your local db server does not support SSL, change the `ssl` option to `false`
 Copy `.env.example` to `.env` and edit as needed. (`.env-admin.example` for faucet-admin)
 
 ## Run
+### Faucet:
 ```
 env $(tr "\\n" " " < .env) yarn start-dev # or just start, if you don't want nodemon
+```
+### Faucet-Admin
+```
+env $(tr "\\n" " " < .env-admin) node bin/www
 ```
 
 The app listens on port 3000 by default. (3100 for faucet-admin)
