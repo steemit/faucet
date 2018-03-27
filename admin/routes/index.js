@@ -54,6 +54,11 @@ router.get('/.well-known/healthcheck.json', (req, res) => {
 });
 
 router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
+
+  // DateTime when fix was merged, refs faucet #246.
+  const dateTime = moment(new Date("2018-03-23 20:18:26")).format("YYYY-MM-DD HH:mm:ss");
+  const Op = Sequelize.Op;
+
   const ongoing = await req.db.users
     .count({ where: { status: null } });
   const rejected = await req.db.users
@@ -64,6 +69,14 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
     .count({ where: { status: 'manual_review' } });
   const created = await req.db.users
     .count({ where: { status: 'created' } });
+  const stuck = await req.db.users
+    .count({ where: {
+      status: 'approved',
+      email_is_verified: false,
+      last_attempt_verify_email: {
+        [Op.lte]: dateTime
+      }
+    }});
   const all = await req.db.users
     .count();
   return {
@@ -75,6 +88,7 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
       rejected,
       pending,
       created,
+      stuck,
       all
     }
   };
@@ -147,6 +161,55 @@ router.get('/users/all', authenticate(), routeMiddleware(async (req) => {
   });
 }));
 
+router.get('/users/stuck', authenticate(), routeMiddleware(async (req) => {
+
+  // DateTime when fix was merged.
+  const dateTime = moment(new Date("2018-03-23 20:18:26")).format("YYYY-MM-DD HH:mm:ss");
+
+  const Op = Sequelize.Op;
+
+  return stuckUsers(req, {
+    location: 'users/stuck',
+    showActions: true,
+    title: 'Approved Users with unverified emails',
+    where: {
+      status: 'approved',
+      email_is_verified: false,
+      // where last attempt to verify is less than deploy date of extended email token validity.
+      last_attempt_verify_email: {
+        [Op.lte]: dateTime
+      }
+    }
+  });
+}));
+
+const stuckUsers = async(req, options) => {
+  const page = parseInt(req.query.page) || 1;
+  const count = await req.db.users.count({ where: options.where });
+  const users = await req.db.users.findAll(
+    {
+      order: [['updated_at', 'DESC']],
+      offset: parseInt((page - 1) * itemsPerPage),
+      limit: itemsPerPage,
+      where: options.where,
+    }
+  );
+  return {
+    view: 'users',
+    data: {
+      page: page,
+      showLast: count > page * itemsPerPage,
+      location: options.location,
+      showActions: options.showActions,
+      title: options.title,
+      users: users,
+      maxPage: Math.ceil(count / itemsPerPage),
+      totalElements: count,
+    }
+  };
+}
+
+
 const listUser = async(req, options) => {
   const page = parseInt(req.query.page) || 1;
   const count = await req.db.users.count({ where: options.where });
@@ -204,6 +267,39 @@ router.post('/approve', authenticate(), routeMiddleware(async (req) => {
     };
 }));
 
+
+router.post('/email', authenticate(), routeMiddleware(async (req) => {
+  const users = await req.db.users.findAll({ where: { id: req.body['ids[]'] } });
+
+  const emails = [];
+  for(let i = 0; i < users.length; i += 1) {
+    emails.push(users[i].email);
+  }
+  const token = jwt.sign({
+    emails,
+  }, process.env.JWT_SECRET, { expiresIn: '1d' });
+  const result = await fetch(`${process.env.FAUCET_URL}/api/resend_email_validation?token=${token}`)
+    .then(function(response) {
+      return response.json();
+    });
+    // Update users in the DB to reflect new email validation attempt.
+    if(result.success) {
+      await req.db.users.update({
+        last_attempt_verify_email: getTime(),
+      }, { where: { id: req.body['ids[]'] } });
+    }
+
+    return {
+      data: {
+        success: result.success,
+        errors: result.errors,
+        ids: req.body['ids[]'],
+      }
+    };
+}));
+
+
+
 router.post('/reject', authenticate(), routeMiddleware(async (req) => {
   req.db.users.update({
     status: 'rejected',
@@ -233,6 +329,7 @@ router.get('/search', authenticate(), (req, res, next) => {
 });
 
 router.post('/search', authenticate(), routeMiddleware(async (req) => {
+  debugger
   const page = parseInt(req.body.page) || 1;
   const { search, status, startDate, endDate } = req.body;
   const Op = Sequelize.Op;
