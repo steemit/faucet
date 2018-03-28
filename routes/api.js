@@ -67,6 +67,7 @@ async function actionLimit(ip, user_id = null) {
 }
 
 function verifyToken(token, type) {
+
     if (!token) {
         throw new ApiError({ type: 'error_api_token_required', field: 'phoneNumber' });
     }
@@ -462,12 +463,12 @@ const sendAccountInformation = async (req, email) => {
 
 
 router.get('/confirm_email', async (req, res) => {
+
     if (!req.query.token) {
         res.status(400).json({ error: 'error_api_token_required' });
     } else {
-        let decoded;
         try {
-            decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+            const decoded = verifyToken(req.query.token, 'confirm_email');
             if (decoded.type === 'confirm_email') {
                 const user = await req.db.users.findOne({ where: { email: decoded.email } });
                 const token = jwt.sign({
@@ -724,7 +725,7 @@ router.get('/resend_email_validation', apiMiddleware(async req => {
     await Promise.all(decoded.emails.map(email => {
         // Generate a mail token.
         const mailToken = jwt.sign({
-            type: 'confirm_again_email',
+            type: 'confirm_email',
             email,
         }, process.env.JWT_SECRET, { expiresIn: '14d' });
         return sendEmail(req, mailToken, 'confirm_again_email', email);
