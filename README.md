@@ -15,6 +15,18 @@ yarn exec -- sequelize db:migrate --url 'mysql://username:password@hostname:port
 
 If your local db server does not support SSL, change the `ssl` option to `false` in `db/config/config.json`.
 
+To seed the database with seed users:
+```
+yarn exec -- sequelize db:seed:all --url 'mysql://username:password@hostname:port/database'
+```
+
+Seed data can be added at: `db/seeders`
+
+To start a-fresh:
+```
+yarn exec -- sequelize db:migrate:undo:all --url 'mysql://username:password@hostname:port/database'
+```
+
 ## Configure
 
 Copy `.env.example` to `.env` and edit as needed. (`.env-admin.example` for faucet-admin)
