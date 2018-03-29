@@ -67,7 +67,6 @@ async function actionLimit(ip, user_id = null) {
 }
 
 function verifyToken(token, type) {
-
     if (!token) {
         throw new ApiError({ type: 'error_api_token_required', field: 'phoneNumber' });
     }
@@ -140,7 +139,6 @@ const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
 
 const sendEmail = async (req, mailToken, emailType, email = undefined) => {
     const emailAddress = email === undefined ? req.body.email : email;
-  
     try {
         return await req.mail.send(emailAddress, emailType, {
             url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
@@ -463,7 +461,6 @@ const sendAccountInformation = async (req, email) => {
 
 
 router.get('/confirm_email', async (req, res) => {
-
     if (!req.query.token) {
         res.status(400).json({ error: 'error_api_token_required' });
     } else {
