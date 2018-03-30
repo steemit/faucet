@@ -43,6 +43,26 @@ module.exports = {
         metadata: JSON.stringify({ query: { uid: '12345' } }),
         creation_hash: '5a234b0a964be4a73c0bf78df675038e1e297c4726cd7340bfeeaf036ceeb885',
       },
+      // Approved users with no last attempt to verify email.
+      {
+        created_at:	'2018-03-12T21:17:14',
+        updated_at: '2018-03-15T18:57:46',
+        status: 'approved',
+        last_attempt_verify_email: null,
+        username:	'thehoneybadger',
+        username_booked_at:	'2018-03-12T21:17:14',
+        email:	'kellieskookiezzzz@gmail.com',
+        phone_number:	'+17376669535',
+        last_attempt_verify_phone_number: new Date(),
+        phone_code_attempts: 1,
+        phone_code:	'46664',
+        ip: '75.662.77.122',
+        fingerprint: '{"date": "Fri Sep 15 2017 10:38:36 GMT+0200 (Paris, Madrid (heure d’été)", "device": {"renderer": "ANGLE (Intel(R) HD Graphics 4000 Direct3D11 vs_5_0 ps_5_0)", "vendor": "Google Inc."}, "lang": "fr-FR,fr,en-US,en,ms", "ref": "https://jsfiddle.net/", "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"}',
+        creation_hash: '5a234b0a964be4a73c0bf78df675038e1e297c4726cd7340bfeeaf036ceeb885',
+        metadata: JSON.stringify({ query: { uid: '12345' } }),
+        account_is_created: false,
+        email_is_verified: false,
+      }
     ], {})
   ),
   down: queryInterface => queryInterface.bulkDelete('users', null, {}),

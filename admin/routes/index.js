@@ -77,6 +77,13 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
         [Op.lte]: dateTime
       }
     }});
+  const approvedNoEmailAttempt = await req.db.users
+    .count({ where: {
+      status: 'approved',
+      email_is_verified: false,
+      last_attempt_verify_email: null,
+      account_is_created: false,
+    }});
   const all = await req.db.users
     .count();
   return {
@@ -89,6 +96,7 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
       pending,
       created,
       stuck,
+      approvedNoEmailAttempt,
       all
     }
   };
