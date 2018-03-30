@@ -82,6 +82,7 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
       status: 'approved',
       email_is_verified: false,
       last_attempt_verify_email: null,
+      account_is_created: false,
     }});
   const all = await req.db.users
     .count();
