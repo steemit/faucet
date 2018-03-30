@@ -27,6 +27,11 @@ To start a-fresh:
 yarn exec -- sequelize db:migrate:undo:all --url 'mysql://username:password@hostname:port/database'
 ```
 
+#### Example one-liner
+```
+yarn exec -- sequelize db:migrate:undo:all --url 'mysql://root@localhost:3306/faucet' && yarn exec -- sequelize db:migrate --url 'mysql://root@localhost:3306/faucet' && yarn exec -- sequelize db:seed:all --url 'mysql://root@localhost:3306/faucet'
+```
+
 ## Configure
 
 Copy `.env.example` to `.env` and edit as needed. (`.env-admin.example` for faucet-admin)
