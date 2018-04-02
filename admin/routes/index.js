@@ -14,6 +14,7 @@ const dashboardQueries = (q, status) => {
   const dateTime = moment(new Date("2018-03-23 20:18:26")).format("YYYY-MM-DD HH:mm:ss");
   // How long an email token is valid for.
   const twoWeeksAgo = moment().subtract(14, 'days').format("YYYY-MM-DD HH:mm:ss");
+  const sixtyDaysAgo = moment().subtract(60, 'days').format("YYYY-MM-DD HH:mm:ss");
   const queries = {
     // Temp Queries.
     temp: {
@@ -34,13 +35,16 @@ const dashboardQueries = (q, status) => {
         account_is_created: false,
       }},
       // Approved Users who might not have ever been sent a validation email who have validated their phone.
-      // Action: Email them new validation link and record theat attempt was made.
+      // Action: Email them new validation link and record that attempt was made.
       ambiguousEmailVerifiedPhone: { where: {
         status: 'approved',
         email_is_verified: false,
         last_attempt_verify_email: null,
         account_is_created: false,
-        phone_number_is_verified: true
+        phone_number_is_verified: true,
+        phone_code_attempts: {
+          [Op.gt]: 0
+        },
       }},
       // Approved Users who might not have ever been sent a validation email who have not validated their phone.
       // Action: Email them new validation link and record that attempt was made.
@@ -50,6 +54,11 @@ const dashboardQueries = (q, status) => {
         last_attempt_verify_email: null,
         account_is_created: false,
         phone_number_is_verified: false,
+      }},
+      // Phone verified, despite no code attempts.
+      verifiedPhoneNoAttempt: { where: {
+        phone_code_attempts: 0,
+        phone_number_is_verified: true,
       }},
     },
     approvedOrPending: {
@@ -63,32 +72,31 @@ const dashboardQueries = (q, status) => {
         }
       }},
       // Approved Users who have validated email and never attempted to validate phone.
-      // Action: Clear all phone number / phone code data, and email them a link where they can validate their phone number again.
-      // Alt Action: If in India or in underserviced Twilio area, use alternative phone validation method.
       emailVerifiedPhoneUnverified1: { where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}],
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
         email_is_verified: true,
         account_is_created: false,
         phone_number_is_verified: false,
-        last_attempt_verify_phone_number: null,
+        phone_number: null,
+        phone_code: null,
       }},
       // Approved Users who have validated email and never entered phone validation code.
-      // Action: Clear all phone number / phone code data, and email them a link where they can validate their phone number again.
-      // Alt Action: If in India or in underserviced Twilio area, use alternative phone validation method.
       emailVerifiedPhoneUnverified2: { where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}],
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
         email_is_verified: true,
         account_is_created: false,
         phone_number_is_verified: false,
         last_attempt_verify_phone_number:{
-          [Op.not]: null
+          [Op.gte]: sixtyDaysAgo,
         },
+        phone_code: {
+          [Op.ne]: null,
+        }
       }},
 
       // Approved Users who have validated phone and validated email who have not created their account.
-      // Action: Email them a link encouraging them to finalize account creation.
       emailVerifiedPhoneVerified: { where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}],
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
         email_is_verified: true,
         account_is_created: false,
         phone_number_is_verified: true,
@@ -176,6 +184,7 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
   const tempNoKnownEmailAttempt = await req.db.users.count(dashboardQueries('temp.ambiguousEmail'));
   const tempNoKnownEmailAttemptUnverifiedPhone = await req.db.users.count(dashboardQueries('temp.ambiguousEmailUnverifiedPhone'));
   const tempNoKnownEmailAttemptVerifiedPhone = await req.db.users.count(dashboardQueries('temp.ambiguousEmailVerifiedPhone'));
+  const tempVerifiedPhoneNoAttempts = await req.db.users.count(dashboardQueries('temp.verifiedPhoneNoAttempt'));
 
   // Approved or Pending User Falloff.
   // Stopped at username step.
@@ -202,6 +211,7 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
       tempNoKnownEmailAttempt,
       tempNoKnownEmailAttemptUnverifiedPhone,
       tempNoKnownEmailAttemptVerifiedPhone,
+      tempVerifiedPhoneNoAttempts,
       usernameOnly,
       expiredEmailToken,
       emailVerifiedPhoneUnverified1,
@@ -298,13 +308,21 @@ router.get('/users/stuck2', authenticate(), routeMiddleware(async (req) => {
   });
 }));
 
-
 router.get('/users/stuck3', authenticate(), routeMiddleware(async (req) => {
   return stuckUsers(req, {
     location: 'users/stuck3',
     showActions: true,
-    title: 'Approved Users, no known email was sent - with verified phone',
+    title: 'approved users, no known email was sent - with verified phone',
     ...dashboardQueries('temp.ambiguousEmailVerifiedPhone'),
+  });
+}));
+
+router.get('/users/stuck4', authenticate(), routeMiddleware(async (req) => {
+  return stuckUsers(req, {
+    location: 'users/stuck4',
+    showActions: true,
+    title: 'Users with verified phone, despite no phone attempts',
+    ...dashboardQueries('temp.verifiedPhoneNoAttempt'),
   });
 }));
 
