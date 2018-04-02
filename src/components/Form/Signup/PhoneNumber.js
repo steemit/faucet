@@ -90,12 +90,24 @@ class PhoneNumber extends React.Component {
         });
     };
 
+    devModeSubmit = () => {
+        this.props.onSubmit(
+            {
+                phoneNumber: '+13136139666',
+                phoneNumberFormatted: '+13136139666',
+                prefix: '+1',
+            },
+            'tokenHere'
+        );
+    };
+
     render() {
         const {
             form: { getFieldDecorator },
             intl,
             prefix,
             phoneNumber,
+            debug,
         } = this.props;
 
         const prefixSelector = getFieldDecorator('prefix', {
@@ -131,7 +143,10 @@ class PhoneNumber extends React.Component {
             </Select>
         );
         return (
-            <Form onSubmit={this.handleSubmit} className="signup-form">
+            <Form
+                onSubmit={debug ? this.devModeSubmit : this.handleSubmit}
+                className="signup-form"
+            >
                 <Form.Item>{prefixSelector}</Form.Item>
                 <Form.Item>
                     {getFieldDecorator('phoneNumber', {
