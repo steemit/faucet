@@ -8,6 +8,118 @@ const authenticate = require('../helpers/middleware').authenticate;
 
 const itemsPerPage = 25;
 
+const dashboardQueries = (q, status) => {
+  const Op = Sequelize.Op;
+  // DateTime when fix, extending validation email token expiry was merged, refs faucet #246.
+  const dateTime = moment(new Date("2018-03-23 20:18:26")).format("YYYY-MM-DD HH:mm:ss");
+  // How long an email token is valid for.
+  const twoWeeksAgo = moment().subtract(14, 'days').format("YYYY-MM-DD HH:mm:ss");
+  const sixtyDaysAgo = moment().subtract(60, 'days').format("YYYY-MM-DD HH:mm:ss");
+  const queries = {
+    // Temp Queries.
+    temp: {
+      // Approved users who's email token expired after 1 day and who did not validate their email.
+      // Action: Email them new validation link and record that attempt was made.
+      unverifiedEmailLikelyExpiredToken:{ where: {
+        status: 'approved',
+        email_is_verified: false,
+        last_attempt_verify_email: {
+          [Op.lte]: dateTime
+        }
+      }},
+      // Approved users who might not have ever been sent a validation email.
+      ambiguousEmail: { where: {
+        status: 'approved',
+        email_is_verified: false,
+        last_attempt_verify_email: null,
+        account_is_created: false,
+      }},
+      // Approved Users who might not have ever been sent a validation email who have validated their phone.
+      // Action: Email them new validation link and record that attempt was made.
+      ambiguousEmailVerifiedPhone: { where: {
+        status: 'approved',
+        email_is_verified: false,
+        last_attempt_verify_email: null,
+        account_is_created: false,
+        phone_number_is_verified: true,
+        phone_code_attempts: {
+          [Op.gt]: 0
+        },
+      }},
+      // Approved Users who might not have ever been sent a validation email who have not validated their phone.
+      // Action: Email them new validation link and record that attempt was made.
+      ambiguousEmailUnverifiedPhone: { where: {
+        status: 'approved',
+        email_is_verified: false,
+        last_attempt_verify_email: null,
+        account_is_created: false,
+        phone_number_is_verified: false,
+      }},
+      // Phone verified, despite no code attempts.
+      verifiedPhoneNoAttempt: { where: {
+        phone_code_attempts: 0,
+        phone_number_is_verified: true,
+      }},
+    },
+    approvedOrPending: {
+      // Approved Users who let their email token expire.
+      unverifiedEmailExpiredToken:{ where: {
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}],
+        email_is_verified: false,
+        account_is_created: false,
+        last_attempt_verify_email: {
+          [Op.lte]: twoWeeksAgo
+        }
+      }},
+      // Approved Users who have validated email and never attempted to validate phone.
+      emailVerifiedPhoneUnverified1: { where: {
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
+        email_is_verified: true,
+        account_is_created: false,
+        phone_number_is_verified: false,
+        phone_number: null,
+        phone_code: null,
+      }},
+      // Approved Users who have validated email and never entered phone validation code.
+      emailVerifiedPhoneUnverified2: { where: {
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
+        email_is_verified: true,
+        account_is_created: false,
+        phone_number_is_verified: false,
+        last_attempt_verify_phone_number:{
+          [Op.gte]: sixtyDaysAgo,
+        },
+        phone_code: {
+          [Op.ne]: null,
+        }
+      }},
+
+      // Approved Users who have validated phone and validated email who have not created their account.
+      emailVerifiedPhoneVerified: { where: {
+        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
+        email_is_verified: true,
+        account_is_created: false,
+        phone_number_is_verified: true,
+      }},
+    },
+    nanscent: {
+      // Users with a valid username. But no further steps were taken.
+      usernameOnly:{ where: {
+        username:{
+          [Op.not]: null
+        },
+        last_attempt_verify_email: null,
+        email_is_verified: false,
+        phone_number_is_verified: false,
+        account_is_created: false,
+      }}
+    }
+  };
+  const leaf = (obj, path) => (path.split('.').reduce((value,el) => value[el], obj));
+  const out = leaf(queries, q);
+  return leaf(queries, q);
+}
+
 class AppError extends Error {
   constructor({ type = 'error_api_general', status = 400, cause }) {
     super(`${type}`);
@@ -55,10 +167,6 @@ router.get('/.well-known/healthcheck.json', (req, res) => {
 
 router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
 
-  // DateTime when fix was merged, refs faucet #246.
-  const dateTime = moment(new Date("2018-03-23 20:18:26")).format("YYYY-MM-DD HH:mm:ss");
-  const Op = Sequelize.Op;
-
   const ongoing = await req.db.users
     .count({ where: { status: null } });
   const rejected = await req.db.users
@@ -69,16 +177,27 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
     .count({ where: { status: 'manual_review' } });
   const created = await req.db.users
     .count({ where: { status: 'created' } });
-  const stuck = await req.db.users
-    .count({ where: {
-      status: 'approved',
-      email_is_verified: false,
-      last_attempt_verify_email: {
-        [Op.lte]: dateTime
-      }
-    }});
-  const all = await req.db.users
-    .count();
+
+  // dashboard queries:
+  // Temp.
+  const tempUnverifiedEmailExpiredToken = await req.db.users.count(dashboardQueries('temp.unverifiedEmailLikelyExpiredToken'));
+  const tempNoKnownEmailAttempt = await req.db.users.count(dashboardQueries('temp.ambiguousEmail'));
+  const tempNoKnownEmailAttemptUnverifiedPhone = await req.db.users.count(dashboardQueries('temp.ambiguousEmailUnverifiedPhone'));
+  const tempNoKnownEmailAttemptVerifiedPhone = await req.db.users.count(dashboardQueries('temp.ambiguousEmailVerifiedPhone'));
+  const tempVerifiedPhoneNoAttempts = await req.db.users.count(dashboardQueries('temp.verifiedPhoneNoAttempt'));
+
+  // Approved or Pending User Falloff.
+  // Stopped at username step.
+  const usernameOnly = await req.db.users.count(dashboardQueries('nanscent.usernameOnly')); 
+  // Stopped at Email step.
+  const expiredEmailToken = await req.db.users.count(dashboardQueries('approvedOrPending.unverifiedEmailExpiredToken')); 
+  // Stopped at Phone step 1.
+  const emailVerifiedPhoneUnverified1 = await req.db.users.count(dashboardQueries('approvedOrPending.emailVerifiedPhoneUnverified1'));
+  // Stopped at Phone step 2.
+  const emailVerifiedPhoneUnverified2 = await req.db.users.count(dashboardQueries('approvedOrPending.emailVerifiedPhoneUnverified2'));
+  // Stopped at Account Creation step.
+  const emailVerifiedPhoneVerified = await req.db.users.count(dashboardQueries('approvedOrPending.emailVerifiedPhoneVerified'));
+  const all = await req.db.users.count();
   return {
     view: 'dashboard',
     data: {
@@ -88,7 +207,16 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
       rejected,
       pending,
       created,
-      stuck,
+      tempUnverifiedEmailExpiredToken,
+      tempNoKnownEmailAttempt,
+      tempNoKnownEmailAttemptUnverifiedPhone,
+      tempNoKnownEmailAttemptVerifiedPhone,
+      tempVerifiedPhoneNoAttempts,
+      usernameOnly,
+      expiredEmailToken,
+      emailVerifiedPhoneUnverified1,
+      emailVerifiedPhoneUnverified2,
+      emailVerifiedPhoneVerified,
       all
     }
   };
@@ -161,25 +289,40 @@ router.get('/users/all', authenticate(), routeMiddleware(async (req) => {
   });
 }));
 
-router.get('/users/stuck', authenticate(), routeMiddleware(async (req) => {
-
-  // DateTime when fix was merged.
-  const dateTime = moment(new Date("2018-03-23 20:18:26")).format("YYYY-MM-DD HH:mm:ss");
-
-  const Op = Sequelize.Op;
-
+router.get('/users/stuck1', authenticate(), routeMiddleware(async (req) => {
   return stuckUsers(req, {
     location: 'users/stuck',
     showActions: true,
-    title: 'Approved Users with unverified emails',
-    where: {
-      status: 'approved',
-      email_is_verified: false,
-      // where last attempt to verify is less than deploy date of extended email token validity.
-      last_attempt_verify_email: {
-        [Op.lte]: dateTime
-      }
-    }
+    title: 'Approved Users with unverified emails, one-day token likely expired',
+    ...dashboardQueries('temp.unverifiedEmailLikelyExpiredToken'),
+  });
+}));
+
+
+router.get('/users/stuck2', authenticate(), routeMiddleware(async (req) => {
+  return stuckUsers(req, {
+    location: 'users/stuck2',
+    showActions: true,
+    title: 'Approved Users, no known email was sent - with unverified phone',
+    ...dashboardQueries('temp.ambiguousEmailUnverifiedPhone'),
+  });
+}));
+
+router.get('/users/stuck3', authenticate(), routeMiddleware(async (req) => {
+  return stuckUsers(req, {
+    location: 'users/stuck3',
+    showActions: true,
+    title: 'approved users, no known email was sent - with verified phone',
+    ...dashboardQueries('temp.ambiguousEmailVerifiedPhone'),
+  });
+}));
+
+router.get('/users/stuck4', authenticate(), routeMiddleware(async (req) => {
+  return stuckUsers(req, {
+    location: 'users/stuck4',
+    showActions: true,
+    title: 'Users with verified phone, despite no phone attempts',
+    ...dashboardQueries('temp.verifiedPhoneNoAttempt'),
   });
 }));
 
@@ -213,7 +356,6 @@ const stuckUsers = async(req, options) => {
 const listUser = async(req, options) => {
   const page = parseInt(req.query.page) || 1;
   const count = await req.db.users.count({ where: options.where });
-
   const users = await req.db.users.findAll(
     {
       order: [['updated_at', 'DESC']],
