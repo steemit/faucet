@@ -66,7 +66,6 @@ class Username extends React.Component {
             intl,
             username,
             origin,
-            debug,
         } = this.props;
         return (
             <Form onSubmit={this.handleSubmit} className="signup-form">
@@ -81,14 +80,8 @@ class Username extends React.Component {
                                     id: 'error_username_required',
                                 }),
                             },
-                            {
-                                validator:
-                                    debug !== 'true' &&
-                                    this.validateAccountNameIntl,
-                            },
-                            {
-                                validator: !debug && this.validateUsername,
-                            },
+                            { validator: this.validateAccountNameIntl },
+                            { validator: this.validateUsername },
                         ],
                         initialValue: username,
                     })(

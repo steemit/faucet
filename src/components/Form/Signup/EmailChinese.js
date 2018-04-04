@@ -70,29 +70,15 @@ class Email extends React.Component {
         });
     };
 
-    devModeSubmit = () => {
-        this.props.onSubmit({ email: 'foo@bar.com' }, 'tokenHere');
-    };
-
     render() {
-        const {
-            form: { getFieldDecorator },
-            intl,
-            email,
-            goBack,
-            debug,
-        } = this.props;
+        const { form: { getFieldDecorator }, intl, email, goBack } = this.props;
         return (
             <Form
                 onSubmit={e => {
                     e.preventDefault();
                     if (this.state.submitting) return;
-                    if (debug) {
-                        this.devModeSubmit();
-                    } else {
-                        this.setState({ submitting: true });
-                        this.executeRecaptchaAndSubmit();
-                    }
+                    this.setState({ submitting: true });
+                    this.handleSubmit();
                 }}
                 className="signup-form"
             >

@@ -74,15 +74,11 @@ class ConfirmPhoneNumber extends React.Component {
             });
     };
 
-    devModeSubmit = () => {
-        this.props.onSubmit(true);
-    };
-
     render() {
-        const { form: { getFieldDecorator }, intl, goBack, debug } = this.props;
+        const { form: { getFieldDecorator }, intl, goBack } = this.props;
         return (
             <Form
-                onSubmit={debug ? this.devModeSubmit : this.handleSubmit}
+                onSubmit={this.handleSubmit}
                 className="signup-form confirm-phone"
             >
                 <Form.Item hasFeedback>
