@@ -109,92 +109,6 @@ router.get('/', apiMiddleware(async () => {
     return rv;
 }));
 
-const emailError = m => { throw new ApiError({ field: 'email', type: m }); };
-
-const where = (user, attr) => {
-    const matches = {};
-    matches[attr] = user[attr];
-    return ({ where: matches });
-};
-
-const getUser = async (database, userInfo, findBy) => {
-    try {
-        return await database.users.findOne(where(userInfo, findBy));
-    } catch (error) {
-        emailError('error_api_get_user');
-        return false;
-    }
-};
-
-const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
-    const updateObj = {};
-    updateObj[attr] = value;
-    try {
-        return await database.users.update(updateObj, where(userInfo, findBy));
-    } catch (error) {
-        emailError('error_api_update_user');
-        return false;
-    }
-};
-
-const sendEmail = async (req, mailToken, emailType, email = undefined) => {
-    const emailAddress = email === undefined ? req.body.email : email;
-    try {
-        return await req.mail.send(emailAddress, emailType, {
-            url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
-        });
-    } catch (error) {
-        emailError('error_api_send_email');
-        return false;
-    }
-};
-
-
-/**
- * Send the email to user asking them to confirm their email address.
- */
-const sendConfirmationEmail = async (req, res) => {
-    const date = new Date();
-    const minusOneMinute = new Date(date.setTime(date.getTime() - 60000));
-
-    // Find the user in the database with an email that matches that of the request.
-    const user = await getUser(req.db, req.body, 'email');
-
-    const usersLastAttempt = user.last_attempt_verify_email
-        ? user.last_attempt_verify_email.getTime()
-        : false;
-
-    // Throw if user has already verified their email.
-    if (user.email_is_verified) emailError('email_already_verified');
-
-    // Generate a mail token.
-    const mailToken = jwt.sign({
-        type: 'confirm_email',
-        email: req.body.email,
-    }, process.env.JWT_SECRET, { expiresIn: '14d' });
-
-    // If the user has not made a prior attempt, send an email.
-    if (!usersLastAttempt) sendEmail(req, mailToken, 'confirm_email');
-
-    // If the user's last attempt was more than a minute ago send an email.
-    if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken, 'confirm_email');
-
-    // If the user's last attempt was less than or exactly a minute ago, throw an error.
-    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) emailError('error_api_wait_one_minute');
-
-    // Update the user to reflect that the verification email was sent.
-    updateUserAttr(req.db, req.body, 'last_attempt_verify_email', date, 'email');
-
-    const token = jwt.sign({
-        type: 'signup',
-        email: req.body.email,
-    }, process.env.JWT_SECRET);
-
-    // Return success back to the client.
-    // TODO: find out what token is used for.
-    res.json({ success: true, token });
-};
-
 /**
  * Checks for the email step
  * Recaptcha, bad domains and existence with conveyor are verified
@@ -203,7 +117,7 @@ const sendConfirmationEmail = async (req, res) => {
  * and his account created in the Steem blockchain
  * NB: Chinese residents can't use google services so we skip the recaptcha validation for them
  */
-router.post('/request_email', apiMiddleware(async (req, res) => {
+router.post('/request_email', apiMiddleware(async req => {
     const location = req.geoip.get(req.ip);
 
     let skipRecaptcha = false;
@@ -257,14 +171,14 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
         }
     }
 
-    const userExist = await req.db.users.count({
+    let user = await req.db.users.findOne({
         where: {
             email: req.body.email,
         },
     });
 
-    if (userExist === 0) {
-        await req.db.users.create({
+    if (!user) {
+        user = await req.db.users.create({
             email: req.body.email,
             email_is_verified: false,
             last_attempt_verify_email: null,
@@ -279,15 +193,48 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
             metadata: { query: JSON.parse(req.body.query) },
             username: req.body.username,
             username_booked_at: new Date(),
-            tracking_id: req.body.xref || `x-${ Math.random().toString().slice(2) }`,
+            tracking_id: req.body.xref || `x-${Math.random().toString().slice(2)}`,
         });
     } else {
-        await req.db.users.update({
-            username: req.body.username,
-            username_booked_at: new Date(),
-        }, { where: { email: req.body.email } });
+        user.username = req.body.username;
+        user.username_booked_at = new Date();
+        await user.save();
     }
-    await sendConfirmationEmail(req, res);
+
+    if (!user.email_is_verified) {
+        const minusOneMinute = Date.now() - 60000;
+
+        const usersLastAttempt = user.last_attempt_verify_email
+            ? user.last_attempt_verify_email.getTime()
+            : undefined;
+
+        // If the user's last attempt was less than or exactly a minute ago, throw an error.
+        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+            throw new ApiError({ field: 'email', type: 'error_api_wait_one_minute' });
+        }
+
+        // Generate a mail token.
+        const mailToken = jwt.sign({
+            type: 'confirm_email',
+            email: user.email,
+        }, process.env.JWT_SECRET);
+
+        // Send the email.
+        await req.mail.send(user.email, 'confirm_email', {
+            url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
+        });
+
+        // Update the user to reflect that the verification email was sent.
+        user.last_attempt_verify_email = new Date();
+        await user.save();
+    }
+
+    const token = jwt.sign({
+        type: 'signup',
+        email: user.email,
+    }, process.env.JWT_SECRET);
+
+    return { success: true, token };
 }));
 
 /**
@@ -722,10 +669,11 @@ router.get('/resend_email_validation', apiMiddleware(async req => {
         const mailToken = jwt.sign({
             type: 'confirm_email',
             email,
-        }, process.env.JWT_SECRET, { expiresIn: '14d' });
-        return sendEmail(req, mailToken, 'confirm_again_email', email);
-    }
-    ));
+        }, process.env.JWT_SECRET);
+        return req.mail.send(email, 'confirm_again_email', {
+            url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
+        });
+    }));
     return { success: true };
 }));
 
