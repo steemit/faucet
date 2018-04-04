@@ -280,17 +280,14 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
             username: req.body.username,
             username_booked_at: new Date(),
             tracking_id: req.body.xref || `x-${ Math.random().toString().slice(2) }`,
-        }).then(async () => {
-            await sendConfirmationEmail(req, res);
         });
     } else {
-        req.db.users.update({
+        await req.db.users.update({
             username: req.body.username,
             username_booked_at: new Date(),
-        }, { where: { email: req.body.email } }).then(async () => {
-            await sendConfirmationEmail(req, res);
-        });
+        }, { where: { email: req.body.email } });
     }
+    await sendConfirmationEmail(req, res);
 }));
 
 /**
