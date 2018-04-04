@@ -279,6 +279,7 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
             metadata: { query: JSON.parse(req.body.query) },
             username: req.body.username,
             username_booked_at: new Date(),
+            tracking_id: req.body.xref || `x-${ Math.random().toString().slice(2) }`,
         }).then(async () => {
             await sendConfirmationEmail(req, res);
         });
