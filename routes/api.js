@@ -234,7 +234,7 @@ router.post('/request_email', apiMiddleware(async req => {
         email: user.email,
     }, process.env.JWT_SECRET);
 
-    return { success: true, token };
+    return { success: true, token, xref: user.tracking_id };
 }));
 
 /**
@@ -335,7 +335,7 @@ router.post('/request_sms', apiMiddleware(async req => {
         }
     }
 
-    return { success: true, phoneNumber };
+    return { success: true, phoneNumber, xref: user.tracking_id };
 }));
 
 /**
@@ -406,6 +406,7 @@ const sendAccountInformation = async (req, email) => {
 
 
 router.get('/confirm_email', async (req, res) => {
+    // TODO: this route should use POST and the apiMiddleware wrapper
     if (!req.query.token) {
         res.status(400).json({ error: 'error_api_token_required' });
     } else {
@@ -431,6 +432,7 @@ router.get('/confirm_email', async (req, res) => {
                         completed: user.phone_number_is_verified,
                         email: user.email,
                         username: user.username,
+                        xref: user.tracking_id,
                         token,
                     });
                 }
@@ -489,7 +491,7 @@ router.post('/confirm_sms', apiMiddleware(async req => {
         req.log.error(error, 'Unable to send verification mail');
     });
 
-    return { success: true, completed: user.email_is_verified };
+    return { success: true, completed: user.email_is_verified, xref: user.tracking_id };
 }));
 
 /** Return the country code using maxmind database */
@@ -525,9 +527,9 @@ router.post('/confirm_account', apiMiddleware(async req => {
 
     const accounts = await steem.api.getAccountsAsync([user.username]);
     if (accounts && accounts.length > 0 && accounts.find(a => a.name === user.username)) {
-        return { success: true, username: '', reservedUsername: user.username, email: user.email };
+        return { success: true, username: '', reservedUsername: user.username, email: user.email, xref: user.tracking_id };
     }
-    return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email };
+    return { success: true, username: user.username, reservedUsername: '', query: user.metadata.query, email: user.email, xref: user.tracking_id };
 }));
 
 /**
@@ -641,7 +643,7 @@ router.post('/create_account', apiMiddleware(async req => {
         req.log.error(error, 'Unable to send recovery info to condenser');
     });
 
-    return { success: true };
+    return { success: true, xref: user.tracking_id };
 }));
 
 /**
