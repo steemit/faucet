@@ -41,7 +41,6 @@ class Index extends Component {
                 status: 'error',
                 error: intl.formatMessage({ id: 'error_token_required' }),
             });
-            logStep('confirm_email_error', 4);
         } else {
             fetch(`/api/confirm_email?token=${this.props.location.query.token}`)
                 .then(checkStatus)
@@ -54,11 +53,11 @@ class Index extends Component {
                         email: data.email,
                         username: data.username,
                         token: data.token,
+                        xref: data.xref,
                     });
-                    logStep(
-                        `confirm_email_${data.success ? 'success' : 'error'}`,
-                        4
-                    );
+                    if (data.success) {
+                        logStep(data.xref, 'email_verified');
+                    }
                 })
                 .catch(error => {
                     error.response.json().then(data => {
@@ -70,7 +69,6 @@ class Index extends Component {
                             username: data.username,
                             token: data.token,
                         });
-                        logStep('confirm_email_error', 4);
                     });
                 });
         }
