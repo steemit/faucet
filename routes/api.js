@@ -283,14 +283,14 @@ router.post('/request_email', apiMiddleware(async (req, res) => {
             metadata: { query: JSON.parse(req.body.query) },
             username: req.body.username,
             username_booked_at: new Date(),
-        }).then(async () => {
-            await sendConfirmationEmail(req, res);
         });
     } else {
-        updateUserAttr(req.db, req.body, { username: req.body.username, username_booked_at: new Date() }, 'email').then(async () => {
-            await sendConfirmationEmail(req, res);
-        });
+        await req.db.users.update({
+            username: req.body.username,
+            username_booked_at: new Date(),
+        }, { where: { email: req.body.email } });
     }
+    await sendConfirmationEmail(req, res);
 }));
 
 /**
