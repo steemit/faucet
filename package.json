@@ -106,7 +106,7 @@
     "webpack-visualizer-plugin": "0.1.5"
   },
   "lint-staged": {
-    "src/**/*.js*": [
+    "{src,routes,helpers}/**/*.js*": [
       "prettier --write",
       "git add"
     ]
