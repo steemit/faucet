@@ -11,7 +11,7 @@ import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import logStep from '../../helpers/stepLogger';
+import logStep, { generateTrackingId } from '../../helpers/stepLogger';
 import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 import './Signup.less';
@@ -36,6 +36,7 @@ class Signup extends Component {
                 email: PropTypes.string,
                 token: PropTypes.string,
                 ref: PropTypes.string,
+                xref: PropTypes.string,
             }),
         }),
         locale: PropTypes.string.isRequired,
@@ -48,22 +49,38 @@ class Signup extends Component {
 
     constructor(props) {
         super(props);
+        const { username, email, token, ref, xref } = props.location.query;
         this.state = {
-            step: this.initStep().step,
-            stepNumber: this.initStep().stepNumber,
-            username: props.location.query.username || '',
-            email: props.location.query.email || '',
+            step: 'username',
+            stepNumber: 0,
+            username: username || '',
+            email: email || '',
             phoneNumber: '',
             phoneNumberFormatted: '',
-            token: props.location.query.token || '',
-            ref: props.location.query.ref || 'steemit',
+            token: token || '',
+            ref: ref || 'steemit',
             countryCode: '',
             prefix: '',
             completed: false,
+            xref: xref || generateTrackingId(),
         };
     }
 
     componentWillMount() {
+        const { username, email, token, xref } = this.props.location.query;
+
+        // Q: In what context would a user get a link with these query parameters.
+        // A: Link components in the signup flow, and the confirmation email.
+        if (email && username && token && xref) {
+            this.setState({
+                step: 'phoneNumber',
+                stepNumber: 2,
+            });
+            logStep(xref, 'phone_number_step');
+        } else {
+            logStep(this.state.xref, 'enter_username_step');
+        }
+
         fetch('/api/guess_country')
             .then(checkStatus)
             .then(parseJSON)
@@ -76,16 +93,6 @@ class Signup extends Component {
             });
     }
 
-    initStep = () => {
-        const { location: { query: { email, username, token } } } = this.props;
-        if (email && username && token) {
-            logStep('phoneNumber', 2);
-            return { step: 'phoneNumber', stepNumber: 2 };
-        }
-        logStep('username', 0);
-        return { step: 'username', stepNumber: 0 };
-    };
-
     goBack = (step, stepNumber) => {
         this.setState({ step, stepNumber });
     };
@@ -96,18 +103,21 @@ class Signup extends Component {
             stepNumber: 1,
             username: values.username,
         });
-        logStep('email', 1);
+        logStep(this.state.xref, 'enter_email_step');
     };
 
     handleSubmitEmail = (values, token) => {
+        // TODO: This should be a action dispatched to a redux store.
+        // Suggest 'IncrementStep' or similar
         this.setState({
             step: 'checkYourEmail',
             stepNumber: 2,
             email: values.email,
             token,
         });
-        // TODO: Determine conveyor step name.
-        // logStep('checkYourEmail', 2);
+        // TODO: Make this a redux saga, watching for for a 'IncrementStep' action.
+        // The email has been successfully submitted and the user has been created in the FaucetDB
+        logStep(this.state.xref, 'check_your_email_step');
     };
 
     handleSubmitPhoneNumber = values => {
@@ -118,7 +128,7 @@ class Signup extends Component {
             phoneNumberFormatted: values.phoneNumberFormatted,
             prefix: values.prefix,
         });
-        logStep('confirmPhoneNumber', 3);
+        logStep(this.state.xref, 'confirm_phone_step');
     };
 
     handleSubmitConfirmPhoneNumber = completed => {
@@ -127,7 +137,7 @@ class Signup extends Component {
             stepNumber: 4,
             completed,
         });
-        logStep('finish', 4);
+        logStep(this.state.xref, 'finish_step');
     };
 
     render() {

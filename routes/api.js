@@ -13,6 +13,7 @@ const badDomains = require('../bad-domains');
 const Twilio = require('../helpers/twilio');
 const moment = require('moment');
 const db = require('./../db/models');
+const { generateTrackingId } = require('../helpers/stepLogger');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -263,11 +264,7 @@ router.post(
                 metadata: { query: JSON.parse(req.body.query) },
                 username: req.body.username,
                 username_booked_at: new Date(),
-                tracking_id:
-                    req.body.xref ||
-                    `x-${Math.random()
-                        .toString()
-                        .slice(2)}`,
+                tracking_id: req.body.xref || generateTrackingId(),
             });
         } else {
             user.username = req.body.username;
