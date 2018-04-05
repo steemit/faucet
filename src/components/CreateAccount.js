@@ -67,22 +67,26 @@ class CreateAccount extends Component {
             })
                 .then(data => {
                     if (data.success) {
-                        this.setState({
-                            step:
-                                data.username === '' ? 'username' : 'password',
-                            stepNumber: data.username === '' ? 0 : 1,
-                            username: data.username,
-                            reservedUsername: data.reservedUsername,
-                            email: data.email,
-                            query: data.query,
-                        });
-                        logStep('username', 0);
+                        this.setState(
+                            {
+                                step:
+                                    data.username === ''
+                                        ? 'username'
+                                        : 'password',
+                                stepNumber: data.username === '' ? 0 : 1,
+                                username: data.username,
+                                reservedUsername: data.reservedUsername,
+                                email: data.email,
+                                query: data.query,
+                                xref: data.xref,
+                            },
+                            logStep(data.xref, 'approved_user_username_step')
+                        );
                     } else {
                         this.setState({
                             step: 'error',
                             error: intl.formatMessage({ id: data.error }),
                         });
-                        logStep('confirm_account_error', -1);
                     }
                 })
                 .catch(error => {
@@ -90,7 +94,6 @@ class CreateAccount extends Component {
                         step: 'error',
                         error: intl.formatMessage({ id: error.type }),
                     });
-                    logStep('confirm_account_error', -1);
                 });
         }
     }
@@ -130,7 +133,7 @@ class CreateAccount extends Component {
             stepNumber: 1,
             username: values.username,
         });
-        logStep('password', 1);
+        logStep(this.state.xref, 'approved_user_password_step');
     };
 
     handleSubmitPassword = values => {
@@ -139,7 +142,7 @@ class CreateAccount extends Component {
             stepNumber: 2,
             password: values.password,
         });
-        logStep('password_confirm', 2);
+        logStep(this.state.xref, 'approved_user_password_confirm_step');
     };
 
     handleSubmit = () => {
@@ -160,13 +163,12 @@ class CreateAccount extends Component {
             .then(data => {
                 if (data.success) {
                     this.setState({ step: 'created' });
-                    logStep('created', 3);
+                    logStep(data.xref, 'approved_user_created');
                 } else {
                     this.setState({
                         step: 'error',
                         error: intl.formatMessage({ id: data.error }),
                     });
-                    logStep('created_error', -1);
                 }
             })
             .catch(() => {
@@ -176,7 +178,6 @@ class CreateAccount extends Component {
                         id: 'error_api_create_account',
                     }),
                 });
-                logStep('created_error', -1);
             });
     };
 

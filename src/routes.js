@@ -8,7 +8,7 @@ import ConfirmEmail from './components/ConfirmEmail';
 export default (
     <Route path="/" component={Wrapper}>
         <IndexRoute component={Signup} />
-        <Route path="create-account" component={CreateAccount} />
         <Route path="confirm-email" component={ConfirmEmail} />
+        <Route path="create-account" component={CreateAccount} />
     </Route>
 );
