@@ -67,21 +67,17 @@ class CreateAccount extends Component {
             })
                 .then(data => {
                     if (data.success) {
-                        this.setState(
-                            {
-                                step:
-                                    data.username === ''
-                                        ? 'username'
-                                        : 'password',
-                                stepNumber: data.username === '' ? 0 : 1,
-                                username: data.username,
-                                reservedUsername: data.reservedUsername,
-                                email: data.email,
-                                query: data.query,
-                                xref: data.xref,
-                            },
-                            logStep(data.xref, 'approved_user_username_step')
-                        );
+                        this.setState({
+                            step:
+                                data.username === '' ? 'username' : 'password',
+                            stepNumber: data.username === '' ? 0 : 1,
+                            username: data.username,
+                            reservedUsername: data.reservedUsername,
+                            email: data.email,
+                            query: data.query,
+                            xref: data.xref,
+                        });
+                        logStep(data.xref, 'approved_user_username_step');
                     } else {
                         this.setState({
                             step: 'error',
