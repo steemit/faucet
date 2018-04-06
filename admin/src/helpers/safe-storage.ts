@@ -62,6 +62,28 @@ export class SafeStorage implements Storage {
         }
     }
 
+    public getJSON(key: string) {
+        const data = this.getItem(key)
+        if (data) {
+            try {
+                return JSON.parse(data)
+            } catch (error) {
+                // tslint:disable-next-line
+                console.warn('Found invalid JSON in storage', error)
+            }
+        }
+        return null
+    }
+
+    public setJSON(key: string, data: {[key: string]: any}) {
+        try {
+            this.setItem(key, JSON.stringify(data))
+        } catch (error) {
+            // tslint:disable-next-line
+            console.warn('Unable to serialize data before storing', error)
+        }
+    }
+
 }
 
 /** Safe localStorage instance. */

@@ -1,4 +1,16 @@
 
-.main .ant-layout-content {
-    padding: 1em;
+.user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    white-space: nowrap;
+}
+
+.user-info .ant-avatar {
+    margin-right: 10px;
+}
+
+.user-info > span {
+    margin: 10px;
 }
