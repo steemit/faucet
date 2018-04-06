@@ -20,102 +20,132 @@ const dashboardQueries = (q, status) => {
     temp: {
       // Approved users who's email token expired after 1 day and who did not validate their email.
       // Action: Email them new validation link and record that attempt was made.
-      unverifiedEmailLikelyExpiredToken:{ where: {
-        status: 'approved',
-        email_is_verified: false,
-        last_attempt_verify_email: {
-          [Op.lte]: dateTime
+      unverifiedEmailLikelyExpiredToken: {
+        where: {
+          status: 'approved',
+          email_is_verified: false,
+          last_attempt_verify_email: {
+            [Op.lte]: dateTime
+          }
         }
-      }},
+      },
       // Approved users who might not have ever been sent a validation email.
-      ambiguousEmail: { where: {
-        status: 'approved',
-        email_is_verified: false,
-        last_attempt_verify_email: null,
-        account_is_created: false,
-      }},
+      ambiguousEmail: {
+        where: {
+          status: 'approved',
+          email_is_verified: false,
+          last_attempt_verify_email: null,
+          account_is_created: false,
+        }
+      },
       // Approved Users who might not have ever been sent a validation email who have validated their phone.
       // Action: Email them new validation link and record that attempt was made.
-      ambiguousEmailVerifiedPhone: { where: {
-        status: 'approved',
-        email_is_verified: false,
-        last_attempt_verify_email: null,
-        account_is_created: false,
-        phone_number_is_verified: true,
-        phone_code_attempts: {
-          [Op.gt]: 0
-        },
-      }},
+      ambiguousEmailVerifiedPhone: {
+        where: {
+          status: 'approved',
+          email_is_verified: false,
+          last_attempt_verify_email: null,
+          account_is_created: false,
+          phone_number_is_verified: true,
+          phone_code_attempts: {
+            [Op.gt]: 0
+          },
+        }
+      },
       // Approved Users who might not have ever been sent a validation email who have not validated their phone.
       // Action: Email them new validation link and record that attempt was made.
-      ambiguousEmailUnverifiedPhone: { where: {
-        status: 'approved',
-        email_is_verified: false,
-        last_attempt_verify_email: null,
-        account_is_created: false,
-        phone_number_is_verified: false,
-      }},
+      ambiguousEmailUnverifiedPhone: {
+        where: {
+          status: 'approved',
+          email_is_verified: false,
+          last_attempt_verify_email: null,
+          account_is_created: false,
+          phone_number_is_verified: false,
+        }
+      },
       // Phone verified, despite no code attempts.
-      verifiedPhoneNoAttempt: { where: {
-        phone_code_attempts: 0,
-        phone_number_is_verified: true,
-      }},
+      verifiedPhoneNoAttempt: {
+        where: {
+          phone_code_attempts: 0,
+          phone_number_is_verified: true,
+        }
+      },
     },
     approvedOrPending: {
       // Approved Users who let their email token expire.
-      unverifiedEmailExpiredToken:{ where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}],
-        email_is_verified: false,
-        account_is_created: false,
-        last_attempt_verify_email: {
-          [Op.lte]: twoWeeksAgo
+      unverifiedEmailExpiredToken: {
+        where: {
+          [Op.or]: [{ status: 'approved' }, { status: 'manual_review' }],
+          email_is_verified: false,
+          account_is_created: false,
+          last_attempt_verify_email: {
+            [Op.lte]: twoWeeksAgo
+          }
         }
-      }},
+      },
       // Approved Users who have validated email and never attempted to validate phone.
-      emailVerifiedPhoneUnverified1: { where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
-        email_is_verified: true,
-        account_is_created: false,
-        phone_number_is_verified: false,
-        phone_number: null,
-        phone_code: null,
-      }},
-      // Approved Users who have validated email and never entered phone validation code.
-      emailVerifiedPhoneUnverified2: { where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
-        email_is_verified: true,
-        account_is_created: false,
-        phone_number_is_verified: false,
-        last_attempt_verify_phone_number:{
-          [Op.gte]: sixtyDaysAgo,
-        },
-        phone_code: {
-          [Op.ne]: null,
+      emailVerifiedPhoneUnverified1: {
+        where: {
+          [Op.or]: [{ status: 'approved' }, { status: 'manual_review' }, { status: null }],
+          email_is_verified: true,
+          account_is_created: false,
+          phone_number_is_verified: false,
+          phone_number: null,
+          phone_code: null,
         }
-      }},
-
-      // Approved Users who have validated phone and validated email who have not created their account.
-      emailVerifiedPhoneVerified: { where: {
-        [Op.or]: [{status: 'approved'}, {status: 'manual_review'}, {status: null}],
-        email_is_verified: true,
-        account_is_created: false,
-        phone_number_is_verified: true,
-      }},
+      },
+      // Approved Users who have validated email and never entered phone validation code.
+      emailVerifiedPhoneUnverified2: {
+        where: {
+          [Op.or]: [{ status: 'approved' }, { status: 'manual_review' }, { status: null }],
+          email_is_verified: true,
+          account_is_created: false,
+          phone_number_is_verified: false,
+          last_attempt_verify_phone_number: {
+            [Op.gte]: sixtyDaysAgo,
+          },
+          phone_code: {
+            [Op.ne]: null,
+          }
+        }
+      },
+      // Users who have validated phone and validated email who have not created their account.
+      emailVerifiedPhoneVerified: {
+        where: {
+          [Op.or]: [{ status: 'approved' }, { status: 'manual_review' }, { status: null }],
+          email_is_verified: true,
+          account_is_created: false,
+          phone_number_is_verified: true,
+        }
+      },
+    },
+    reminder: {
+      emailVerifiedPhoneVerifiedApproved: {
+        where: {
+          updated_at: { [Op.lt]: moment().subtract(7, 'days').toDate() },
+          status: 'approved',
+          email_is_verified: true,
+          phone_number_is_verified: true,
+          account_is_created: false,
+        }
+      },
     },
     nanscent: {
       // Users with a valid username. But no further steps were taken.
-      usernameOnly:{ where: {
-        username:{
-          [Op.not]: null
-        },
-        last_attempt_verify_email: null,
-        email_is_verified: false,
-        phone_number_is_verified: false,
-        account_is_created: false,
-      }}
+      usernameOnly: {
+        where: {
+          username: {
+            [Op.not]: null
+          },
+          last_attempt_verify_email: null,
+          email_is_verified: false,
+          phone_number_is_verified: false,
+          account_is_created: false,
+        }
+      }
     }
   };
-  const leaf = (obj, path) => (path.split('.').reduce((value,el) => value[el], obj));
+  const leaf = (obj, path) => (path.split('.').reduce((value, el) => value[el], obj));
   const out = leaf(queries, q);
   return leaf(queries, q);
 }
@@ -135,7 +165,7 @@ class AppError extends Error {
 function routeMiddleware(handler) {
   return (req, res) => {
     handler(req, res).then((result) => {
-      if(result.view) {
+      if (result.view) {
         res.render(result.view, result.data);
       } else {
         res.json(result.data);
@@ -188,15 +218,19 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
 
   // Approved or Pending User Falloff.
   // Stopped at username step.
-  const usernameOnly = await req.db.users.count(dashboardQueries('nanscent.usernameOnly')); 
+  const usernameOnly = await req.db.users.count(dashboardQueries('nanscent.usernameOnly'));
   // Stopped at Email step.
-  const expiredEmailToken = await req.db.users.count(dashboardQueries('approvedOrPending.unverifiedEmailExpiredToken')); 
+  const expiredEmailToken = await req.db.users.count(dashboardQueries('approvedOrPending.unverifiedEmailExpiredToken'));
   // Stopped at Phone step 1.
   const emailVerifiedPhoneUnverified1 = await req.db.users.count(dashboardQueries('approvedOrPending.emailVerifiedPhoneUnverified1'));
   // Stopped at Phone step 2.
   const emailVerifiedPhoneUnverified2 = await req.db.users.count(dashboardQueries('approvedOrPending.emailVerifiedPhoneUnverified2'));
   // Stopped at Account Creation step.
   const emailVerifiedPhoneVerified = await req.db.users.count(dashboardQueries('approvedOrPending.emailVerifiedPhoneVerified'));
+
+  // Reminder
+  const approvalReminder = await req.db.users.count(dashboardQueries('reminder.emailVerifiedPhoneVerifiedApproved'))
+
   const all = await req.db.users.count();
   return {
     view: 'dashboard',
@@ -217,6 +251,7 @@ router.get('/dashboard', authenticate(), routeMiddleware(async (req) => {
       emailVerifiedPhoneUnverified1,
       emailVerifiedPhoneUnverified2,
       emailVerifiedPhoneVerified,
+      approvalReminder,
       all
     }
   };
@@ -285,7 +320,7 @@ router.get('/users/all', authenticate(), routeMiddleware(async (req) => {
     location: 'users/all',
     showActions: false,
     title: 'All users',
-    where: { }
+    where: {}
   });
 }));
 
@@ -326,7 +361,16 @@ router.get('/users/stuck4', authenticate(), routeMiddleware(async (req) => {
   });
 }));
 
-const stuckUsers = async(req, options) => {
+router.get('/users/7-day-approval-reminder', authenticate(), routeMiddleware(async (req) => {
+  return stuckUsers(req, {
+    location: 'users/7-day-approval-reminder',
+    showActions: true,
+    title: 'Approved users who have not created their account after 7 days.',
+    ...dashboardQueries('reminder.emailVerifiedPhoneVerifiedApproved'),
+  });
+}));
+
+const stuckUsers = async (req, options) => {
   const page = parseInt(req.query.page) || 1;
   const count = await req.db.users.count({ where: options.where });
   const users = await req.db.users.findAll(
@@ -353,7 +397,7 @@ const stuckUsers = async(req, options) => {
 }
 
 
-const listUser = async(req, options) => {
+const listUser = async (req, options) => {
   const page = parseInt(req.query.page) || 1;
   const count = await req.db.users.count({ where: options.where });
   const users = await req.db.users.findAll(
@@ -385,57 +429,60 @@ router.post('/approve', authenticate(), routeMiddleware(async (req) => {
   const users = await req.db.users.findAll({ where: { id: req.body['ids[]'] } });
 
   const emails = [];
-  for(let i = 0; i < users.length; i += 1) {
+  for (let i = 0; i < users.length; i += 1) {
     emails.push(users[i].email);
   }
   const token = jwt.sign({
     emails,
   }, process.env.JWT_SECRET, { expiresIn: '1d' });
   const result = await fetch(`${process.env.FAUCET_URL}/api/approve_account?token=${token}`)
-    .then(function(response) {
+    .then(function (response) {
       return response.json();
     });
-    if(result.success) {
-      await req.db.users.update({
-        status: 'approved',
-      }, { where: { id: req.body['ids[]'] } });
+  if (result.success) {
+    await req.db.users.update({
+      status: 'approved',
+    }, { where: { id: req.body['ids[]'] } });
+  }
+  return {
+    data: {
+      success: result.success,
+      errors: result.errors,
+      ids: req.body['ids[]'],
     }
-    return {
-      data: {
-        success: result.success,
-        errors: result.errors,
-        ids: req.body['ids[]'],
-      }
-    };
+  };
 }));
 
 
 router.post('/email', authenticate(), routeMiddleware(async (req) => {
   const users = await req.db.users.findAll({ where: { id: req.body['ids[]'] } });
+  debugger
+  const emailType = req.body.type;
   const emails = [];
-  for(let i = 0; i < users.length; i += 1) {
+  for (let i = 0; i < users.length; i += 1) {
     emails.push(users[i].email);
   }
   const token = jwt.sign({
     emails,
   }, process.env.JWT_SECRET, { expiresIn: '1d' });
-  const result = await fetch(`${process.env.FAUCET_URL}/api/resend_email_validation?token=${token}`)
-    .then(function(response) {
+
+  const result = await fetch(`${process.env.FAUCET_URL}/api/email_user?token=${token}&type=${emailType}`)
+    .then(function (response) {
       return response.json();
     });
-    // Update users in the DB to reflect new email validation attempt.
-    if(result.success) {
-      await req.db.users.update({
-        last_attempt_verify_email: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-      }, { where: { id: req.body['ids[]'] } });
+  // Update users in the DB to reflect new email validation attempt.
+  if (result.success) {
+    await req.db.users.update({
+      last_attempt_verify_email: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
+    }, { where: { id: req.body['ids[]'] } });
+  }
+  return {
+    data: {
+      success: result.success,
+      errors: result.errors,
+      ids: req.body['ids[]'],
     }
-    return {
-      data: {
-        success: result.success,
-        errors: result.errors,
-        ids: req.body['ids[]'],
-      }
-    };
+  };
 }));
 
 
@@ -476,23 +523,23 @@ router.post('/search', authenticate(), routeMiddleware(async (req) => {
     [Op.and]: [
       {
         [Op.or]: [
-          {email: {[Op.like]: `%${search}%`}},
-          {username: {[Op.like]: `%${search}%`}},
-          {phone_number: {[Op.like]: `%${search}%`}},
-          {ip: {[Op.like]: `%${search}%`}},
-          {fingerprint: {[Op.like]: `%${search}%`}},
+          { email: { [Op.like]: `%${search}%` } },
+          { username: { [Op.like]: `%${search}%` } },
+          { phone_number: { [Op.like]: `%${search}%` } },
+          { ip: { [Op.like]: `%${search}%` } },
+          { fingerprint: { [Op.like]: `%${search}%` } },
         ]
       }
     ]
   };
-  if(status !== 'all') {
+  if (status !== 'all') {
     where[Object.getOwnPropertySymbols(where)[0]].push({ status });
   }
-  if(startDate) {
-    where[Object.getOwnPropertySymbols(where)[0]].push({ created_at: { [Op.gte]: moment(startDate, 'YYYYMMDD')} });
+  if (startDate) {
+    where[Object.getOwnPropertySymbols(where)[0]].push({ created_at: { [Op.gte]: moment(startDate, 'YYYYMMDD') } });
   }
-  if(endDate) {
-    where[Object.getOwnPropertySymbols(where)[0]].push({ created_at: { [Op.lte]: moment(endDate, 'YYYYMMDD')} });
+  if (endDate) {
+    where[Object.getOwnPropertySymbols(where)[0]].push({ created_at: { [Op.lte]: moment(endDate, 'YYYYMMDD') } });
   }
   const count = await req.db.users.count({ where });
   const items = req.body.items || itemsPerPage;
