@@ -60,7 +60,6 @@ class CreateAccount extends Component {
                 step: 'error',
                 error: intl.formatMessage({ id: 'error_token_required' }),
             });
-            logStep('error', -1);
         } else {
             apiCall('/api/confirm_account', {
                 token,
