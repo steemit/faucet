@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('@steemit/steem-js');
+const jwt = require('jsonwebtoken');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const geoip = require('./helpers/maxmind');
@@ -41,10 +42,35 @@ async function cleanupDb() {
     logger.info('removed %d old users', numUsers);
   }
 }
+async function sendReminderEmail() {
+  const users = await db.users.findAll({
+    where: {
+      updated_at: { [Op.lt]: moment().subtract(7, 'days').toDate() },
+      status: 'approved',
+    },
+  });
+
+  users.map(async (user) => {
+    const mailToken = jwt.sign({
+      type: 'create_account',
+      email: user.email,
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    await mail.send(user.email, 'create_account', {
+      url: `${process.env.CREATE_ACCOUNT_URL}/create-account?token=${mailToken}`,
+    });
+    await db.users.update({
+      updated_at: new Date(),
+    }, { where: { email: user.email } });
+  });
+}
 setInterval(() => {
   logger.debug('running db cleanup');
   cleanupDb().catch((error) => {
     logger.error(error, 'error cleaning database');
+  });
+  logger.debug('running email reminder');
+  sendReminderEmail().catch((error) => {
+    logger.error(error, 'error sending email reminder');
   });
 }, 60 * 60 * 1000);
 
