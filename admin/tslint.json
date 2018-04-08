@@ -1,10 +1,10 @@
 {
-    "extends": ["tslint:recommended", "tslint-react"],
-    "defaultSeverity": "warning",
-    "rules": {
-        "indent": [true, "spaces", 4],
-        "interface-name": [true, "never-prefix"],
-        "quotemark": [true, "single", "avoid-escape"],
-        "semicolon": [true, "never"]
-    }
+  "extends": ["tslint:recommended", "tslint-react"],
+  "defaultSeverity": "warning",
+  "rules": {
+    "interface-name": [true, "never-prefix"],
+    "jsx-no-multiline-js": false,
+    "semicolon": [true, "never"],
+    "triple-equals": [true, "allow-undefined-check", "allow-null-check"]
+  }
 }
