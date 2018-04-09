@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import { message, Form, Icon, Input, Button } from 'antd';
+import { message, Form, Input, Button } from 'antd';
 import createSuggestedPassword from '../../../utils/auth';
 
 class Password extends React.Component {
