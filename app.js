@@ -28,7 +28,7 @@ const app = express();
 // database cleanup task
 // removes actions and completed requests older than 60 days
 async function cleanupDb() {
-  const expiry = process.env.DATABASE_EXPIRY ? process.env.DATABASE_EXPIRY : 999;
+  const expiry = process.env.DATABASE_EXPIRY ? parseInt(process.env.DATABASE_EXPIRY) : 60;
   const numActions = await db.actions.destroy({
     where: { created_at: { [Op.lt]: moment().subtract(expiry, 'days').toDate() } },
   });
