@@ -54,17 +54,8 @@ class CreateAccount extends Component {
     }
 
     componentWillMount() {
-        const { location: { query: { token, debug } }, intl } = this.props;
-        if (debug === 'true') {
-            this.setState({
-                step: 'username',
-                stepNumber: 0,
-                username: 'foobar2018',
-                reservedUsername: false,
-                email: 'foobar@worldwide.com',
-                query: '',
-            });
-        } else if (!token) {
+        const { location: { query: { token } }, intl } = this.props;
+        if (!token) {
             this.setState({
                 step: 'error',
                 error: intl.formatMessage({ id: 'error_token_required' }),
@@ -152,45 +143,41 @@ class CreateAccount extends Component {
     };
 
     handleSubmit = () => {
-        const { location: { query: { token, debug } }, intl } = this.props;
+        const { location: { query: { token } }, intl } = this.props;
         const { username, password, email } = this.state;
-        if (debug === 'true') {
-            this.setState({ step: 'created' });
-        } else {
-            const publicKeys = steem.auth.generateKeys(username, password, [
-                'owner',
-                'active',
-                'posting',
-                'memo',
-            ]);
-            apiCall('/api/create_account', {
-                token,
-                username,
-                email,
-                public_keys: JSON.stringify(publicKeys),
-            })
-                .then(data => {
-                    if (data.success) {
-                        this.setState({ step: 'created' });
-                        logStep('created', 3);
-                    } else {
-                        this.setState({
-                            step: 'error',
-                            error: intl.formatMessage({ id: data.error }),
-                        });
-                        logStep('created_error', -1);
-                    }
-                })
-                .catch(() => {
+        const publicKeys = steem.auth.generateKeys(username, password, [
+            'owner',
+            'active',
+            'posting',
+            'memo',
+        ]);
+        apiCall('/api/create_account', {
+            token,
+            username,
+            email,
+            public_keys: JSON.stringify(publicKeys),
+        })
+            .then(data => {
+                if (data.success) {
+                    this.setState({ step: 'created' });
+                    logStep('created', 3);
+                } else {
                     this.setState({
                         step: 'error',
-                        error: intl.formatMessage({
-                            id: 'error_api_create_account',
-                        }),
+                        error: intl.formatMessage({ id: data.error }),
                     });
                     logStep('created_error', -1);
+                }
+            })
+            .catch(() => {
+                this.setState({
+                    step: 'error',
+                    error: intl.formatMessage({
+                        id: 'error_api_create_account',
+                    }),
                 });
-        }
+                logStep('created_error', -1);
+            });
     };
 
     render() {
@@ -203,11 +190,7 @@ class CreateAccount extends Component {
             password,
             query,
         } = this.state;
-        const {
-            setLocale,
-            locale,
-            location: { query: { debug } },
-        } = this.props;
+        const { setLocale, locale } = this.props;
         const urlParameters =
             query &&
             Object.keys(query)
@@ -338,7 +321,6 @@ class CreateAccount extends Component {
                                 )}
                                 <FormSignupUsername
                                     onSubmit={this.handleSubmitUsername}
-                                    debug={debug === 'true'}
                                 />
                             </div>
                         )}

@@ -22,21 +22,8 @@ class Index extends Component {
 
     componentWillMount() {
         const { intl } = this.props;
-        const { token } = this.props.location.query;
-        const debug = this.props.location.query.debug === 'true';
-        if (debug) {
-            this.setState({
-                status: 'success',
-                error: '',
-                // TODO: If this returns true the user is stuck
-                // because no continue button is displayed.
-                // TODO: Find out what consitutes a completed user - e.g. is it approved?
-                completed: false,
-                email: 'foo@bar.com',
-                username: 'foo',
-                token: 'tokenHere',
-            });
-        } else if (!token) {
+        const token = this.props.location.query.token;
+        if (!token) {
             this.setState({
                 status: 'error',
                 error: intl.formatMessage({ id: 'error_token_required' }),

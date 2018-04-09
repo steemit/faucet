@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { LocaleProvider } from 'antd';
 import { IntlProvider } from 'react-intl';
 import { bindActionCreators } from 'redux';
@@ -29,15 +28,6 @@ export default class App extends Component {
         children: React.PropTypes.element.isRequired,
         locale: React.PropTypes.string.isRequired,
         setLocale: React.PropTypes.func.isRequired,
-        location: PropTypes.shape({
-            query: PropTypes.shape({
-                debug: PropTypes.string,
-            }),
-        }),
-    };
-
-    static defaultProps = {
-        location: null,
     };
 
     componentWillMount() {
@@ -47,7 +37,7 @@ export default class App extends Component {
     }
 
     render() {
-        const { locale, children, location: { query: { debug } } } = this.props;
+        const { locale, children } = this.props;
         let defaultLocale = locale;
         if (locale === 'auto') {
             defaultLocale = getAvailableLocale(locale);
@@ -57,14 +47,7 @@ export default class App extends Component {
         return (
             <IntlProvider locale={defaultLocale} messages={translations}>
                 <LocaleProvider locale={antdLocale}>
-                    <div className="main">
-                        {children}
-                        {debug && (
-                            <div className="debug">
-                                <h1>☁ ▅▒░☼‿☼░▒▅ ☁ DEBUG MODE!</h1>
-                            </div>
-                        )}
-                    </div>
+                    <div className="main">{children}</div>
                 </LocaleProvider>
             </IntlProvider>
         );

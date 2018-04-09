@@ -36,7 +36,6 @@ class Signup extends Component {
                 email: PropTypes.string,
                 token: PropTypes.string,
                 ref: PropTypes.string,
-                debug: PropTypes.string,
             }),
         }),
         locale: PropTypes.string.isRequired,
@@ -61,23 +60,20 @@ class Signup extends Component {
             countryCode: '',
             prefix: '',
             completed: false,
-            debug: props.location.query.debug === 'true',
         };
     }
 
     componentWillMount() {
-        if (!this.state.debug) {
-            fetch('/api/guess_country')
-                .then(checkStatus)
-                .then(parseJSON)
-                .then(data => {
-                    if (data.location) {
-                        this.setState({
-                            countryCode: data.location.country.iso_code,
-                        });
-                    }
-                });
-        }
+        fetch('/api/guess_country')
+            .then(checkStatus)
+            .then(parseJSON)
+            .then(data => {
+                if (data.location) {
+                    this.setState({
+                        countryCode: data.location.country.iso_code,
+                    });
+                }
+            });
     }
 
     initStep = () => {
@@ -259,7 +255,6 @@ class Signup extends Component {
                                     username={username}
                                     email={email}
                                     origin={ref}
-                                    debug
                                 />
                             </div>
                         )}
@@ -277,7 +272,6 @@ class Signup extends Component {
                                         username={username}
                                         email={email}
                                         goBack={this.goBack}
-                                        debug
                                     />
                                 )}
                                 {countryCode === 'CN' && (
@@ -286,7 +280,6 @@ class Signup extends Component {
                                         username={username}
                                         email={email}
                                         goBack={this.goBack}
-                                        debug
                                     />
                                 )}
                             </div>
@@ -305,7 +298,6 @@ class Signup extends Component {
                                     countryCode={countryCode}
                                     prefix={prefix}
                                     phoneNumber={phoneNumber}
-                                    debug
                                 />
                             </div>
                         )}
@@ -345,7 +337,6 @@ class Signup extends Component {
                                     phoneNumber={phoneNumber}
                                     prefix={prefix}
                                     goBack={this.goBack}
-                                    debug
                                 />
                             </div>
                         )}
