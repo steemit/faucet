@@ -137,9 +137,10 @@ const updateUserAttr = async (database, userInfo, attr, value, findBy) => {
     }
 };
 
-const sendEmail = async (req, mailToken) => {
+const sendEmail = async (req, mailToken, emailType, email = undefined) => {
+    const emailAddress = email === undefined ? req.body.email : email;
     try {
-        return await req.mail.send(req.body.email, 'confirm_email', {
+        return await req.mail.send(emailAddress, emailType, {
             url: `${req.protocol}://${req.get('host')}/confirm-email?token=${mailToken}`,
         });
     } catch (error) {
@@ -147,6 +148,7 @@ const sendEmail = async (req, mailToken) => {
         return false;
     }
 };
+
 
 /**
  * Send the email to user asking them to confirm their email address.
@@ -172,10 +174,10 @@ const sendConfirmationEmail = async (req, res) => {
     }, process.env.JWT_SECRET, { expiresIn: '14d' });
 
     // If the user has not made a prior attempt, send an email.
-    if (!usersLastAttempt) sendEmail(req, mailToken);
+    if (!usersLastAttempt) sendEmail(req, mailToken, 'confirm_email');
 
     // If the user's last attempt was more than a minute ago send an email.
-    if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken);
+    if (usersLastAttempt && usersLastAttempt < minusOneMinute) sendEmail(req, mailToken, 'confirm_email');
 
     // If the user's last attempt was less than or exactly a minute ago, throw an error.
     if (usersLastAttempt && usersLastAttempt >= minusOneMinute) emailError('error_api_wait_one_minute');
@@ -462,9 +464,8 @@ router.get('/confirm_email', async (req, res) => {
     if (!req.query.token) {
         res.status(400).json({ error: 'error_api_token_required' });
     } else {
-        let decoded;
         try {
-            decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+            const decoded = verifyToken(req.query.token, 'confirm_email');
             if (decoded.type === 'confirm_email') {
                 const user = await req.db.users.findOne({ where: { email: decoded.email } });
                 const token = jwt.sign({
@@ -706,6 +707,27 @@ router.post('/create_account', apiMiddleware(async req => {
 router.get('/approve_account', apiMiddleware(async req => {
     const decoded = verifyToken(req.query.token);
     await Promise.all(decoded.emails.map(email => approveAccount(req, email)));
+    return { success: true };
+}));
+
+
+/**
+ * Endpoint called by the faucet admin to email accounts
+ * The email allowing the users to continue the creation process is sent
+ * to all accounts that have been approved but have not verified their email.
+ */
+router.get('/resend_email_validation', apiMiddleware(async req => {
+    const decoded = verifyToken(req.query.token);
+
+    await Promise.all(decoded.emails.map(email => {
+        // Generate a mail token.
+        const mailToken = jwt.sign({
+            type: 'confirm_email',
+            email,
+        }, process.env.JWT_SECRET, { expiresIn: '14d' });
+        return sendEmail(req, mailToken, 'confirm_again_email', email);
+    }
+    ));
     return { success: true };
 }));
 
