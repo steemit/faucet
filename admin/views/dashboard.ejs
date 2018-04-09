@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+    <% include ./partials/layout/head %>
+    <body>
+        <div class="main-wrapper">
+            <div class="app" id="app">
+                <% include ./partials/layout/header %>
+                <% include ./partials/layout/menu.ejs %>
+                <article class="content">
+                    <section class="section">
+                        <div class="row">
+                            <div class="col-xl-4">
+                                <div class="card card-card-default">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Ongoing users </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= ongoing %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/ongoing">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4">
+                                <div class="card card-warning">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Pending users </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= pending %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/pending">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4">
+                                <div class="card card-success">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Approved users </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= approved %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/approved">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xl-4">
+                                <div class="card card-danger">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Rejected users </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= rejected %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/rejected">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4">
+                                <div class="card card-primary">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Created users </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= created %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/created">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> All users </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= all %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/all">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h1>Temp:</h1>
+                        <div class="row">
+                            <div class="col-xl-3">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title">expired 1-day email token</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= tempUnverifiedEmailExpiredToken %></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/stuck1">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> No Known validation email, unverified phone </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= tempNoKnownEmailAttemptUnverifiedPhone%></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                      <a href="/users/stuck2">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> No Known validation email, verified phone </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= tempNoKnownEmailAttemptVerifiedPhone%></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/stuck3">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Verified phone, no attempts </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= tempVerifiedPhoneNoAttempts%></h1>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="/users/stuck4">View users</a>
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+                        <h1>Stopped at:</h1>
+                        <div class="row">
+                            <div class="col-xl-2">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title">Username Step</p>
+                                            <p>Picked a username, did not proceed.</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= usernameOnly %></h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Email Step</p>
+                                            <p>Was sent verification email but let it expire.</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= expiredEmailToken%></h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Phone Step 1</p>
+                                            <p>Never entered phone number.</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= emailVerifiedPhoneUnverified1%></h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Phone Step 2</p>
+                                            <p>Entered phone number, incomplete phone validation.</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= emailVerifiedPhoneUnverified2%></h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <div class="header-block">
+                                            <p class="title"> Final Step</p>
+                                            <p>Valid Email, Valid Phone, did not complete.</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-block">
+                                        <h1><%= emailVerifiedPhoneVerified %></h1>
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+    
+                    
+                    
+                    
+                    
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+        <% include ./partials/layout/scripts %>
+    </body>
+</html>

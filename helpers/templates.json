@@ -2,9 +2,14 @@
   "confirm_email": {
     "from": "Steemit <noreply@steemit.com>",
     "subject": "Please confirm your email",
-    "text": "On Steemit, you get paid to post and share good content. But first, let's finish setting up your account.\n\nPlease confirm your email address by clicking on this link:\n\n{url}\n\nCheers\nYour friends at Steemit"
+    "text": "On Steemit, you get paid to post and share good content. But first, let's finish setting up your account.\n\nPlease confirm your email address by clicking on this link:\n\n{url}\n\nCheers\n\nYour friends at Steemit"
   },
-  "create_account": {
+  "confirm_again_email": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "Your Steemit account is waiting...",
+    "text": "You recently tried signing up for Steemit — a place to get paid for posting and sharing good content.\nWe weren't able to confirm your email address. Click this new email confirmation link to finish setting up your account:\n\n{url}\n\nCheers\n\nYour friends at Steemit."
+  },
+ "create_account": {
     "from": "Steemit <noreply@steemit.com>",
     "subject" : "One last step to set up your account",
     "text": "Hi again,\n\nGood news! Your account information has been verfied.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"

@@ -11,13 +11,10 @@ const locale = getAvailableLocale('auto');
 const translations = getTranslations('auto');
 
 ReactDOM.render(
-  <IntlProvider locale={locale} messages={translations}>
-    <Provider store={store}>
-      <Router
-        routes={routes}
-        history={browserHistory}
-      />
-    </Provider>
-  </IntlProvider>,
-  document.getElementById('app'),
+    <IntlProvider locale={locale} messages={translations}>
+        <Provider store={store}>
+            <Router routes={routes} history={browserHistory} />
+        </Provider>
+    </IntlProvider>,
+    document.getElementById('app')
 );

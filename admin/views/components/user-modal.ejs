@@ -1,0 +1,125 @@
+<div class="modal fade" id="approveUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Approve User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you want to <strong>approve</strong> the selected users ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal" onclick="javascript:approveUser()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rejectUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Approve User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you want to <strong>reject</strong> the selected users ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-warning" data-dismiss="modal" onclick="javascript:rejectUser()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="emailUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Email User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you want to <strong>email</strong> the selected users ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-warning" data-dismiss="modal" onclick="javascript:emailUser()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+  var users = [];
+  function setUser(id) {
+    users = [id];
+  }
+
+  function processResult(data) {
+    if(data.success) {
+      if(Array.isArray(data.ids)) {
+        for(var i = 0; i < data.ids.length; i += 1) {
+          $('#'+data.ids[i]).remove();
+        }
+      } else {
+        $('#'+data.ids).remove();
+      }
+      $('#successModal').modal('show')
+    } else {
+      $('#errorModal').modal('show');
+    }
+  }
+
+  function setUsers() {
+    $('input[type="checkbox"]:checked:not(#toggleAll)').each(function() {
+      users.push($(this).val());
+    });
+  }
+
+  function approveUser() {
+    if(users.length === 0) {
+      setUsers();
+    }
+    $.post('/approve',
+      { ids: users  }
+    )
+      .done(function( data ) {
+        processResult(data);
+      });
+  }
+
+  function rejectUser() {
+    if(users.length === 0) {
+      setUsers();
+    }
+
+    $.post('/reject',
+      { ids: users  }
+    )
+      .done(function( data ) {
+        processResult(data);
+      });
+  }
+
+
+  function emailUser() {
+    if(users.length === 0) {
+      setUsers();
+    }
+    $.post('/email',
+      { ids: users }
+    )
+      .done(function( data ) {
+        processResult(data);
+      });
+  }
+
+</script>
