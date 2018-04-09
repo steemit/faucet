@@ -5,12 +5,13 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const steem = require('@steemit/steem-js');
+const moment = require('moment');
+const csp = require('express-csp-header');
 const mail = require('./helpers/mail');
 const db = require('./db/models');
 const geoip = require('./helpers/maxmind');
 const getClientConfig = require('./helpers/getClientConfig');
 const logger = require('./helpers/logger');
-const moment = require('moment');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -48,6 +49,18 @@ setInterval(() => {
     logger.error(error, 'error cleaning database');
   });
 }, 60 * 60 * 1000);
+
+app.use(csp({
+  policies: {
+    'default-src': process.env.CSP_DEFAULT.split(','),
+    'script-src': process.env.CSP_SCRIPT_SRC.split(','),
+    'connect-src': process.env.CSP_CONNECT_SRC.split(','),
+    'frame-src': process.env.CSP_FRAME_SRC.split(','),
+    'style-src': process.env.CSP_STYLE_SRC.split(','),
+    'img-src': process.env.CSP_IMG_SRC.split(','),
+    'font-src': process.env.CSP_FONT_SRC.split(','),
+  },
+}));
 
 // logging middleware
 app.use((req, res, next) => {
