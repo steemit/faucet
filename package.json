@@ -30,6 +30,11 @@
     "maxmind": "2.4.0",
     "moment": "2.20.1",
     "mysql2": "1.5.1",
+<<<<<<< HEAD
+=======
+    "passport": "0.4.0",
+    "passport-google-oauth": "1.0.0",
+>>>>>>> remove deprecated react hotloader
     "sequelize": "4.32.1",
     "serve-favicon": "2.4.5",
     "twilio": "3.11.1",
@@ -86,6 +91,7 @@
     "react-async-script": "0.9.1",
     "react-dom": "15.3.2",
     "react-google-recaptcha": "git://github.com/busyorg/react-google-recaptcha.git#0b3362f",
+    "react-hot-loader": "4.0.1",
     "react-intl": "2.4.0",
     "react-redux": "4.4.5",
     "react-router": "3.0.0",
