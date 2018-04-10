@@ -30,9 +30,7 @@ interface MainState {
 }
 
 interface AppWindow extends Window {
-  /** Set by react build script env substitution using REACT_APP_GOOGLE_CLIENT_ID. */
-  GOOGLE_CLIENT_ID: string
-  /** API server address, REACT_APP_SERVER_ADDRESS. */
+  /** Set by react build script env substitution using REACT_APP_SERVER_ADDRESS. */
   SERVER_ADDRESS: string
   /** Assigned by Google platform tools on load. */
   gapi: any
@@ -58,6 +56,9 @@ class Main extends React.Component<MainProps, MainState> {
   /** Return the Google oAuth2 session, loads a new session if none was previously initiated. */
   public async getAuth2() {
     if (!this.auth2Session) {
+      const clientId = await (await fetch(
+        `${localWindow.SERVER_ADDRESS}/client_id`,
+      )).text()
       const { gapi } = localWindow
       await new Promise((resolve, reject) => {
         gapi.load("auth2", {
@@ -68,7 +69,7 @@ class Main extends React.Component<MainProps, MainState> {
         })
       })
       this.auth2Session = await gapi.auth2.init({
-        client_id: localWindow.GOOGLE_CLIENT_ID,
+        client_id: clientId,
       })
     }
     return this.auth2Session
@@ -222,11 +223,11 @@ class Main extends React.Component<MainProps, MainState> {
               onSelect={this.onMenuSelection}
               selectedKeys={[activePage]}
             >
-              <Menu.Item key="/">
+              <Menu.Item key="/admin">
                 <Icon type="dashboard" />
                 <span className="nav-text">Dashboard</span>
               </Menu.Item>
-              <Menu.Item key="/signups">
+              <Menu.Item key="/admin/signups">
                 <Icon type="solution" />
                 <span className="nav-text">Signups</span>
               </Menu.Item>
@@ -250,9 +251,9 @@ class Main extends React.Component<MainProps, MainState> {
             </Layout.Header>
             <Layout.Content>
               <Switch>
-                <Route path="/" exact={true} render={renderDashboard} />
-                <Route path="/signups" exact={true} render={renderSignupList} />
-                <Route path="/signups/:id" render={renderSignupDetail} />
+                <Route path="/admin" exact={true} render={renderDashboard} />
+                <Route path="/admin/signups" exact={true} render={renderSignupList} />
+                <Route path="/admin/signups/:id" render={renderSignupDetail} />
               </Switch>
             </Layout.Content>
           </Layout>

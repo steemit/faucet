@@ -1,9 +1,11 @@
 const express = require('express');
-
-const router = express.Router();
+const fs = require('fs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const Sequelize = require('sequelize');
 const { OAuth2Client } = require('google-auth-library');
+
+const router = express.Router();
 
 const { GOOGLE_CLIENT_ID, GOOGLE_AUTHORIZED_DOMAINS } = process.env;
 if (!GOOGLE_CLIENT_ID) {
@@ -38,6 +40,21 @@ router.use((req, res, next) => {
     ].join(', '));
     next();
 });
+
+// serve the google client id
+router.get('/client_id', (req, res) => {
+    res.end(GOOGLE_CLIENT_ID);
+});
+
+// production endpoints to serve built scripts and handle routing
+if (process.env.NODE_ENV === 'production') {
+    const adminPath = path.join(__dirname, '../public/admin');
+    const indexFile = fs.readFileSync(path.join(adminPath, 'index.html'));
+    router.get('/static', express.static(path.join(adminPath, 'static')));
+    router.get('/*', (req, res) => {
+        res.end(indexFile);
+    });
+}
 
 // require valid token for all POST requests
 router.use((req, res, next) => {

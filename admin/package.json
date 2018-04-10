@@ -6,6 +6,7 @@
     "test": "react-scripts-ts test --env=jsdom",
     "lint": "prettier --write 'src/**/*.+(ts|tsx)' && tslint --fix -t verbose 'src/**/*.+(ts|tsx)'"
   },
+  "homepage": "/admin",
   "prettier": {
     "arrowParens": "always",
     "semi": false,

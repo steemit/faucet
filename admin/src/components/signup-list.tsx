@@ -107,7 +107,7 @@ export const columns = [
   {
     dataIndex: "id",
     render: (id: string, record: any) => {
-      return <Link to={`/signups/${id}`}>{id}</Link>
+      return <Link to={`/admin/signups/${id}`}>{id}</Link>
     },
     title: "ID",
   },
@@ -210,7 +210,7 @@ class SignupList extends React.Component<SignupListProps, SignupListState> {
   }
 
   public pushQuery(query: SignupListQuery) {
-    this.props.history.push("/signups?" + serializeSignupListQuery(query))
+    this.props.history.push("/admin/signups?" + serializeSignupListQuery(query))
   }
 
   public onSelectChange = (selectedRowKeys: any[]) => {
