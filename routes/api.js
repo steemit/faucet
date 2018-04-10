@@ -717,9 +717,8 @@ router.get('/approve_account', apiMiddleware(async req => {
  * The email allowing the users to continue the creation process is sent
  * to all accounts that have been approved but have not verified their email.
  */
-router.get('/resend_email_validation', apiMiddleware(async req => {
+router.get('/email_user', apiMiddleware(async req => {
     const decoded = verifyToken(req.query.token);
-
     await Promise.all(decoded.emails.map(email => {
         // Generate a mail token.
         const mailToken = jwt.sign({

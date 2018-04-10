@@ -326,7 +326,7 @@ router.get('/users/all', authenticate(), routeMiddleware(async (req) => {
 
 router.get('/users/stuck1', authenticate(), routeMiddleware(async (req) => {
   return stuckUsers(req, {
-    location: 'users/stuck',
+    location: 'users/stuck1',
     showActions: true,
     title: 'Approved Users with unverified emails, one-day token likely expired',
     ...dashboardQueries('temp.unverifiedEmailLikelyExpiredToken'),
@@ -456,7 +456,6 @@ router.post('/approve', authenticate(), routeMiddleware(async (req) => {
 
 router.post('/email', authenticate(), routeMiddleware(async (req) => {
   const users = await req.db.users.findAll({ where: { id: req.body['ids[]'] } });
-  debugger
   const emailType = req.body.type;
   const emails = [];
   for (let i = 0; i < users.length; i += 1) {
@@ -465,7 +464,6 @@ router.post('/email', authenticate(), routeMiddleware(async (req) => {
   const token = jwt.sign({
     emails,
   }, process.env.JWT_SECRET, { expiresIn: '1d' });
-
   const result = await fetch(`${process.env.FAUCET_URL}/api/email_user?token=${token}&type=${emailType}`)
     .then(function (response) {
       return response.json();
