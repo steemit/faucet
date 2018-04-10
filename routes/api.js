@@ -487,6 +487,7 @@ router.get('/confirm_email', async (req, res) => {
                         email: user.email,
                         username: user.username,
                         token,
+                        approved: user.approved,
                     });
                 }
             } else {
