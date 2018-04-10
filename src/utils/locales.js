@@ -5,6 +5,7 @@ import availableLocales from '../../helpers/locales.json';
 import defaultLocale from '../locales/en.json';
 
 export const translations = {};
+
 Object.keys(availableLocales).forEach(key => {
     const localeImport = require(`../locales/${key}.json`);
     translations[key] = merge({}, defaultLocale, localeImport);

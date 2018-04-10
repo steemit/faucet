@@ -16,6 +16,7 @@ import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 import './Signup.less';
 
+/*
 @connect(
     state => ({
         locale: state.appLocale.locale,
@@ -28,6 +29,8 @@ import './Signup.less';
             dispatch
         )
 )
+*/
+
 class Signup extends Component {
     static propTypes = {
         location: PropTypes.shape({
