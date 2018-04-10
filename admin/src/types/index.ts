@@ -19,3 +19,18 @@ export interface User {
 }
 
 export type Users = User[]
+
+export interface Request {
+    id: string,
+    params: object,
+    response: object | null,
+}
+
+export interface RequestError {
+    message: string,
+    code: string,
+}
+
+export type Requests = Request[]
+
+export type RequestIds = String[]
