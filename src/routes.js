@@ -1,9 +1,8 @@
 import React from 'react';
 import { Route, IndexRoute } from 'react-router';
 import LocaleWrapper from './containers/LocaleWrapper';
-//import Signup from './components/Signup';
 import SignupSteps from './containers/SignupSteps';
-import CreateAccount from './components/CreateAccount';
+import CreateAccount from './containers/CreateAccountSteps';
 import ConfirmEmail from './components/ConfirmEmail';
 
 export default (

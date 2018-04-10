@@ -11,21 +11,8 @@ import apiCall from '../utils/api';
 import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
-import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 
-@connect(
-    state => ({
-        locale: state.appLocale.locale,
-    }),
-    dispatch =>
-        bindActionCreators(
-            {
-                setLocale: actions.setLocale,
-            },
-            dispatch
-        )
-)
 class CreateAccount extends Component {
     static defaultProps = {
         location: PropTypes.shape(),

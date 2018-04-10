@@ -12,7 +12,6 @@ import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import logStep from '../../helpers/stepLogger';
-import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 import './Signup.less';
 
