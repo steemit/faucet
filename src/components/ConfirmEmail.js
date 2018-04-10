@@ -1,13 +1,16 @@
 /* eslint-disable react/prop-types */
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 
 class Index extends Component {
+    static propTypes = {
+        setTrackingId: PropTypes.func.isRequired,
+        logCheckpoint: PropTypes.func.isRequired
+    };
     constructor(props) {
         super(props);
         this.state = {
@@ -17,17 +20,17 @@ class Index extends Component {
             email: null,
             token: null,
             error: '',
-            approved: null,
+            approved: null
         };
     }
 
     componentWillMount() {
-        const { intl } = this.props;
+        const { intl, logCheckpoint, setTrackingId } = this.props;
         const token = this.props.location.query.token;
         if (!token) {
             this.setState({
                 status: 'error',
-                error: intl.formatMessage({ id: 'error_token_required' }),
+                error: intl.formatMessage({ id: 'error_token_required' })
             });
         } else {
             fetch(`/api/confirm_email?token=${this.props.location.query.token}`)
@@ -42,10 +45,11 @@ class Index extends Component {
                         username: data.username,
                         token: data.token,
                         xref: data.xref,
-                        approved: data.approved,
+                        approved: data.approved
                     });
                     if (data.success) {
-                        logStep(data.xref, 'email_verified');
+                        setTrackingId(data.xref);
+                        logCheckpoint('email_verified');
                     }
                 })
                 .catch(error => {
@@ -56,7 +60,7 @@ class Index extends Component {
                             completed: data.completed,
                             email: data.email,
                             username: data.username,
-                            token: data.token,
+                            token: data.token
                         });
                     });
                 });
@@ -72,7 +76,7 @@ class Index extends Component {
             username,
             token,
             approved,
-            xref,
+            xref
         } = this.state;
         return (
             <div className="Signup_main">

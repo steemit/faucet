@@ -1,13 +1,14 @@
 import React from 'react';
 import { Route, IndexRoute } from 'react-router';
-import Wrapper from './containers/app';
-import Signup from './components/Signup';
-import CreateAccount from './components/CreateAccount';
+import LocaleWrapper from './containers/LocaleWrapper';
+import SignupSteps from './containers/SignupSteps';
+import CreateAccount from './containers/CreateAccountSteps';
 import ConfirmEmail from './components/ConfirmEmail';
 
 export default (
-    <Route path="/" component={Wrapper}>
-        <IndexRoute component={Signup} />
+    <Route path="/" component={LocaleWrapper}>
+        <IndexRoute component={SignupSteps} />
+        <Route path="create-account" component={CreateAccount} />
         <Route path="confirm-email" component={ConfirmEmail} />
         <Route path="create-account" component={CreateAccount} />
     </Route>

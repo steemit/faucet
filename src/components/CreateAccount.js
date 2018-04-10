@@ -2,41 +2,26 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import { Button, Form, Icon, Popover } from 'antd';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import LanguageItem from './LanguageItem';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
 import apiCall from '../utils/api';
-import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
-import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 
-@connect(
-    state => ({
-        locale: state.appLocale.locale,
-    }),
-    dispatch =>
-        bindActionCreators(
-            {
-                setLocale: actions.setLocale,
-            },
-            dispatch
-        )
-)
 class CreateAccount extends Component {
     static defaultProps = {
         location: PropTypes.shape(),
-        form: PropTypes.shape(),
+        form: PropTypes.shape()
     };
-
     static propTypes = {
         location: PropTypes.shape(),
         intl: intlShape.isRequired,
         locale: PropTypes.string.isRequired,
         setLocale: PropTypes.func.isRequired,
+        setTrackingId: PropTypes.func.isRequired,
+        logCheckpoint: PropTypes.func.isRequired
     };
 
     constructor(props) {
@@ -49,20 +34,25 @@ class CreateAccount extends Component {
             password: '',
             reservedUsername: '',
             email: '',
-            query: {},
+            query: {}
         };
     }
 
     componentWillMount() {
-        const { location: { query: { token } }, intl } = this.props;
+        const {
+            location: { query: { token } },
+            intl,
+            logCheckpoint,
+            setTrackingId
+        } = this.props;
         if (!token) {
             this.setState({
                 step: 'error',
-                error: intl.formatMessage({ id: 'error_token_required' }),
+                error: intl.formatMessage({ id: 'error_token_required' })
             });
         } else {
             apiCall('/api/confirm_account', {
-                token,
+                token
             })
                 .then(data => {
                     if (data.success) {
@@ -74,20 +64,21 @@ class CreateAccount extends Component {
                             reservedUsername: data.reservedUsername,
                             email: data.email,
                             query: data.query,
-                            xref: data.xref,
+                            xref: data.xref
                         });
-                        logStep(data.xref, 'approved_user_username_step');
+                        setTrackingId(data.xref);
+                        logCheckpoint('creation_started');
                     } else {
                         this.setState({
                             step: 'error',
-                            error: intl.formatMessage({ id: data.error }),
+                            error: intl.formatMessage({ id: data.error })
                         });
                     }
                 })
                 .catch(error => {
                     this.setState({
                         step: 'error',
-                        error: intl.formatMessage({ id: error.type }),
+                        error: intl.formatMessage({ id: error.type })
                     });
                 });
         }
@@ -141,44 +132,47 @@ class CreateAccount extends Component {
         this.setState({
             step: 'password',
             stepNumber: 1,
-            username: values.username,
+            username: values.username
         });
-        logStep(this.state.xref, 'approved_user_password_step');
     };
 
     handleSubmitPassword = values => {
         this.setState({
             step: 'password_confirm',
             stepNumber: 2,
-            password: values.password,
+            password: values.password
         });
-        logStep(this.state.xref, 'approved_user_password_confirm_step');
+        this.props.logCheckpoint('password_chosen');
     };
 
     handleSubmit = () => {
-        const { location: { query: { token } }, intl } = this.props;
+        const {
+            location: { query: { token } },
+            intl,
+            logCheckpoint
+        } = this.props;
         const { username, password, email } = this.state;
 
         const publicKeys = steem.auth.generateKeys(username, password, [
             'owner',
             'active',
             'posting',
-            'memo',
+            'memo'
         ]);
         apiCall('/api/create_account', {
             token,
             username,
             email,
-            public_keys: JSON.stringify(publicKeys),
+            public_keys: JSON.stringify(publicKeys)
         })
             .then(data => {
                 if (data.success) {
                     this.setState({ step: 'created' });
-                    logStep(data.xref, 'approved_user_created');
+                    logCheckpoint('account_created');
                 } else {
                     this.setState({
                         step: 'error',
-                        error: intl.formatMessage({ id: data.error }),
+                        error: intl.formatMessage({ id: data.error })
                     });
                 }
             })
@@ -186,8 +180,8 @@ class CreateAccount extends Component {
                 this.setState({
                     step: 'error',
                     error: intl.formatMessage({
-                        id: 'error_api_create_account',
-                    }),
+                        id: 'error_api_create_account'
+                    })
                 });
             });
     };
@@ -199,7 +193,7 @@ class CreateAccount extends Component {
             error,
             username,
             reservedUsername,
-            password,
+            password
         } = this.state;
         const isPasswordOrConfirmStep =
             step === 'password' || step === 'password_confirm';
@@ -323,7 +317,7 @@ class CreateAccount extends Component {
                                             values={{
                                                 username: (
                                                     <b>{reservedUsername}</b>
-                                                ),
+                                                )
                                             }}
                                         />
                                     </span>

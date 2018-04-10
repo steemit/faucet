@@ -77,6 +77,7 @@ class Email extends React.Component {
             onSubmit,
             username,
             intl,
+            trackingId,
         } = this.props;
         const { fingerprint, query } = this.state;
         validateFieldsAndScroll((err, values) => {
@@ -87,6 +88,7 @@ class Email extends React.Component {
                     query,
                     username,
                     recaptcha: window.grecaptcha.getResponse(),
+                    xref: trackingId,
                 })
                     .then(data => {
                         this.setState({ submitting: false });
