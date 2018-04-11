@@ -1,10 +1,10 @@
 import { connect } from 'react-redux';
-import { setLocale } from '../reducers/appLocale';
+import { setLocale } from '../reducers/app';
 import CreateAccount from '../components/CreateAccount';
 
 const mapStateToProps = (state, ownProps) => {
     return {
-        locale: state.appLocale.locale,
+        locale: state.app.locale,
     };
 };
 const mapDispatchToProps = (dispatch, ownProps) => {

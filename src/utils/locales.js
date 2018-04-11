@@ -13,9 +13,10 @@ Object.keys(availableLocales).forEach(key => {
     addLocaleData(localeIntl);
 });
 
-export const getAvailableLocale = appLocale => {
-    let locale = appLocale || 'auto';
-    if (typeof navigator !== 'undefined' && appLocale === 'auto') {
+export const getAvailableLocale = app => {
+    let locale = app || 'auto';
+    // TODO: Test this.
+    if (typeof navigator !== 'undefined' && app === 'auto') {
         locale =
             navigator.userLanguage ||
             navigator.language ||
@@ -29,7 +30,6 @@ export const getAvailableLocale = appLocale => {
     return 'en';
 };
 
-const getTranslations = appLocale =>
-    translations[getAvailableLocale(appLocale)];
+const getTranslations = app => translations[getAvailableLocale(app)];
 
 export default getTranslations;

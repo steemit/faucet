@@ -6,15 +6,18 @@ import '../styles/common.less';
 export default class Locale extends Component {
     static propTypes = {
         children: React.PropTypes.element.isRequired,
-        locale: React.PropTypes.string.isRequired,
-        // TODO: Describe shape here.
-        translations: React.PropTypes.object.isRequired,
-        // TODO: Describe shape here.
-        antdLocales: React.PropTypes.object.isRequired,
+        app: React.PropTypes.shape({
+            locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
+            translations: React.PropTypes.object.isRequired,
+            antdLocales: React.PropTypes.object.isRequired,
+        }),
     };
 
     render() {
-        const { locale, children, translations, antdLocales } = this.props;
+        const {
+            children,
+            app: { translations, antdLocales, locale },
+        } = this.props;
         const antdLocale = antdLocales[locale] || antdLocales.default;
         return (
             <IntlProvider locale={locale} messages={translations}>

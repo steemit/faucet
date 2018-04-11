@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Router, browserHistory, Route, IndexRoute } from 'react-router';
 import { Provider } from 'react-redux';
-// Containers
+import { hot } from 'react-hot-loader';
 import LocaleWrapper from './containers/LocaleWrapper';
 import SignupSteps from './containers/SignupSteps';
 import CreateAccountSteps from './containers/CreateAccountSteps';
@@ -24,5 +24,4 @@ const Root = ({ store }) => (
 Root.propTypes = {
     store: PropTypes.object.isRequired,
 };
-
-export default Root;
+export default hot(module)(Root);

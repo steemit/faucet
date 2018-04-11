@@ -1,11 +1,10 @@
 import { connect } from 'react-redux';
+import { toJS } from '../utils/to-js';
 import Locale from '../components/Locale';
 const mapStateToProps = (state, ownProps) => {
     return {
-        locale: state.appLocale.locale,
-        translations: state.appLocale.translations,
-        antdLocales: state.appLocale.antdLocales,
+        app: state.app,
     };
 };
-const LocaleWrapper = connect(mapStateToProps, null)(Locale);
+const LocaleWrapper = connect(mapStateToProps, null)(toJS(Locale));
 export default LocaleWrapper;
