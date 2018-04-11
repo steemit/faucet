@@ -8,14 +8,20 @@ const SET_TRANSLATIONS = 'faucet/translations/set';
 
 // Init State
 // TODO: init Immutable Record here.
-const initLocale = getAvailableLocale('auto');
-const translations = getTranslations(initLocale);
+const locale = getAvailableLocale('auto');
+const locales = {
+    en: 'English',
+    fr: 'Français',
+    zh: '简体中文',
+};
+const translations = getTranslations(locale);
 const antdLocales = { en: enUS, fr: frFR, default: enUS };
 
 const initialState = {
-    locale: initLocale,
-    translations: translations,
-    antdLocales: antdLocales,
+    locale,
+    locales,
+    translations,
+    antdLocales,
 };
 
 // Reducer.
@@ -34,9 +40,8 @@ export default (state = initialState, action = {}) => {
 };
 
 export const setLocale = locale => {
-    debugger;
     return {
         type: SET_LOCALE,
-        payload: { locale: locale },
+        payload: { locale },
     };
 };

@@ -4,6 +4,7 @@ import Signup from '../components/Signup';
 const mapStateToProps = (state, ownProps) => {
     return {
         locale: state.appLocale.locale,
+        locales: state.appLocale.locales,
     };
 };
 const mapDispatchToProps = (dispatch, ownProps) => {

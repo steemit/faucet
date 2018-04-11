@@ -8,9 +8,9 @@ export default class Locale extends Component {
         children: React.PropTypes.element.isRequired,
         locale: React.PropTypes.string.isRequired,
         // TODO: Describe shape here.
-        translations: React.PropTypes.string.isRequired,
+        translations: React.PropTypes.object.isRequired,
         // TODO: Describe shape here.
-        antdLocales: React.PropTypes.string.isRequired,
+        antdLocales: React.PropTypes.object.isRequired,
     };
 
     render() {

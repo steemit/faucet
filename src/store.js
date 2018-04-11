@@ -2,9 +2,11 @@ import { createStore, combineReducers, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import steem from '@steemit/steem-js';
 import appLocale from './reducers/appLocale';
+import step from './reducers/appLocale';
 
 const reducers = combineReducers({
     appLocale,
+    step,
 });
 
 if (window.config.STEEMJS_URL) {

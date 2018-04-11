@@ -1,7 +1,5 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import { Button, Icon, Popover } from 'antd';
 import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
@@ -12,23 +10,7 @@ import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import logStep from '../../helpers/stepLogger';
-import locales from '../../helpers/locales.json';
 import './Signup.less';
-
-/*
-@connect(
-    state => ({
-        locale: state.appLocale.locale,
-    }),
-    dispatch =>
-        bindActionCreators(
-            {
-                setLocale: actions.setLocale,
-            },
-            dispatch
-        )
-)
-*/
 
 class Signup extends Component {
     static propTypes = {
@@ -42,6 +24,7 @@ class Signup extends Component {
         }),
         locale: PropTypes.string.isRequired,
         setLocale: PropTypes.func.isRequired,
+        locales: PropTypes.object.isRequired,
     };
 
     static defaultProps = {
@@ -145,7 +128,7 @@ class Signup extends Component {
             email,
             ref,
         } = this.state;
-        const { setLocale, locale } = this.props;
+        const { setLocale, locale, locales } = this.props;
 
         return (
             <div className="Signup_main">
