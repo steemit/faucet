@@ -311,6 +311,7 @@ class SignupList extends React.Component<SignupListProps, SignupListState> {
   public render() {
     const {
       loading,
+      searchValue,
       selectedRowKeys,
       signups,
       tableAction,
@@ -356,9 +357,9 @@ class SignupList extends React.Component<SignupListProps, SignupListState> {
       </div>
     )
     // TODO: break out search to own component so it is less laggy
-    const searchValue = this.state.searchValue || query.search
+    const searchText = searchValue !== undefined ?  searchValue : query.search
     const suffix =
-      searchValue.length > 0 ? (
+      searchText.length > 0 ? (
         <Icon type="close-circle" onClick={this.onSearchClear} />
       ) : (
         undefined
@@ -376,7 +377,7 @@ class SignupList extends React.Component<SignupListProps, SignupListState> {
                   placeholder="Filter"
                   onPressEnter={this.onSearchEnter}
                   onChange={this.onSearchChange}
-                  value={searchValue}
+                  value={searchText}
                   ref={(node: any) => (this.searchInput = node)}
                 />
               </Col>
