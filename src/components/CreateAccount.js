@@ -96,20 +96,14 @@ class CreateAccount extends Component {
     }
 
     componentDidUpdate() {
-        const { step, query } = this.state;
+        const { step } = this.state;
         if (step === 'created') {
             if (this.isWhistle()) {
                 window.postMessage('whistle_signup_complete');
             } else {
-                const urlParameters =
-                    query &&
-                    Object.keys(query)
-                        .map(param => `${param}=${query[param]}`)
-                        .join('&');
+                const redirectUri = this.getRedirect();
                 setTimeout(() => {
-                    window.location.href = `${
-                        window.config.DEFAULT_REDIRECT_URI
-                    }?${urlParameters}`;
+                    window.location.href = redirectUri;
                 }, 5000);
             }
         }
@@ -117,24 +111,21 @@ class CreateAccount extends Component {
     getRedirect = () => {
         const { username } = this.state;
         const { location: { query } } = this.props;
+
+        const usernamePattern = '{{username}}';
         let redirectUri = window.config.DEFAULT_REDIRECT_URI;
-        if (window.config.USERNAME_REGEX) {
-            redirectUri = redirectUri.replace(
-                new RegExp(window.config.USERNAME_REGEX, 'g'),
-                username
-            );
-        }
+
+        redirectUri = redirectUri.replace(usernamePattern, username);
+
         if (query) {
-            // eslint-disable-next-line array-callback-return
             Object.keys(query).map(param => {
-                redirectUri = redirectUri.replace(
-                    new RegExp(`{{${param}}}`, 'g'),
-                    query[param]
-                );
+                redirectUri = redirectUri.replace(`{{${param}}}`, query[param]);
             });
         }
+
         return redirectUri;
     };
+
     isWhistle = () => {
         const { query } = this.state;
         return query && query.view_mode && query.view_mode === 'whistle';

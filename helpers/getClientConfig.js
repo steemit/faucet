@@ -5,12 +5,11 @@
  * @return string JSON config blob
  */
 function getClientConfig() {
-  const envVars = [
-    'RECAPTCHA_SITE_KEY',
-    'STEEMJS_URL',
-    'DEFAULT_REDIRECT_URI',
-    'USERNAME_REGEX',
-  ];
+    const envVars = [
+        'RECAPTCHA_SITE_KEY',
+        'STEEMJS_URL',
+        'DEFAULT_REDIRECT_URI',
+    ];
 
     return JSON.stringify(
         envVars.reduce((config, prop) => {
