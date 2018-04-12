@@ -252,7 +252,11 @@ class Main extends React.Component<MainProps, MainState> {
             <Layout.Content>
               <Switch>
                 <Route path="/admin" exact={true} render={renderDashboard} />
-                <Route path="/admin/signups" exact={true} render={renderSignupList} />
+                <Route
+                  path="/admin/signups"
+                  exact={true}
+                  render={renderSignupList}
+                />
                 <Route path="/admin/signups/:id" render={renderSignupDetail} />
               </Switch>
             </Layout.Content>

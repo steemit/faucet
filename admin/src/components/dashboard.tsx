@@ -53,7 +53,9 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             </Col>
             <Col xs={12} lg={6}>
               <Card
-                title={<Link to="/admin/signups?q=status:approved">Approved</Link>}
+                title={
+                  <Link to="/admin/signups?q=status:approved">Approved</Link>
+                }
                 bordered={false}
               >
                 {data.approved}
@@ -61,7 +63,9 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             </Col>
             <Col xs={12} lg={6}>
               <Card
-                title={<Link to="/admin/signups?q=status:rejected">Rejected</Link>}
+                title={
+                  <Link to="/admin/signups?q=status:rejected">Rejected</Link>
+                }
                 bordered={false}
               >
                 {data.rejected}
@@ -69,7 +73,9 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             </Col>
             <Col xs={12} lg={6}>
               <Card
-                title={<Link to="/admin/signups?q=status:created">Created</Link>}
+                title={
+                  <Link to="/admin/signups?q=status:created">Created</Link>
+                }
                 bordered={false}
               >
                 {data.created}

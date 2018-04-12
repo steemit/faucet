@@ -357,7 +357,7 @@ class SignupList extends React.Component<SignupListProps, SignupListState> {
       </div>
     )
     // TODO: break out search to own component so it is less laggy
-    const searchText = searchValue !== undefined ?  searchValue : query.search
+    const searchText = searchValue !== undefined ? searchValue : query.search
     const suffix =
       searchText.length > 0 ? (
         <Icon type="close-circle" onClick={this.onSearchClear} />
