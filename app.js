@@ -28,14 +28,15 @@ const app = express();
 // database cleanup task
 // removes actions and completed requests older than 60 days
 async function cleanupDb() {
+  const expiry = process.env.DATABASE_EXPIRY ? parseInt(process.env.DATABASE_EXPIRY) : 60;
   const numActions = await db.actions.destroy({
-    where: { created_at: { [Op.lt]: moment().subtract(60, 'days').toDate() } },
+    where: { created_at: { [Op.lt]: moment().subtract(expiry, 'days').toDate() } },
   });
   if (numActions > 0) {
     logger.info('removed %d old actions', numActions);
   }
   const numUsers = await db.users.destroy({
-    where: { updated_at: { [Op.lt]: moment().subtract(60, 'days').toDate() } },
+    where: { updated_at: { [Op.lt]: moment().subtract(expiry, 'days').toDate() } },
   });
   if (numUsers > 0) {
     logger.info('removed %d old users', numUsers);
@@ -103,6 +104,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', require('./routes/api'));
+app.use('/admin', require('./routes/admin'));
 app.use('/', require('./routes'));
 
 // catch 404 and forward to error handler

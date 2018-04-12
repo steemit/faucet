@@ -118,7 +118,7 @@ class CreateAccount extends Component {
         redirectUri = redirectUri.replace(usernamePattern, username);
 
         if (query) {
-            Object.keys(query).map(param => {
+            Object.keys(query).forEach(param => {
                 redirectUri = redirectUri.replace(`{{${param}}}`, query[param]);
             });
         }

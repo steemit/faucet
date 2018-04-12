@@ -1,0 +1,12 @@
+
+.signup-detail .details .label {
+    display: inline-block;
+    width: 120px;
+    text-align: right;
+}
+
+.signup-detail .details .value {
+    font-weight: bold;
+    margin-left: 16px;
+    margin-right: 8px;
+}

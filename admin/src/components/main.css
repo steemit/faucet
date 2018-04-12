@@ -1,0 +1,23 @@
+
+.main .ant-layout-header {
+    background: none;
+}
+
+.main .ant-layout-content {
+    padding: 16px 30px 30px;
+}
+
+.main .user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    white-space: nowrap;
+}
+
+.main .user-info .ant-avatar {
+    margin-right: 8px;
+}
+
+.main .user-info > span {
+    margin-left: 16px;
+}
