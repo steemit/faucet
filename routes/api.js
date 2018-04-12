@@ -701,37 +701,6 @@ router.post('/create_account', apiMiddleware(async req => {
 }));
 
 /**
- * Endpoint called by the faucet admin to approve accounts
- * The email allowing the users to continue the creation process is sent
- * to all approved accounts
- */
-router.get('/approve_account', apiMiddleware(async req => {
-    const decoded = verifyToken(req.query.token);
-    await Promise.all(decoded.emails.map(email => approveAccount(req, email)));
-    return { success: true };
-}));
-
-
-/**
- * Endpoint called by the faucet admin to email accounts
- * The email allowing the users to continue the creation process is sent
- * to all accounts that have been approved but have not verified their email.
- */
-router.get('/email_user', apiMiddleware(async req => {
-    const decoded = verifyToken(req.query.token);
-    await Promise.all(decoded.emails.map(email => {
-        // Generate a mail token.
-        const mailToken = jwt.sign({
-            type: 'confirm_email',
-            email,
-        }, process.env.JWT_SECRET, { expiresIn: '14d' });
-        return sendEmail(req, mailToken, 'confirm_again_email', email);
-    }
-    ));
-    return { success: true };
-}));
-
-/**
  * Check the validity and blockchain availability of a username
  * Accounts created with the faucet can book a username for one week
  */
