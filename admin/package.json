@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "lint": "prettier --write 'src/**/*.+(ts|tsx)' && tslint --fix -t verbose 'src/**/*.+(ts|tsx)'"
+  },
+  "homepage": "/admin",
+  "prettier": {
+    "arrowParens": "always",
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "@types/antd": "^1.0.0",
+    "@types/jest": "^22.2.2",
+    "@types/node": "^9.6.2",
+    "@types/react": "^16.3.5",
+    "@types/react-dom": "^16.0.4",
+    "@types/react-router-dom": "^4.2.6",
+    "antd": "^3.4.1",
+    "babel-core": "^6.26.0",
+    "babel-runtime": "^6.26.0",
+    "immutable": "^3.8.2",
+    "prettier": "^1.11.1",
+    "react": "^16.3.1",
+    "react-dom": "^16.3.1",
+    "react-router-dom": "^4.2.2",
+    "react-scripts-ts": "^2.14.0",
+    "typescript": "^2.8.1"
+  }
+}
