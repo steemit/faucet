@@ -5,6 +5,8 @@
  * All service helpers should use a mock variant if the DEBUG_MODE env var is set.
  */
 
+const fetch = require('isomorphic-fetch')
+
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined
 
 const logger = require('./logger').child({DEBUG_MODE})
@@ -33,7 +35,7 @@ if (!DEBUG_MODE) {
     }
     steem.api.setOptions({ url: process.env.STEEMJS_URL });
 } else {
-    logger.warn('Running in DEBUG_MODE')
+    logger.warn('!! Running in debug mode !!')
 }
 
 /**
@@ -46,6 +48,18 @@ async function sendSMS(to, body) {
         logger.warn('Send SMS to %s with body: %s', to, body)
     } else {
         return twilio.sendMessage(to, body)
+    }
+}
+
+/**
+ * Validate phone number.
+ * @param number Number to validate, e.g. +1234567890.
+ */
+async function validatePhone(number) {
+    if (DEBUG_MODE) {
+        logger.warn('Validate %s', number)
+    } else {
+        return twilio.isValidNumber(number)
     }
 }
 
@@ -145,6 +159,55 @@ async function checkUsername(username) {
     }
 }
 
+
+/**
+ * Call out to gatekeeper to check for approval status.
+ * @param user User (aka Signup) instance to check
+ */
+async function classifySignup(user) {
+    if (DEBUG_MODE) {
+        logger.warn('Verify signup for %s', user.id)
+    }
+    // TODO: call out to gatekeeper when launched
+    return 'manual_review'
+}
+
+/**
+ * Transfer account data to old recovery system.
+ * @param username Username to check if available.
+ */
+async function condenserTransfer(email, username, ownerKey) {
+    if (DEBUG_MODE) {
+        logger.warn('Transfer data for %s to conveyor', username)
+    } else {
+        const req = {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                name: username,
+                owner_key: ownerKey,
+                secret: process.env.CREATE_USER_SECRET, // TODO: verify existence on startup
+            }),
+        }
+        const res = await fetch(req)
+        if (res.status !== 200) {
+            throw new Error(`HTTP ${ res.status }`)
+        }
+    }
+}
+
 module.exports = {
-    sendSMS, sendEmail, conveyorCall, verifyCaptcha, createAccount, checkUsername
+    checkUsername,
+    classifySignup,
+    condenserTransfer,
+    conveyorCall,
+    createAccount,
+    sendEmail,
+    sendSMS,
+    validatePhone,
+    verifyCaptcha,
 };
