@@ -2,8 +2,12 @@ const express = require('express');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-const Sequelize = require('sequelize');
+const db = require('./../db/models');
+const geoip = require('../helpers/maxmind');
+const services = require('../helpers/services');
 const { OAuth2Client } = require('google-auth-library');
+
+const { Sequelize } = db;
 
 const router = express.Router();
 
@@ -105,10 +109,10 @@ addHandler('/whoami', async req => ({ email: req.user.email }));
 addHandler('/dashboard', async req => {
     // TODO: this could call out to overseer for some nice graphs
     const [approved, rejected, pending, created] = await Promise.all([
-        req.db.users.count({ where: { status: 'approved' } }),
-        req.db.users.count({ where: { status: 'rejected' } }),
-        req.db.users.count({ where: { status: 'manual_review' } }),
-        req.db.users.count({ where: { status: 'created' } }),
+        db.users.count({ where: { status: 'approved' } }),
+        db.users.count({ where: { status: 'rejected' } }),
+        db.users.count({ where: { status: 'manual_review' } }),
+        db.users.count({ where: { status: 'created' } }),
     ]);
     return {
         approved, rejected, pending, created
@@ -120,11 +124,11 @@ addHandler('/get_signup', async req => {
     if (!where) {
         throw new Error('Missing where statement');
     }
-    const user = await req.db.users.findOne({ where });
+    const user = await db.users.findOne({ where });
     if (!user) {
         throw new Error('Unknown user');
     }
-    const actions = await req.db.actions.findAll({ where: {
+    const actions = await db.actions.findAll({ where: {
         [Sequelize.Op.or]: [
             { ip: user.ip },
             { user_id: user.id },
@@ -132,7 +136,7 @@ addHandler('/get_signup', async req => {
     } });
     // TODO: geoip lookup should be stored per signup in database
     //       so that it is searchable
-    const location = req.geoip.get(user.ip);
+    const location = geoip.get(user.ip);
     return { user, actions, location };
 });
 
@@ -178,8 +182,8 @@ addHandler('/list_signups', async req => {
         query.where = { [and]: andList };
     }
     const [total, users] = await Promise.all([
-        req.db.users.count({ where: query.where }),
-        req.db.users.findAll(query),
+        db.users.count({ where: query.where }),
+        db.users.findAll(query),
     ]);
     return { total, users, query };
 });
@@ -189,7 +193,7 @@ addHandler('/approve_signups', async req => {
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
-    const signups = await req.db.users.findAll({
+    const signups = await db.users.findAll({
         where: { id: ids }
     });
     const approve = async signup => {
@@ -200,7 +204,7 @@ addHandler('/approve_signups', async req => {
             type: 'create_account',
             email: signup.email,
         }, process.env.JWT_SECRET);
-        await req.mail.send(signup.email, 'create_account', {
+        await services.sendEmail(signup.email, 'create_account', {
             url: `${req.protocol}://${req.get('host')}/create-account?token=${mailToken}`,
         });
         signup.status = 'approved';// eslint-disable-line
@@ -223,7 +227,7 @@ addHandler('/reject_signups', async req => {
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
-    const signups = await req.db.users.findAll({
+    const signups = await db.users.findAll({
         where: { id: ids }
     });
     const reject = async signup => {
