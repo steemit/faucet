@@ -108,18 +108,22 @@ class CreateAccount extends Component {
             }
         }
     }
+
     getRedirect = () => {
-        const { username } = this.state;
-        const { location: { query } } = this.props;
-
-        const usernamePattern = '{{username}}';
+        const { username, query } = this.state;
         let redirectUri = window.config.DEFAULT_REDIRECT_URI;
+        let matches = redirectUri.match(new RegExp(/({{\w+}})/g, 'g'));
 
-        redirectUri = redirectUri.replace(usernamePattern, username);
+        query['username'] = username;
 
-        if (query) {
-            Object.keys(query).forEach(param => {
-                redirectUri = redirectUri.replace(`{{${param}}}`, query[param]);
+        if (matches) {
+            matches.forEach(match => {
+                let strippedMatch = match.match(new RegExp(/\w+/g, 'g'));
+
+                redirectUri = redirectUri.replace(
+                    match,
+                    query && query[strippedMatch] ? query[strippedMatch] : ''
+                );
             });
         }
 
