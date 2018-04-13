@@ -11,31 +11,35 @@ const DEBUG_MODE = process.env.DEBUG_MODE !== undefined
 
 const logger = require('./logger').child({DEBUG_MODE})
 
-// load some helpers only if debug mode is off
-// this is done so that the service can be run without api keys in debug mode
-let twilio, mail, conveyorAccount, conveyorKey, recaptchaSecret, steem
+function getEnv(key) {
+    if (!DEBUG_MODE && !process.env[key]) {
+        throw new Error(`Missing ${ key } env var`)
+    }
+    return process.env[key]
+}
+
+let mail, steem, twilio
 if (!DEBUG_MODE) {
-    twilio = require('./twilio')
     mail = require('./mail')
-    if (!process.env.CONVEYOR_USERNAME) {
-        throw new Error('Missing CONVEYOR_USERNAME env var')
-    }
-    conveyorAccount = process.env.CONVEYOR_USERNAME
-    if (!process.env.CONVEYOR_POSTING_WIF) {
-        throw new Error('Missing CONVEYOR_POSTING_WIF env var')
-    }
-    conveyorKey = process.env.CONVEYOR_POSTING_WIF
-    if (!process.env.RECAPTCHA_SECRET) {
-        throw new Error('Missing RECAPTCHA_SECRET env var')
-    }
-    recaptchaSecret = process.env.RECAPTCHA_SECRET
     steem = require('@steemit/steem-js')
-    if (!process.env.STEEMJS_URL) {
-        throw new Error('Missing STEEMJS_URL env var')
-    }
-    steem.api.setOptions({ url: process.env.STEEMJS_URL });
+    twilio = require('./twilio')
 } else {
     logger.warn('!! Running in debug mode !!')
+}
+
+const condenserSecret = getEnv('CREATE_USER_SECRET')
+const condenserUrl = getEnv('CREATE_USER_URL')
+const conveyorAccount = getEnv('CONVEYOR_USERNAME')
+const conveyorKey = getEnv('CONVEYOR_POSTING_WIF')
+const createAccountDelegation = getEnv('CREATE_ACCOUNT_DELEGATION')
+const createAccountDelegator = getEnv('DELEGATOR_USERNAME')
+const createAccountFee = getEnv('CREATE_ACCOUNT_FEE')
+const createAccountWif = getEnv('DELEGATOR_ACTIVE_WIF')
+const recaptchaSecret = getEnv('RECAPTCHA_SECRET')
+
+const rpcNode = getEnv('STEEMJS_URL')
+if (rpcNode) {
+    steem.api.setOptions({ url: rpcNode })
 }
 
 /**
@@ -86,10 +90,10 @@ async function conveyorCall(method, params) {
     if (DEBUG_MODE) {
         logger.warn({callParams: params}, 'Conveyor call %s', method)
         switch (method) {
-            case 'is_phone_registered':
+            case 'is_email_registered':
                 return (params.email || params[0]) === 'taken@steemit.com'
             case 'is_phone_registered':
-                return (params.phone || params[0]) === '+1234567890'
+                return (params.phone || params[0]) === '+12345678900'
             case 'set_user_data':
                 return
             default:
@@ -124,15 +128,14 @@ async function verifyCaptcha(recaptcha, ip) {
  * @param payload Account create with delegation operation.
  */
 async function createAccount(payload) {
-    // TODO: verify payload
     if (DEBUG_MODE) {
         logger.warn({accountPayload: payload}, 'Creating new account')
     } else {
         return steem.broadcast.accountCreateWithDelegationAsync(
-            process.env.DELEGATOR_ACTIVE_WIF, // TODO: verify existence of env vars on startup
-            process.env.CREATE_ACCOUNT_FEE,
-            process.env.CREATE_ACCOUNT_DELEGATION,
-            process.env.DELEGATOR_USERNAME,
+            createAccountWif,
+            createAccountFee,
+            createAccountDelegation,
+            createAccountDelegator,
             payload.username,
             payload.owner,
             payload.active,
@@ -190,10 +193,10 @@ async function condenserTransfer(email, username, ownerKey) {
                 email,
                 name: username,
                 owner_key: ownerKey,
-                secret: process.env.CREATE_USER_SECRET, // TODO: verify existence on startup
+                secret: condenserSecret,
             }),
         }
-        const res = await fetch(req)
+        const res = await fetch(condenserUrl, req)
         if (res.status !== 200) {
             throw new Error(`HTTP ${ res.status }`)
         }
