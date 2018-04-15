@@ -6,6 +6,7 @@
  */
 
 const fetch = require('isomorphic-fetch')
+const steem = require('@steemit/steem-js')
 
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined
 
@@ -18,10 +19,9 @@ function getEnv(key) {
     return process.env[key]
 }
 
-let mail, steem, twilio
+let mail, twilio
 if (!DEBUG_MODE) {
     mail = require('./mail')
-    steem = require('@steemit/steem-js')
     twilio = require('./twilio')
 } else {
     logger.warn('!! Running in debug mode !!')
