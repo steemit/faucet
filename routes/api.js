@@ -272,7 +272,7 @@ router.post('/request_sms', apiMiddleware(async req => {
         throw new ApiError({ field: 'phoneNumber', type: 'error_api_wait' });
     }
 
-    const phoneExists = db.users.count({
+    const phoneExists = await db.users.count({
         where: {
             phone_number: phoneNumber,
             phone_number_is_verified: true,
