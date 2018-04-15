@@ -15,6 +15,9 @@ module.exports = {
   },
   extends: 'airbnb',
   rules: {
+    'no-restricted-syntax': 0,
+    'global-require': 0,
+    'no-param-reassign': 0,
     'consistent-return': 0,
     'arrow-parens': ['error', 'as-needed'],
     'camelcase': 0,
