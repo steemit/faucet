@@ -160,13 +160,11 @@ class Signup extends Component {
             setCompleted,
         } = this.props;
 
-        /*
-        // TODO:If param exists in url, prefer that:
-        const currentUsername = paramUsername ? paramUsername : username,
-        const currentEmail = paramEmail ? paramEmail : email,
-        const currentToken = paramToken ? paramToken : token,
-        const currentReferrer = paramRef ? paramRef : referrer,
-        */
+        // If param exists in url, prefer that:
+        const currentUsername = paramUsername ? paramUsername : username;
+        const currentEmail = paramEmail ? paramEmail : email;
+        const currentToken = paramToken ? paramToken : token;
+        const currentReferrer = paramRef ? paramRef : referrer;
 
         return (
             <div className="Signup_main">
@@ -275,9 +273,9 @@ class Signup extends Component {
                                 </p>
                                 <FormSignupUsername
                                     onSubmit={this.handleSubmitUsername}
-                                    username={username}
-                                    email={email}
-                                    origin={referrer}
+                                    username={currentUsername}
+                                    email={currentEmail}
+                                    origin={currentReferrer}
                                 />
                             </div>
                         )}
@@ -292,16 +290,16 @@ class Signup extends Component {
                                 {countryCode !== 'CN' && (
                                     <FormSignupEmail
                                         onSubmit={this.handleSubmitEmail}
-                                        username={username}
-                                        email={email}
+                                        username={currentUsername}
+                                        email={currentEmail}
                                         goBack={this.goBack}
                                     />
                                 )}
                                 {countryCode === 'CN' && (
                                     <FormSignupEmailChinese
                                         onSubmit={this.handleSubmitEmail}
-                                        username={username}
-                                        email={email}
+                                        username={currentUsername}
+                                        email={currentEmail}
                                         goBack={this.goBack}
                                     />
                                 )}
@@ -317,7 +315,7 @@ class Signup extends Component {
                                 </p>
                                 <FormSignupPhoneNumber
                                     onSubmit={this.handleSubmitPhoneNumber}
-                                    token={token}
+                                    token={currentToken}
                                     countryCode={countryCode}
                                     prefix={prefix}
                                     phoneNumber={phoneNumber}
@@ -356,7 +354,7 @@ class Signup extends Component {
                                     onSubmit={
                                         this.handleSubmitConfirmPhoneNumber
                                     }
-                                    token={token}
+                                    token={currentToken}
                                     phoneNumber={phoneNumber}
                                     prefix={prefix}
                                     goBack={this.goBack}
