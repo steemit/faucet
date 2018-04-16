@@ -1,0 +1,10 @@
+{
+  "extends": ["tslint:recommended", "tslint-react"],
+  "defaultSeverity": "warning",
+  "rules": {
+    "interface-name": [true, "never-prefix"],
+    "jsx-no-multiline-js": false,
+    "semicolon": [true, "never"],
+    "triple-equals": [true, "allow-undefined-check", "allow-null-check"]
+  }
+}

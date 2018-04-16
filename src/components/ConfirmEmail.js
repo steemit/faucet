@@ -17,6 +17,7 @@ class Index extends Component {
             email: null,
             token: null,
             error: '',
+            approved: null,
         };
     }
 
@@ -41,6 +42,7 @@ class Index extends Component {
                         email: data.email,
                         username: data.username,
                         token: data.token,
+                        approved: data.approved,
                     });
                     logStep(
                         `confirm_email_${data.success ? 'success' : 'error'}`,
@@ -64,7 +66,15 @@ class Index extends Component {
     }
 
     render() {
-        const { status, error, completed, email, username, token } = this.state;
+        const {
+            status,
+            error,
+            completed,
+            email,
+            username,
+            token,
+            approved,
+        } = this.state;
         return (
             <div className="Signup_main">
                 <div className="signup-bg-left" />
@@ -123,6 +133,18 @@ class Index extends Component {
                                             </Link>
                                         </p>
                                     )}
+                                    {completed &&
+                                        !approved && (
+                                            <p>
+                                                <FormattedMessage id="email_verified_complete" />
+                                            </p>
+                                        )}
+                                    {completed &&
+                                        approved && (
+                                            <p>
+                                                <FormattedMessage id="email_verified_complete_approved" />
+                                            </p>
+                                        )}
                                 </div>
                             )}
                         </div>

@@ -4,10 +4,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
-const steem = require('@steemit/steem-js');
-const mail = require('./helpers/mail');
 const db = require('./db/models');
-const geoip = require('./helpers/maxmind');
 const getClientConfig = require('./helpers/getClientConfig');
 const logger = require('./helpers/logger');
 const moment = require('moment');
@@ -15,15 +12,11 @@ const moment = require('moment');
 const { Sequelize } = db;
 const { Op } = Sequelize;
 
-const clientConfig = getClientConfig();
-
-if (process.env.STEEMJS_URL) {
-  steem.api.setOptions({ url: process.env.STEEMJS_URL });
-}
-
 http.globalAgent.maxSockets = 100;
 https.globalAgent.maxSockets = 100;
+
 const app = express();
+const clientConfig = getClientConfig();
 
 // database cleanup task
 // removes actions and completed requests older than 60 days
@@ -90,20 +83,13 @@ app.set('view engine', 'hbs');
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
-app.use((req, res, next) => {
-  req.steem = steem;
-  req.mail = mail;
-  req.db = db;
-  req.geoip = geoip;
-  next();
-});
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', require('./routes/api'));
+app.use('/admin', require('./routes/admin'));
 app.use('/', require('./routes'));
 
 // catch 404 and forward to error handler

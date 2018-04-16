@@ -6,21 +6,15 @@
 
 const logger = require('../helpers/logger');
 const http = require('http');
+const app = require('../app');
 
-let app
-if (process.env.FAUCET_ADMIN) {
-  logger.info('starting faucet admin');
-  app = require('../admin/app');
-} else {
-  logger.info('starting faucet');
-  app = require('../app');
-}
+logger.info('starting faucet');
 
 /**
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT || '3001');
 app.set('port', port);
 
 /**
