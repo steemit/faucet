@@ -160,6 +160,7 @@ class CreateAccount extends Component {
     handleSubmit = () => {
         const { location: { query: { token } }, intl } = this.props;
         const { username, password, email } = this.state;
+
         const publicKeys = steem.auth.generateKeys(username, password, [
             'owner',
             'active',

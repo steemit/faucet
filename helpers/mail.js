@@ -2,6 +2,10 @@ const sgMail = require('@sendgrid/mail');
 const templates = require('./templates.json');
 const clone = require('lodash/clone');
 
+if (!process.env.SENDGRID_API_KEY) {
+    throw new Error('Missing SENDGRID_API_KEY env var');
+}
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const mail = {};
