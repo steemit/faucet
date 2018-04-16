@@ -96,24 +96,39 @@ class CreateAccount extends Component {
     }
 
     componentDidUpdate() {
-        const { step, query } = this.state;
+        const { step } = this.state;
         if (step === 'created') {
             if (this.isWhistle()) {
                 window.postMessage('whistle_signup_complete');
             } else {
-                const urlParameters =
-                    query &&
-                    Object.keys(query)
-                        .map(param => `${param}=${query[param]}`)
-                        .join('&');
+                const redirectUri = this.getRedirect();
                 setTimeout(() => {
-                    window.location.href = `${
-                        window.config.DEFAULT_REDIRECT_URI
-                    }?${urlParameters}`;
+                    window.location.href = redirectUri;
                 }, 5000);
             }
         }
     }
+
+    getRedirect = () => {
+        const { username, query } = this.state;
+        let redirectUri = window.config.DEFAULT_REDIRECT_URI;
+        let matches = redirectUri.match(new RegExp(/({{\w+}})/g, 'g'));
+
+        query['username'] = username;
+
+        if (matches) {
+            matches.forEach(match => {
+                let strippedMatch = match.match(new RegExp(/\w+/g, 'g'));
+
+                redirectUri = redirectUri.replace(
+                    match,
+                    query && query[strippedMatch] ? query[strippedMatch] : ''
+                );
+            });
+        }
+
+        return redirectUri;
+    };
 
     isWhistle = () => {
         const { query } = this.state;
@@ -189,14 +204,8 @@ class CreateAccount extends Component {
             username,
             reservedUsername,
             password,
-            query,
         } = this.state;
         const { setLocale, locale } = this.props;
-        const urlParameters =
-            query &&
-            Object.keys(query)
-                .map(param => `${param}=${query[param]}`)
-                .join('&');
         return (
             <div className="Signup_main">
                 <div className="signup-bg-left" />
@@ -365,10 +374,7 @@ class CreateAccount extends Component {
                                 {!this.isWhistle() && (
                                     <Form.Item>
                                         <a
-                                            href={`${
-                                                window.config
-                                                    .DEFAULT_REDIRECT_URI
-                                            }?${urlParameters}`}
+                                            href={this.getRedirect()}
                                             className="redirect-btn"
                                         >
                                             <FormattedMessage id="redirect_button_text" />
