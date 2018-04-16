@@ -208,6 +208,7 @@ class CreateAccount extends Component {
                             <ul className="lp-language-select">
                                 {Object.keys(locales).map(key => (
                                     <LanguageItem
+                                        key={key}
                                         locale={key}
                                         setLocale={setLocale}
                                     />
@@ -389,7 +390,6 @@ class CreateAccount extends Component {
                         )}
                         {(step === 'password' ||
                             step === 'password_confirm') && (
-                            /* eslint-disable */
                             <object
                                 data="img/signup-password.svg"
                                 type="image/svg+xml"
@@ -397,7 +397,6 @@ class CreateAccount extends Component {
                                 aria-label="signup-password"
                             />
                         )}
-                        /* eslint-enable */
                         {step === 'created' && (
                             <object
                                 data="img/signup-create-account.svg"
