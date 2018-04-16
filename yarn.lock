@@ -3996,7 +3996,7 @@ image-size@~0.5.0:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/image-size/-/image-size-0.5.5.tgz#09dfd4ab9d20e29eb1c3e80b8990378df9e3cb9c"
 
-immutable@^3.7.4, immutable@^3.8.2:
+immutable@3.8.2, immutable@^3.7.4:
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
 
@@ -6807,7 +6807,7 @@ react-element-to-jsx-string@^3.0.0:
   dependencies:
     prop-types ">=15.5.0"
 
-react-hot-loader@^4.0.1:
+react-hot-loader@4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/react-hot-loader/-/react-hot-loader-4.0.1.tgz#48284350ae5d7ba07dac872bd5bbc6e477352593"
   dependencies:
@@ -7005,7 +7005,7 @@ redux-actions@0.12.0:
     lodash "^4.13.1"
     reduce-reducers "^0.1.0"
 
-redux-saga@^0.16.0:
+redux-saga@0.16.0:
   version "0.16.0"
   resolved "https://registry.yarnpkg.com/redux-saga/-/redux-saga-0.16.0.tgz#0a231db0a1489301dd980f6f2f88d8ced418f724"
 
