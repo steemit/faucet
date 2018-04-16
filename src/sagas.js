@@ -11,13 +11,9 @@ function* guessCountryCodeSaga() {
             {},
             'GET'
         );
-        yield put(
-            userActions.setCountryCode(
-                countryCode === null ? false : countryCode
-            )
-        );
+        yield put(userActions.setCountryCode(countryCode));
     } catch (e) {
-        yield put(userActions.setCountryCode(false));
+        yield put(userActions.setCountryCode(null));
     }
 }
 
@@ -27,9 +23,10 @@ function* incrementStepSaga() {
     const nextStep = steps.get(steps.indexOf(currentStep) + 1);
     try {
         // TODO: Update the user in the DB.
+        // TODO: Log user step to Overseer here.
         yield put(userActions.setStep(nextStep));
     } catch (e) {
-        // TODO: Handle Errors
+        // TODO: Handle Error state in the redux store.
     }
 }
 
@@ -39,9 +36,10 @@ function* decrementStepSaga() {
     const nextStep = steps.get(steps.indexOf(currentStep) - 1);
     try {
         // TODO: Update the user in the DB.
+        // TODO: Log user step to Overseer here.
         yield put(userActions.setStep(nextStep));
     } catch (e) {
-        // TODO: Handle Errors
+        // TODO: Handle Error state in the redux store.
     }
 }
 
