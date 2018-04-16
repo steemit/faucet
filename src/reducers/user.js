@@ -1,4 +1,4 @@
-import { Record, Map } from 'immutable';
+import { Record } from 'immutable';
 
 export const User = new Record({
     username: '',
@@ -59,76 +59,65 @@ export default function reducer(state = defaultState, action = {}) {
             return state.set('email', action.payload.email);
         case SET_PHONE:
             return state.set('phoneNumber', action.payload.phone);
+        case SET_PHONE_FORMATTED:
+            return state.set(
+                'phoneNumberFormatted',
+                action.payload.phoneFormatted
+            );
         case SET_TOKEN:
             return state.set('token', action.payload.token);
         case SET_STEP:
             return state.set('step', action.payload.step);
+        case SET_PREFIX:
+            return state.set('prefix', action.payload.prefix);
+        case SET_COMPLETED:
+            return state.set('prefix', action.payload.completed);
         default:
             return state;
     }
 }
 
-export const guessCountryCode = () => {
-    return {
-        type: GUESS_COUNTRY_CODE,
-    };
-};
+export const guessCountryCode = () => ({
+    type: GUESS_COUNTRY_CODE,
+});
 
-export const setCountryCode = countryCode => {
-    return {
-        type: SET_COUNTRY_CODE,
-        payload: { countryCode },
-    };
-};
+export const setCountryCode = countryCode => ({
+    type: SET_COUNTRY_CODE,
+    payload: { countryCode },
+});
 
-export const incrementStep = () => {
-    return {
-        type: INCREMENT_STEP,
-    };
-};
+export const incrementStep = () => ({
+    type: INCREMENT_STEP,
+});
 
-export const decrementStep = () => {
-    return {
-        type: DECREMENT_STEP,
-    };
-};
+export const decrementStep = () => ({
+    type: DECREMENT_STEP,
+});
 
-export const setStep = step => {
-    return {
-        type: SET_STEP,
-        payload: { step },
-    };
-};
+export const setStep = step => ({
+    type: SET_STEP,
+    payload: { step },
+});
 
-export const setUsername = username => {
-    return {
-        type: SET_USERNAME,
-        payload: { username },
-    };
-};
+export const setUsername = username => ({
+    type: SET_USERNAME,
+    payload: { username },
+});
 
-export const setEmail = email => {
-    return {
-        type: SET_EMAIL,
-        payload: { email },
-    };
-};
+export const setEmail = email => ({
+    type: SET_EMAIL,
+    payload: { email },
+});
 
-export const setPhone = phone => {
-    return {
-        type: SET_PHONE,
-        payload: { phone },
-    };
-};
+export const setPhone = phone => ({
+    type: SET_PHONE,
+    payload: { phone },
+});
 
-export const setToken = token => {
-    return {
-        type: SET_TOKEN,
-        payload: { token },
-    };
-};
+export const setToken = token => ({
+    type: SET_TOKEN,
+    payload: { token },
+});
 
 // Selectors
-export const getStep = state => {
-    return state.user.step;
-};
+export const getStep = state => state.user.step;

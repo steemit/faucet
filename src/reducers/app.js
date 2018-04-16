@@ -1,10 +1,9 @@
-import { Record, Map, List } from 'immutable';
-import getTranslations, { getAvailableLocale } from '../utils/locales';
+import { Record, List } from 'immutable';
 import enUS from 'antd/lib/locale-provider/en_US';
 import frFR from 'antd/lib/locale-provider/fr_FR';
+import getTranslations, { getAvailableLocale } from '../utils/locales';
 
 const SET_LOCALE = 'faucet/locale/set';
-const SET_TRANSLATIONS = 'faucet/translations/set';
 
 export const App = new Record({
     locale: '',
@@ -43,26 +42,22 @@ const initialState = new App({
 });
 
 export default (state = initialState, action = {}) => {
+    const newTranslations = getTranslations(action.payload.locale);
     switch (action.type) {
         case SET_LOCALE:
-            const translations = getTranslations(action.payload.locale);
             return state.merge({
                 locale: action.payload.locale,
-                translations: translations,
+                translations: newTranslations,
             });
         default:
             return state;
     }
 };
 
-export const setLocale = locale => {
-    return {
-        type: SET_LOCALE,
-        payload: { locale },
-    };
-};
+export const setLocale = newLocale => ({
+    type: SET_LOCALE,
+    payload: { locale: newLocale },
+});
 
 // Selectors.
-export const getSteps = state => {
-    return state.app.steps;
-};
+export const getSteps = state => state.app.steps;

@@ -1,11 +1,4 @@
-import {
-    call,
-    put,
-    takeEvery,
-    takeLatest,
-    all,
-    select,
-} from 'redux-saga/effects';
+import { call, put, takeEvery, all, select } from 'redux-saga/effects';
 import * as userActions from './reducers/user';
 import * as appActions from './reducers/app';
 import apiCall from './utils/api';

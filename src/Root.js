@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Router, browserHistory, Route, IndexRoute } from 'react-router';
 import { Provider } from 'react-redux';
@@ -22,6 +21,6 @@ const Root = ({ store }) => (
 );
 
 Root.propTypes = {
-    store: PropTypes.object.isRequired,
+    store: PropTypes.obj.isRequired,
 };
 export default hot(module)(Root);

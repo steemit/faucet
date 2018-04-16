@@ -16,56 +16,53 @@ import {
 } from '../reducers/user';
 import Signup from '../components/Signup';
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state, ownProps) =>
     // TODO: Use selectors to access state here.
     // https://redux.js.org/introduction/learning-resources#selectors
-    return {
+    ({
         queryParams: ownProps.location.query,
         app: state.app,
         user: state.user,
-    };
-};
+    });
 
-const mapDispatchToProps = (dispatch, ownProps) => {
-    return {
-        setLocale: locale => {
-            dispatch(setLocale(locale));
-        },
-        guessCountryCode: () => {
-            dispatch(guessCountryCode());
-        },
-        incrementStep: () => {
-            dispatch(incrementStep());
-        },
-        decrementStep: () => {
-            dispatch(incrementStep());
-        },
-        setStep: stepName => {
-            dispatch(setStep(stepName));
-        },
-        setUsername: username => {
-            dispatch(setUsername(username));
-        },
-        setEmail: email => {
-            dispatch(setEmail(email));
-        },
-        setPhone: phone => {
-            dispatch(setPhone(phone));
-        },
-        setPhoneFormatted: phoneFormatted => {
-            dispatch(setPhoneFormatted(phoneFormatted));
-        },
-        setToken: token => {
-            dispatch(setToken(token));
-        },
-        setPrefix: prefix => {
-            dispatch(setPrefix(prefix));
-        },
-        setCompleted: completed => {
-            dispatch(setCompleted(completed));
-        },
-    };
-};
+const mapDispatchToProps = dispatch => ({
+    setLocale: locale => {
+        dispatch(setLocale(locale));
+    },
+    guessCountryCode: () => {
+        dispatch(guessCountryCode());
+    },
+    incrementStep: () => {
+        dispatch(incrementStep());
+    },
+    decrementStep: () => {
+        dispatch(decrementStep());
+    },
+    setStep: stepName => {
+        dispatch(setStep(stepName));
+    },
+    setUsername: username => {
+        dispatch(setUsername(username));
+    },
+    setEmail: email => {
+        dispatch(setEmail(email));
+    },
+    setPhone: phone => {
+        dispatch(setPhone(phone));
+    },
+    setPhoneFormatted: phoneFormatted => {
+        dispatch(setPhoneFormatted(phoneFormatted));
+    },
+    setToken: token => {
+        dispatch(setToken(token));
+    },
+    setPrefix: prefix => {
+        dispatch(setPrefix(prefix));
+    },
+    setCompleted: completed => {
+        dispatch(setCompleted(completed));
+    },
+});
 
 const SignupSteps = connect(mapStateToProps, mapDispatchToProps)(toJS(Signup));
 export default SignupSteps;

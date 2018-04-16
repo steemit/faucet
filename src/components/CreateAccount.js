@@ -2,8 +2,6 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import { Button, Form, Icon, Popover } from 'antd';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import LanguageItem from './LanguageItem';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
