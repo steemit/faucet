@@ -95,8 +95,6 @@ class Password extends React.Component {
                             placeholder={intl.formatMessage({ id: 'password' })}
                             id="password"
                             readOnly={init}
-                            minRows={1}
-                            maxRows={2}
                         />
                     )}
                 </Form.Item>
