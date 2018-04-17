@@ -110,13 +110,13 @@ class CreateAccount extends Component {
     getRedirect = () => {
         const { username, query } = this.state;
         let redirectUri = window.config.DEFAULT_REDIRECT_URI;
-        let matches = redirectUri.match(new RegExp(/({{\w+}})/g, 'g'));
+        const matches = redirectUri.match(new RegExp(/({{\w+}})/g, 'g'));
 
-        query['username'] = username;
+        query.username = username;
 
         if (matches) {
             matches.forEach(match => {
-                let strippedMatch = match.match(new RegExp(/\w+/g, 'g'));
+                const strippedMatch = match.match(new RegExp(/\w+/g, 'g'));
 
                 redirectUri = redirectUri.replace(
                     match,
@@ -201,6 +201,8 @@ class CreateAccount extends Component {
             reservedUsername,
             password,
         } = this.state;
+        const isPasswordOrConfirmStep =
+            step === 'password' || step === 'password_confirm';
         const { setLocale, locale } = this.props;
         return (
             <div className="Signup_main">
@@ -390,8 +392,7 @@ class CreateAccount extends Component {
                                 aria-label="signup-username"
                             />
                         )}
-                        {(step === 'password' ||
-                            step === 'password_confirm') && (
+                        {isPasswordOrConfirmStep && (
                             <object
                                 data="img/signup-password.svg"
                                 type="image/svg+xml"
