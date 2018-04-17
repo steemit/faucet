@@ -2,8 +2,6 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import { Button, Form, Icon, Popover } from 'antd';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import LanguageItem from './LanguageItem';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
@@ -11,21 +9,8 @@ import apiCall from '../utils/api';
 import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 import './CreateAccount.less';
-import * as actions from '../actions/appLocale';
 import locales from '../../helpers/locales.json';
 
-@connect(
-    state => ({
-        locale: state.appLocale.locale,
-    }),
-    dispatch =>
-        bindActionCreators(
-            {
-                setLocale: actions.setLocale,
-            },
-            dispatch
-        )
-)
 class CreateAccount extends Component {
     static defaultProps = {
         location: PropTypes.shape(),

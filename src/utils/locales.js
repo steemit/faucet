@@ -5,6 +5,7 @@ import availableLocales from '../../helpers/locales.json';
 import defaultLocale from '../locales/en.json';
 
 export const translations = {};
+
 Object.keys(availableLocales).forEach(key => {
     const localeImport = require(`../locales/${key}.json`);
     translations[key] = merge({}, defaultLocale, localeImport);
@@ -12,9 +13,10 @@ Object.keys(availableLocales).forEach(key => {
     addLocaleData(localeIntl);
 });
 
-export const getAvailableLocale = appLocale => {
-    let locale = appLocale || 'auto';
-    if (typeof navigator !== 'undefined' && appLocale === 'auto') {
+export const getAvailableLocale = app => {
+    let locale = app || 'auto';
+    // TODO: Test this.
+    if (typeof navigator !== 'undefined' && app === 'auto') {
         locale =
             navigator.userLanguage ||
             navigator.language ||
@@ -28,7 +30,6 @@ export const getAvailableLocale = appLocale => {
     return 'en';
 };
 
-const getTranslations = appLocale =>
-    translations[getAvailableLocale(appLocale)];
+const getTranslations = app => translations[getAvailableLocale(app)];
 
 export default getTranslations;

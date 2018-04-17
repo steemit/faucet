@@ -1,149 +1,154 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import { Button, Icon, Popover } from 'antd';
-import fetch from 'isomorphic-fetch';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupEmailChinese from './Form/Signup/EmailChinese';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
-import { checkStatus, parseJSON } from '../utils/fetch';
 import logStep from '../../helpers/stepLogger';
-import * as actions from '../actions/appLocale';
-import locales from '../../helpers/locales.json';
 import './Signup.less';
 
-@connect(
-    state => ({
-        locale: state.appLocale.locale,
-    }),
-    dispatch =>
-        bindActionCreators(
-            {
-                setLocale: actions.setLocale,
-            },
-            dispatch
-        )
-)
 class Signup extends Component {
     static propTypes = {
-        location: PropTypes.shape({
-            query: PropTypes.shape({
-                username: PropTypes.string,
-                email: PropTypes.string,
-                token: PropTypes.string,
-                ref: PropTypes.string,
+        app: PropTypes.shape({
+            locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
+            locales: PropTypes.shape({
+                en: PropTypes.string.isRequired,
+                fr: PropTypes.string.isRequired,
+                zh: PropTypes.string.isRequired,
             }),
-        }),
-        locale: PropTypes.string.isRequired,
+        }).isRequired,
+        user: PropTypes.shape({
+            username: PropTypes.string.isRequired,
+            email: PropTypes.string.isRequired,
+            token: PropTypes.string.isRequired,
+            referrer: PropTypes.string.isRequired,
+            phoneNumber: PropTypes.string.isRequired,
+            phoneNumberFormatted: PropTypes.string.isRequired,
+            countryCode: PropTypes.string,
+            prefix: PropTypes.string.isRequired,
+            completed: PropTypes.bool.isRequired,
+        }).isRequired,
+        queryParams: PropTypes.shape({
+            username: PropTypes.string,
+            email: PropTypes.string,
+            token: PropTypes.string,
+            ref: PropTypes.string,
+        }).isRequired,
         setLocale: PropTypes.func.isRequired,
+        guessCountryCode: PropTypes.func.isRequired,
+        incrementStep: PropTypes.func.isRequired,
+        decrementStep: PropTypes.func.isRequired,
+        setStep: PropTypes.func.isRequired,
+        setUsername: PropTypes.func.isRequired,
+        setEmail: PropTypes.func.isRequired,
+        setPhone: PropTypes.func.isRequired,
+        setPhoneFormatted: PropTypes.func.isRequired,
+        setToken: PropTypes.func.isRequired,
+        setPrefix: PropTypes.func.isRequired,
+        setCompleted: PropTypes.func.isRequired,
     };
 
     static defaultProps = {
-        location: null,
+        queryParams: {
+            username: undefined,
+            email: undefined,
+            token: undefined,
+            ref: undefined,
+        },
+        user: {
+            countryCode: null,
+        },
     };
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            step: this.initStep().step,
-            stepNumber: this.initStep().stepNumber,
-            username: props.location.query.username || '',
-            email: props.location.query.email || '',
-            phoneNumber: '',
-            phoneNumberFormatted: '',
-            token: props.location.query.token || '',
-            ref: props.location.query.ref || 'steemit',
-            countryCode: '',
-            prefix: '',
-            completed: false,
-        };
-    }
 
     componentWillMount() {
-        fetch('/api/guess_country')
-            .then(checkStatus)
-            .then(parseJSON)
-            .then(data => {
-                if (data.location) {
-                    this.setState({
-                        countryCode: data.location.country.iso_code,
-                    });
-                }
-            });
+        const {
+            queryParams: {
+                username: paramUsername,
+                email: paramEmail,
+                token: paramToken,
+            },
+            guessCountryCode,
+            setStep,
+        } = this.props;
+
+        guessCountryCode();
+
+        if (paramEmail && paramUsername && paramToken) {
+            setStep('phoneNumber');
+            // TODO: Move logStep into saga.
+            logStep('phoneNumber', 2);
+        }
+        // TODO: Move logStep into saga.
+        logStep('username', 0);
     }
 
-    initStep = () => {
-        const { location: { query: { email, username, token } } } = this.props;
-        if (email && username && token) {
-            logStep('phoneNumber', 2);
-            return { step: 'phoneNumber', stepNumber: 2 };
-        }
-        logStep('username', 0);
-        return { step: 'username', stepNumber: 0 };
-    };
-
-    goBack = (step, stepNumber) => {
-        this.setState({ step, stepNumber });
+    goBack = () => {
+        this.props.decrementStep();
     };
 
     handleSubmitUsername = values => {
-        this.setState({
-            step: 'email',
-            stepNumber: 1,
-            username: values.username,
-        });
+        this.props.incrementStep();
+        this.props.setUsername(values.username);
+        // TODO: Move logStep into saga.
         logStep('email', 1);
     };
 
     handleSubmitEmail = (values, token) => {
-        this.setState({
-            step: 'checkYourEmail',
-            stepNumber: 2,
-            email: values.email,
-            token,
-        });
-        // TODO: Determine conveyor step name.
-        // logStep('checkYourEmail', 2);
+        this.props.incrementStep();
+        this.props.setEmail(values.email);
+        this.props.setToken(token);
+        // TODO: Move logStep into saga.
+        logStep('checkYourEmail', 0);
     };
 
     handleSubmitPhoneNumber = values => {
-        this.setState({
-            step: 'confirmPhoneNumber',
-            stepNumber: 3,
-            phoneNumber: values.phoneNumber,
-            phoneNumberFormatted: values.phoneNumberFormatted,
-            prefix: values.prefix,
-        });
+        this.props.incrementStep();
+        this.props.setPhone(values.phoneNumber);
+        this.props.setPhoneFormatted(values.phoneNumberFormatted);
+        this.props.setPrefix(values.prefix);
+        // TODO: Move logStep into saga.
         logStep('confirmPhoneNumber', 3);
     };
 
     handleSubmitConfirmPhoneNumber = completed => {
-        this.setState({
-            step: 'finish',
-            stepNumber: 4,
-            completed,
-        });
+        this.props.incrementStep();
+        this.props.setCompleted(completed);
+        // TODO: Move logStep into saga.
         logStep('finish', 4);
     };
 
     render() {
         const {
-            step,
-            stepNumber,
-            token,
-            countryCode,
-            prefix,
-            phoneNumberFormatted,
-            phoneNumber,
-            username,
-            email,
-            ref,
-        } = this.state;
-        const { setLocale, locale } = this.props;
+            app: { locale, locales },
+            user: {
+                username,
+                email,
+                phoneNumber,
+                phoneNumberFormatted,
+                countryCode,
+                token,
+                step,
+                stepNumber,
+                prefix,
+                referrer,
+            },
+            queryParams: {
+                username: paramUsername,
+                email: paramEmail,
+                token: paramToken,
+                ref: paramRef,
+            },
+            setLocale,
+        } = this.props;
+
+        // If param exists in url, prefer that:
+        const currentUsername = paramUsername || username;
+        const currentEmail = paramEmail || email;
+        const currentToken = paramToken || token;
+        const currentReferrer = paramRef || referrer;
 
         return (
             <div className="Signup_main">
@@ -231,7 +236,7 @@ class Signup extends Component {
                         </div>
                         {step === 'username' && (
                             <div className="form-content">
-                                {ref === 'steemit' && (
+                                {referrer === 'steemit' && (
                                     <object
                                         data="img/steemit-logo.svg"
                                         type="image/svg+xml"
@@ -243,18 +248,18 @@ class Signup extends Component {
                                     <FormattedMessage id="get_started" />
                                 </h1>
                                 <p>
-                                    {ref === 'steemit' && (
+                                    {referrer === 'steemit' && (
                                         <FormattedMessage id="username_know_steemit" />
                                     )}
-                                    {ref !== 'steemit' && (
+                                    {referrer !== 'steemit' && (
                                         <FormattedMessage id="username_know" />
                                     )}
                                 </p>
                                 <FormSignupUsername
                                     onSubmit={this.handleSubmitUsername}
-                                    username={username}
-                                    email={email}
-                                    origin={ref}
+                                    username={currentUsername}
+                                    email={currentEmail}
+                                    origin={currentReferrer}
                                 />
                             </div>
                         )}
@@ -269,16 +274,16 @@ class Signup extends Component {
                                 {countryCode !== 'CN' && (
                                     <FormSignupEmail
                                         onSubmit={this.handleSubmitEmail}
-                                        username={username}
-                                        email={email}
+                                        username={currentUsername}
+                                        email={currentEmail}
                                         goBack={this.goBack}
                                     />
                                 )}
                                 {countryCode === 'CN' && (
                                     <FormSignupEmailChinese
                                         onSubmit={this.handleSubmitEmail}
-                                        username={username}
-                                        email={email}
+                                        username={currentUsername}
+                                        email={currentEmail}
                                         goBack={this.goBack}
                                     />
                                 )}
@@ -294,7 +299,7 @@ class Signup extends Component {
                                 </p>
                                 <FormSignupPhoneNumber
                                     onSubmit={this.handleSubmitPhoneNumber}
-                                    token={token}
+                                    token={currentToken}
                                     countryCode={countryCode}
                                     prefix={prefix}
                                     phoneNumber={phoneNumber}
@@ -333,7 +338,7 @@ class Signup extends Component {
                                     onSubmit={
                                         this.handleSubmitConfirmPhoneNumber
                                     }
-                                    token={token}
+                                    token={currentToken}
                                     phoneNumber={phoneNumber}
                                     prefix={prefix}
                                     goBack={this.goBack}
