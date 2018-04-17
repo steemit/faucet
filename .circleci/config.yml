@@ -11,7 +11,7 @@ jobs:
     docker:
       - image: node:8-alpine
     steps:
-      - run: apk add --no-cache make bash ca-certificates
+      - run: apk add --no-cache make bash git ca-certificates
       - checkout
       - restore_cache:
           keys:
@@ -27,7 +27,7 @@ jobs:
     docker:
       - image: node:9-alpine
     steps:
-      - run: apk add --no-cache make bash ca-certificates
+      - run: apk add --no-cache make bash git ca-certificates
       - checkout
       - restore_cache:
           keys:
