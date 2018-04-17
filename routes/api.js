@@ -1,16 +1,20 @@
 const express = require('express');
+
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
+
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+
 const moment = require('moment');
 const db = require('./../db/models');
 const services = require('../helpers/services');
 const geoip = require('../helpers/maxmind');
+const { generateTrackingId } = require('../helpers/stepLogger');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -182,7 +186,6 @@ router.post(
                 email_is_verified: true,
             },
         });
-
         if (userCount > 0) {
             throw new ApiError({
                 type: 'error_api_email_used',
@@ -194,7 +197,6 @@ router.post(
             'is_email_registered',
             [req.body.email]
         );
-
         if (emailRegistered) {
             throw new ApiError({
                 type: 'error_api_email_used',
@@ -236,6 +238,7 @@ router.post(
                 metadata: { query: JSON.parse(req.body.query) },
                 username: req.body.username,
                 username_booked_at: new Date(),
+                tracking_id: req.body.xref || generateTrackingId(),
             });
         } else {
             user.username = req.body.username;
@@ -287,7 +290,7 @@ router.post(
             process.env.JWT_SECRET
         );
 
-        return { success: true, token };
+        return { success: true, token, xref: user.tracking_id };
     })
 );
 
@@ -431,7 +434,7 @@ router.post(
             }
         }
 
-        return { success: true, phoneNumber };
+        return { success: true, phoneNumber, xref: user.tracking_id };
     })
 );
 
@@ -551,7 +554,7 @@ router.post(
 router.get(
     '/guess_country',
     apiMiddleware(async req => {
-        const location = req.geoip.get(req.ip);
+        const location = geoip.get(req.ip);
         return { location };
     })
 );
@@ -604,15 +607,16 @@ router.post(
                 username: '',
                 reservedUsername: user.username,
                 email: user.email,
+                xref: user.tracking_id,
             };
         }
-
         return {
             success: true,
             username: user.username,
             reservedUsername: '',
             query: user.metadata.query,
             email: user.email,
+            xref: user.tracking_id,
         };
     })
 );

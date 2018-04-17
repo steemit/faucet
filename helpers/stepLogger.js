@@ -1,10 +1,16 @@
 /* eslint-disable no-console */
-import { api } from '@steemit/steem-js';
+const { api } = require('@steemit/steem-js');
 
-const logStep = (step, stepNumber) => {
-    api.call('overseer.collect', ['signup', { step, stepNumber }], error => {
+const generateTrackingId = () =>
+    `x-${Math.random()
+        .toString()
+        .slice(2)}`;
+
+const logStep = (uid, step) => {
+    api.call('overseer.collect', ['signup', { uid, step }], error => {
         if (error) console.warn('overseer error', error);
     });
 };
 
-export default logStep;
+module.exports = logStep;
+module.exports.generateTrackingId = generateTrackingId;
