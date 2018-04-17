@@ -271,7 +271,7 @@ router.post(
             );
 
             // Send the email.
-            await req.mail.send(user.email, 'confirm_email', {
+            await services.sendEmail(user.email, 'confirm_email', {
                 url: `${req.protocol}://${req.get(
                     'host'
                 )}/confirm-email?token=${mailToken}`,
