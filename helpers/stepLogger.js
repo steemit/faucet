@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { api } from '@steemit/steem-js';
+const { api } = require('@steemit/steem-js');
 
 const generateTrackingId = () =>
     `x-${Math.random()
@@ -12,4 +12,5 @@ const logStep = (tracking, step) => {
     });
 };
 
-export { logStep as default, generateTrackingId };
+module.exports = logStep;
+module.exports.generateTrackingId = generateTrackingId;
