@@ -137,7 +137,7 @@ router.get(
 router.post(
     '/request_email',
     apiMiddleware(async req => {
-        const location = req.geoip.get(req.ip);
+        const location = geoip.get(req.ip);
 
         let skipRecaptcha = false;
         if (
@@ -174,13 +174,13 @@ router.post(
 
         await actionLimit(req.ip);
 
-        await req.db.actions.create({
+        await db.actions.create({
             action: 'request_email',
             ip: req.ip,
             metadata: { email: req.body.email },
         });
 
-        const userCount = await req.db.users.count({
+        const userCount = await db.users.count({
             where: {
                 email: req.body.email,
                 email_is_verified: true,
@@ -193,11 +193,9 @@ router.post(
             });
         }
 
-        const emailRegistered = await steem.api.signedCallAsync(
-            'conveyor.is_email_registered',
-            [req.body.email],
-            conveyorAccount,
-            conveyorKey
+        const emailRegistered = await services.conveyorCall(
+            'is_email_registered',
+            [req.body.email]
         );
         if (emailRegistered) {
             throw new ApiError({
@@ -208,7 +206,7 @@ router.post(
 
         if (!skipRecaptcha) {
             try {
-                await verifyCaptcha(req.body.recaptcha, req.ip);
+                await services.verifyCaptcha(req.body.recaptcha, req.ip);
             } catch (cause) {
                 throw new ApiError({
                     type: 'error_api_recaptcha_invalid',
@@ -218,14 +216,14 @@ router.post(
             }
         }
 
-        let user = await req.db.users.findOne({
+        let user = await db.users.findOne({
             where: {
                 email: req.body.email,
             },
         });
 
         if (!user) {
-            user = await req.db.users.create({
+            user = await db.users.create({
                 email: req.body.email,
                 email_is_verified: false,
                 last_attempt_verify_email: null,
@@ -556,7 +554,7 @@ router.post(
 router.get(
     '/guess_country',
     apiMiddleware(async req => {
-        const location = req.geoip.get(req.ip);
+        const location = geoip.get(req.ip);
         return { location };
     })
 );
