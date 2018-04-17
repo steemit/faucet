@@ -205,6 +205,8 @@ class CreateAccount extends Component {
             reservedUsername,
             password,
         } = this.state;
+        const isPasswordOrConfirmStep =
+            step === 'password' || step === 'password_confirm';
         const { setLocale, locale } = this.props;
         return (
             <div className="Signup_main">
@@ -394,8 +396,7 @@ class CreateAccount extends Component {
                                 aria-label="signup-username"
                             />
                         )}
-                        {(step === 'password' ||
-                            step === 'password_confirm') && (
+                        {isPasswordOrConfirmStep && (
                             <object
                                 data="img/signup-password.svg"
                                 type="image/svg+xml"
