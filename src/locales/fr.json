@@ -11,11 +11,15 @@
         "Veuillez saisir votre mot de passe afin de le confirmer.",
     "confirmation_code": "Code de confirmation",
     "continue": "Continuer",
-    "copy": "Copier",
+    "copy_password": "Copier mot de passe",
     "country_code_select": "Sélectionnez votre pays",
     "edit": "Éditer",
     "email": "Email",
     "email_verified": "Votre adresse email a été vérifiée.",
+    "email_verified_complete":
+        "Vous avez maintenant fourni toutes les informations requises. Nous examinons manuellement les applications pour se protéger contre les bots et les spams. En raison d'un volume élevé d'inscriptions, ce processus peut prendre de 1 à 3 semaines. Nous vous enverrons un e-mail dès que vous serez approuvé.",
+    "email_verified_complete_approved":
+        "Vous êtes approuvé! Merci de consulter vos emails.",
     "enjoy_steem":
         "Vous pouvez profiter de Steem et de toutes ses fonctionnalités.",
     "enter_confirmation_code": "Saisissez le code de confirmation",

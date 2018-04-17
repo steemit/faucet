@@ -17,6 +17,7 @@ class Index extends Component {
             email: null,
             token: null,
             error: '',
+            approved: null,
         };
     }
 
@@ -41,6 +42,7 @@ class Index extends Component {
                         username: data.username,
                         token: data.token,
                         xref: data.xref,
+                        approved: data.approved,
                     });
                     if (data.success) {
                         logStep(data.xref, 'email_verified');
@@ -69,6 +71,7 @@ class Index extends Component {
             email,
             username,
             token,
+            approved,
             xref,
         } = this.state;
         return (
@@ -129,6 +132,18 @@ class Index extends Component {
                                             </Link>
                                         </p>
                                     )}
+                                    {completed &&
+                                        !approved && (
+                                            <p>
+                                                <FormattedMessage id="email_verified_complete" />
+                                            </p>
+                                        )}
+                                    {completed &&
+                                        approved && (
+                                            <p>
+                                                <FormattedMessage id="email_verified_complete_approved" />
+                                            </p>
+                                        )}
                                 </div>
                             )}
                         </div>

@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import { message, Form, Icon, Input, Button } from 'antd';
+import { message, Form, Input, Button } from 'antd';
 import createSuggestedPassword from '../../../utils/auth';
 
 class Password extends React.Component {
@@ -91,26 +91,24 @@ class Password extends React.Component {
                         ],
                         initialValue: init ? createSuggestedPassword() : '',
                     })(
-                        <Input
-                            prefix={<Icon type="lock" size="large" />}
-                            suffix={
-                                init && (
-                                    <a
-                                        href={undefined}
-                                        onClick={() => {
-                                            this.copyToClipboard(
-                                                getFieldValue('password')
-                                            );
-                                        }}
-                                    >
-                                        <FormattedMessage id="copy" />
-                                    </a>
-                                )
-                            }
+                        <Input.TextArea
                             placeholder={intl.formatMessage({ id: 'password' })}
                             id="password"
                             readOnly={init}
                         />
+                    )}
+                </Form.Item>
+                <Form.Item>
+                    {init && (
+                        <a
+                            href={undefined}
+                            className="new-password"
+                            onClick={() => {
+                                this.copyToClipboard(getFieldValue('password'));
+                            }}
+                        >
+                            <FormattedMessage id="copy_password" />
+                        </a>
                     )}
                 </Form.Item>
                 {init && (

@@ -1,40 +1,23 @@
 const express = require('express');
-const fetch = require('isomorphic-fetch');
-const steem = require('@steemit/steem-js');
+
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
-const { checkStatus } = require('../src/utils/fetch');
+
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
-const Twilio = require('../helpers/twilio');
+
 const moment = require('moment');
 const db = require('./../db/models');
+const services = require('../helpers/services');
+const geoip = require('../helpers/maxmind');
 const { generateTrackingId } = require('../helpers/stepLogger');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
-
-const conveyorAccount = process.env.CONVEYOR_USERNAME;
-const conveyorKey = process.env.CONVEYOR_POSTING_WIF;
-
-steem.api.setOptions({ url: process.env.STEEMJS_URL });
-
-if (
-    typeof process.env.CREATE_USER_URL !== 'string' ||
-    process.env.CREATE_USER_URL.length < 1
-) {
-    throw new Error('Missing CREATE_USER_URL');
-}
-if (
-    typeof process.env.CREATE_USER_SECRET !== 'string' ||
-    process.env.CREATE_USER_SECRET.length < 1
-) {
-    throw new Error('Missing CREATE_USER_SECRET');
-}
 
 class ApiError extends Error {
     constructor({
@@ -51,17 +34,6 @@ class ApiError extends Error {
     }
     toJSON() {
         return { type: this.type, field: this.field };
-    }
-}
-
-async function verifyCaptcha(recaptcha, ip) {
-    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${
-        process.env.RECAPTCHA_SECRET
-    }&response=${recaptcha}&remoteip=${ip}`;
-    const response = await (await fetch(url)).json();
-    if (!response.success) {
-        const codes = response['error-codes'] || ['unknown'];
-        throw new Error(`Captcha verification failed: ${codes.join()}`);
     }
 }
 
@@ -88,6 +60,10 @@ async function actionLimit(ip, user_id = null) {
     }
 }
 
+/**
+ * Verifies that the json webtoken passed was signed by us and
+ * optionally that it has the correct type.
+ */
 function verifyToken(token, type) {
     if (!token) {
         throw new ApiError({
@@ -364,12 +340,16 @@ router.post(
         phoneNumber = phoneUtil.format(phoneNumber, PNF.E164);
 
         try {
-            await Twilio.isValidNumber(phoneNumber);
-        } catch (e) {
-            throw new ApiError({ field: 'phoneNumber', type: e.message });
+            await services.validatePhone(phoneNumber);
+        } catch (cause) {
+            throw new ApiError({
+                field: 'phoneNumber',
+                type: 'error_phone_invalid',
+                cause,
+            });
         }
 
-        const user = await req.db.users.findOne({
+        const user = await db.users.findOne({
             where: {
                 email: decoded.email,
             },
@@ -395,7 +375,7 @@ router.post(
             });
         }
 
-        const phoneExists = await req.db.users.count({
+        const phoneExists = await db.users.count({
             where: {
                 phone_number: phoneNumber,
                 phone_number_is_verified: true,
@@ -409,12 +389,11 @@ router.post(
             });
         }
 
-        const phoneRegistered = await steem.api.signedCallAsync(
-            'conveyor.is_phone_registered',
-            [phoneNumber],
-            conveyorAccount,
-            conveyorKey
+        const phoneRegistered = await services.conveyorCall(
+            'is_phone_registered',
+            [phoneNumber]
         );
+
         if (phoneRegistered) {
             throw new ApiError({
                 field: 'phoneNumber',
@@ -423,7 +402,7 @@ router.post(
         }
 
         const phoneCode = user.phone_code || generateCode(5);
-        await req.db.users.update(
+        await db.users.update(
             {
                 last_attempt_verify_phone_number: new Date(),
                 phone_code: phoneCode,
@@ -433,7 +412,7 @@ router.post(
             { where: { email: decoded.email } }
         );
 
-        await req.db.actions.create({
+        await db.actions.create({
             action: 'send_sms',
             ip: req.ip,
             metadata: { phoneNumber },
@@ -441,7 +420,7 @@ router.post(
         });
 
         try {
-            await Twilio.sendMessage(
+            await services.sendSMS(
                 phoneNumber,
                 `${phoneCode} is your Steem confirmation code`
             );
@@ -462,133 +441,59 @@ router.post(
 );
 
 /**
- * Mocking route of the steemit gatekeeper
+ * Called both after email and phone verification,
+ * if both steps are completed classifies the signup and sets the user state.
  */
-router.get('/check', (req, res) => {
-    // mocking the response according to
-    // https://github.com/steemit/gatekeeper/blob/master/src/classifier.ts#L13
-    // for some usecase test
-    if (req.query.val === 'approved') {
-        res.send('approved');
-    } else if (req.query.val === 'rejected') {
-        res.send('rejected');
-    } else {
-        res.send('manual_review');
+const finalizeSignup = async user => {
+    // only act if both email and phone is verified
+    if (!user.phone_number_is_verified || !user.email_is_verified) {
+        return false;
     }
-});
-
-const rejectAccount = async (req, email) => {
-    await req.db.users.update(
-        {
-            status: 'rejected',
-        },
-        { where: { email } }
-    );
-    await req.mail.send(email, 'reject_account', {});
+    const status = await services.classifySignup(user);
+    // TODO: send out approval email if status is 'approved'
+    if (status === 'approved') {
+        throw new Error('Not implemented');
+    }
+    user.status = status;
+    await user.save();
+    return true;
 };
 
-/**
- * Send the email to user to continue the account creation process
- */
-const approveAccount = async (req, email) => {
-    const mailToken = jwt.sign(
-        {
-            type: 'create_account',
-            email,
-        },
-        process.env.JWT_SECRET
-    );
-    await req.mail.send(email, 'create_account', {
-        url: `${req.protocol}://${req.get(
-            'host'
-        )}/create-account?token=${mailToken}`,
-    });
-};
+// TODO: this should be a POST request like all other api calls
+router.get(
+    '/confirm_email',
+    apiMiddleware(async req => {
+        const decoded = verifyToken(req.query.token, 'confirm_email');
+        const user = await db.users.findOne({
+            where: { email: decoded.email },
+        });
+        if (!user) {
+            throw new ApiError({ type: 'error_api_email_exists_not' });
+        }
+        const token = jwt.sign(
+            {
+                type: 'signup',
+                email: decoded.email,
+            },
+            process.env.JWT_SECRET
+        );
 
-/**
- * Check for the status of an account using the steemit gatekeeper
- * An account can have approved, rejected or manual_review status
- */
-const sendAccountInformation = async (req, email) => {
-    const user = await req.db.users.findOne({ where: { email } });
-    if (user && user.phone_number_is_verified) {
-        // TODO change to the steemit endpoint
-        let result;
-        try {
-            result = await fetch(
-                `${req.protocol}://${req.get('host')}/api/check`
-            )
-                .then(checkStatus)
-                .then(res => res.text());
-        } catch (err) {
-            req.log.error(err, 'sendAccountInformation');
-            result = 'manual_review';
+        if (!user.email_is_verified) {
+            user.email_is_verified = true;
+            await user.save();
+            await finalizeSignup(user);
         }
 
-        if (result === 'rejected') {
-            await rejectAccount(req, email);
-        } else if (result === 'approved') {
-            await approveAccount(req, email);
-        } else {
-            await req.db.users.update(
-                {
-                    status: result,
-                },
-                { where: { email } }
-            );
-        }
-    }
-};
-
-router.get('/confirm_email', async (req, res) => {
-    // TODO: this route should use POST and the apiMiddleware wrapper
-    if (!req.query.token) {
-        res.status(400).json({ error: 'error_api_token_required' });
-    } else {
-        try {
-            const decoded = verifyToken(req.query.token, 'confirm_email');
-            if (decoded.type === 'confirm_email') {
-                const user = await req.db.users.findOne({
-                    where: { email: decoded.email },
-                });
-                const token = jwt.sign(
-                    {
-                        type: 'signup',
-                        email: decoded.email,
-                    },
-                    process.env.JWT_SECRET
-                );
-                if (!user) {
-                    res
-                        .status(400)
-                        .json({ error: 'error_api_email_exists_not' });
-                } else {
-                    if (!user.email_is_verified) {
-                        await req.db.users.update(
-                            {
-                                email_is_verified: true,
-                            },
-                            { where: { email: decoded.email } }
-                        );
-                        await sendAccountInformation(req, decoded.email);
-                    }
-                    res.json({
-                        success: true,
-                        completed: user.phone_number_is_verified,
-                        email: user.email,
-                        username: user.username,
-                        xref: user.tracking_id,
-                        token,
-                    });
-                }
-            } else {
-                res.status(400).json({ error: 'error_api_token_invalid' });
-            }
-        } catch (err) {
-            res.status(500).json({ error: 'error_api_token_invalid' });
-        }
-    }
-});
+        return {
+            approved: user.approved,
+            completed: user.phone_number_is_verified && user.email_is_verified,
+            email: user.email,
+            success: true,
+            token,
+            username: user.username,
+        };
+    })
+);
 
 /**
  * Verify the SMS code and then ask the gatekeeper for the status of the account
@@ -606,10 +511,8 @@ router.post(
             });
         }
 
-        const user = await req.db.users.findOne({
-            where: {
-                email: decoded.email,
-            },
+        const user = await db.users.findOne({
+            where: { email: decoded.email },
         });
 
         if (!user) {
@@ -630,42 +533,22 @@ router.post(
                 type: 'error_api_phone_too_many',
             });
         }
+
+        user.phone_code_attempts = (user.phone_code_attempts || 0) + 1;
         if (user.phone_code !== req.body.code) {
-            req.db.users
-                .update(
-                    { phone_code_attempts: user.phone_code_attempts + 1 },
-                    { where: { email: decoded.email } }
-                )
-                .catch(error => {
-                    req.log.error(
-                        error,
-                        'Unable to update number of failed attempts'
-                    );
-                });
+            await user.save();
             throw new ApiError({
                 field: 'code',
                 type: 'error_api_code_invalid',
             });
         }
 
-        await req.db.users.update(
-            {
-                phone_number_is_verified: true,
-                phone_code_attempts: user.phone_code_attempts + 1,
-            },
-            { where: { email: decoded.email } }
-        );
+        user.phone_number_is_verified = true;
+        await user.save();
 
-        sendAccountInformation(req, decoded.email).catch(error => {
-            // TODO: this should be put in a queue and retry on error
-            req.log.error(error, 'Unable to send verification mail');
-        });
+        const completed = await finalizeSignup(user);
 
-        return {
-            success: true,
-            completed: user.email_is_verified,
-            xref: user.tracking_id,
-        };
+        return { success: true, completed };
     })
 );
 
@@ -688,38 +571,39 @@ router.post(
     '/confirm_account',
     apiMiddleware(async req => {
         const decoded = verifyToken(req.body.token, 'create_account');
-        const user = await req.db.users.findOne({
+
+        const user = await db.users.findOne({
             where: { email: decoded.email },
         });
         if (!user) {
             throw new ApiError({ type: 'error_api_user_exists_not' });
         }
+
         if (user.status === 'manual_review' || user.status === 'rejected') {
             throw new ApiError({
                 type: 'error_api_account_verification_pending',
             });
         }
+
         if (user.status === 'created') {
             throw new ApiError({ type: 'error_api_account_created' });
         }
+
         if (user.status !== 'approved') {
             throw new ApiError({
                 type: 'error_api_account_verification_pending',
             });
         }
-        await req.db.users.update(
+
+        await db.users.update(
             {
                 email_is_verified: true,
             },
             { where: { email: decoded.email } }
         );
 
-        const accounts = await steem.api.getAccountsAsync([user.username]);
-        if (
-            accounts &&
-            accounts.length > 0 &&
-            accounts.find(a => a.name === user.username)
-        ) {
+        const userExists = await services.checkUsername(user.username);
+        if (userExists) {
             return {
                 success: true,
                 username: '',
@@ -759,8 +643,7 @@ router.post(
         if (!email) {
             throw new ApiError({ type: 'error_api_email_required' });
         }
-
-        const user = await req.db.users.findOne({
+        const user = await db.users.findOne({
             where: { email: decoded.email },
         });
         if (!user) {
@@ -774,7 +657,7 @@ router.post(
         const creationHash = hash
             .sha256(crypto.randomBytes(32))
             .toString('hex');
-        await req.db.users.update(
+        await db.users.update(
             {
                 creation_hash: creationHash,
             },
@@ -804,35 +687,32 @@ router.post(
             account_auths: accountAuths,
             key_auths: [[publicKeys.posting, 1]],
         };
-        const [activeCreationHash] = await req.db.sequelize.query(
+        const [activeCreationHash] = await db.sequelize.query(
             'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ?',
             {
                 replacements: [decoded.email],
-                type: req.db.sequelize.QueryTypes.SELECT,
+                type: db.sequelize.QueryTypes.SELECT,
             }
         );
+
         if (
             !activeCreationHash ||
             activeCreationHash.creation_hash !== creationHash
         ) {
             throw new ApiError({ type: 'error_api_account_creation_progress' });
         }
+
         try {
-            await steem.broadcast.accountCreateWithDelegationAsync(
-                process.env.DELEGATOR_ACTIVE_WIF,
-                process.env.CREATE_ACCOUNT_FEE,
-                process.env.CREATE_ACCOUNT_DELEGATION,
-                process.env.DELEGATOR_USERNAME,
-                username,
-                owner,
+            await services.createAccount({
                 active,
-                posting,
-                publicKeys.memo,
+                memoKey: publicKeys.memo,
                 metadata,
-                []
-            );
+                owner,
+                posting,
+                username,
+            });
         } catch (cause) {
-            await req.db.users.update(
+            await db.users.update(
                 {
                     creation_hash: null,
                 },
@@ -841,10 +721,14 @@ router.post(
             // steem-js error messages are so long that the log is clipped causing
             // errors in scalyr parsing
             cause.message = cause.message.split('\n').slice(0, 2);
-            throw new ApiError({ type: 'error_api_create_account', cause });
+            throw new ApiError({
+                type: 'error_api_create_account',
+                cause,
+                status: 500,
+            });
         }
 
-        await req.db.users.update(
+        await db.users.update(
             {
                 status: 'created',
             },
@@ -858,32 +742,27 @@ router.post(
                 email: user.email,
             },
         ];
-        steem.api
-            .signedCallAsync(
-                'conveyor.set_user_data',
-                params,
-                conveyorAccount,
-                conveyorKey
-            )
-            .catch(error => {
-                // TODO: this should be put in a queue and retry on error
-                req.log.error(error, 'Unable to store user data in conveyor');
-            });
 
-        fetch(process.env.CREATE_USER_URL, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email,
-                name: username,
-                owner_key: publicKeys.owner,
-                secret: process.env.CREATE_USER_SECRET,
-            }),
-        })
-            .then(checkStatus)
+        services.conveyorCall('set_user_data', params).catch(error => {
+            // TODO: this should retry more than once
+            req.log.warn(
+                error,
+                'Unable to store user data in conveyor... retrying'
+            );
+            setTimeout(() => {
+                // eslint-disable-next-line
+                services.conveyorCall('set_user_data', params).catch(error => {
+                    req.log.error(
+                        error,
+                        'Unable to store user data in conveyor'
+                    );
+                });
+            }, 5 * 1000);
+        });
+
+        // Post to Condenser's account recovery endpoint.
+        services
+            .condenserTransfer(email, username, publicKeys.owner)
             .catch(error => {
                 req.log.error(
                     error,
@@ -891,53 +770,6 @@ router.post(
                 );
             });
 
-        return { success: true, xref: user.tracking_id };
-    })
-);
-
-/**
- * Endpoint called by the faucet admin to approve accounts
- * The email allowing the users to continue the creation process is sent
- * to all approved accounts
- */
-router.get(
-    '/approve_account',
-    apiMiddleware(async req => {
-        const decoded = verifyToken(req.query.token);
-        await Promise.all(
-            decoded.emails.map(email => approveAccount(req, email))
-        );
-        return { success: true };
-    })
-);
-
-/**
- * Endpoint called by the faucet admin to email accounts
- * The email allowing the users to continue the creation process is sent
- * to all accounts that have been approved but have not verified their email.
- */
-router.get(
-    '/resend_email_validation',
-    apiMiddleware(async req => {
-        const decoded = verifyToken(req.query.token);
-
-        await Promise.all(
-            decoded.emails.map(email => {
-                // Generate a mail token.
-                const mailToken = jwt.sign(
-                    {
-                        type: 'confirm_email',
-                        email,
-                    },
-                    process.env.JWT_SECRET
-                );
-                return req.mail.send(email, 'confirm_again_email', {
-                    url: `${req.protocol}://${req.get(
-                        'host'
-                    )}/confirm-email?token=${mailToken}`,
-                });
-            })
-        );
         return { success: true };
     })
 );
@@ -953,21 +785,24 @@ router.post(
         if (!username || username.length < 3) {
             throw new ApiError({ type: 'error_api_username_invalid' });
         }
-        await req.db.actions.create({
+        await db.actions.create({
             action: 'check_username',
             ip: req.ip,
             metadata: { username },
         });
-        const accounts = await steem.api.getAccountsAsync([username]);
-        if (
-            accounts &&
-            accounts.length > 0 &&
-            accounts.find(a => a.name === username)
-        ) {
-            throw new ApiError({ type: 'error_api_username_used', code: 200 });
+
+        const userExists = await services.checkUsername(username);
+        if (userExists) {
+            throw new ApiError({
+                type: 'error_api_username_used',
+                status: 200,
+            });
         }
-        const user = await req.db.users.findOne({
-            where: { username, email_is_verified: true },
+        const user = await db.users.findOne({
+            where: {
+                username,
+                email_is_verified: true,
+            },
             order: [['username_booked_at', 'DESC']],
         });
         const oneWeek = 7 * 24 * 60 * 60 * 1000;
@@ -977,7 +812,7 @@ router.post(
         ) {
             throw new ApiError({
                 type: 'error_api_username_reserved',
-                code: 200,
+                status: 200,
             });
         }
         return { success: true };

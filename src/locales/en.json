@@ -9,11 +9,15 @@
     "confirm_password": "Please enter your password to confirm it.",
     "confirmation_code": "Confirmation code",
     "continue": "Continue",
-    "copy": "Copy",
+    "copy_password": "Copy Password",
     "country_code_select": "Select your country code",
     "edit": "Edit",
     "email": "Email",
     "email_verified": "Your email address has been verified.",
+    "email_verified_complete":
+        "You've now provided all the information required. We manually review applications to protect against bots and spam. Due to a high volume of sign ups, this process may take 1–3 weeks. We'll email you as soon as you're approved.",
+    "email_verified_complete_approved":
+        "You are approved! Please check your email.",
     "enjoy_steem": "You can now enjoy Steem and all its features.",
     "enter_confirmation_code": "Enter the confirmation code",
     "enter_email": "Enter your email address",
