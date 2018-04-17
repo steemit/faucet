@@ -112,13 +112,13 @@ class CreateAccount extends Component {
     getRedirect = () => {
         const { username, query } = this.state;
         let redirectUri = window.config.DEFAULT_REDIRECT_URI;
-        let matches = redirectUri.match(new RegExp(/({{\w+}})/g, 'g'));
+        const matches = redirectUri.match(new RegExp(/({{\w+}})/g, 'g'));
 
-        query['username'] = username;
+        query.username = username;
 
         if (matches) {
             matches.forEach(match => {
-                let strippedMatch = match.match(new RegExp(/\w+/g, 'g'));
+                const strippedMatch = match.match(new RegExp(/\w+/g, 'g'));
 
                 redirectUri = redirectUri.replace(
                     match,
