@@ -6,8 +6,8 @@ const generateTrackingId = () =>
         .toString()
         .slice(2)}`;
 
-const logStep = (tracking, step) => {
-    api.call('overseer.collect', ['signup', { tracking, step }], error => {
+const logStep = (uid, step) => {
+    api.call('overseer.collect', ['signup', { uid, step }], error => {
         if (error) console.warn('overseer error', error);
     });
 };
