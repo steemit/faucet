@@ -1,18 +1,7 @@
 {
-  "presets": [
-    "env",
-    "react",
-    "stage-2"
-  ],
-  "env": {
-    "development": {
-      "presets": ["react-hmre"]
-    }
-  },
+  "presets": ["react-app"],
   "plugins": [
     ["import", { "libraryName": "antd" }],
-    "transform-decorators-legacy",
-    "transform-runtime",
     "lodash"
   ]
 }
