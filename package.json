@@ -24,12 +24,14 @@
     "google-auth-library": "^1.3.2",
     "google-libphonenumber": "3.0.10",
     "hbs": "4.0.1",
+    "immutable": "3.8.2",
     "isomorphic-fetch": "2.2.1",
     "jsonwebtoken": "8.1.1",
     "lodash": "4.17.4",
     "maxmind": "2.4.0",
     "moment": "2.20.1",
     "mysql2": "1.5.1",
+    "redux-saga": "0.16.0",
     "sequelize": "4.32.1",
     "serve-favicon": "2.4.5",
     "twilio": "3.11.1",
@@ -86,6 +88,7 @@
     "react-async-script": "0.9.1",
     "react-dom": "15.3.2",
     "react-google-recaptcha": "git://github.com/busyorg/react-google-recaptcha.git#0b3362f",
+    "react-hot-loader": "4.0.1",
     "react-intl": "2.4.0",
     "react-redux": "4.4.5",
     "react-router": "3.0.0",
@@ -100,7 +103,7 @@
     "webpack-visualizer-plugin": "0.1.5"
   },
   "lint-staged": {
-    "src/**/*.js*": [
+    "{src,routes,helpers}/**/*.js*": [
       "prettier --write",
       "git add"
     ]

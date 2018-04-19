@@ -1,16 +1,20 @@
 const express = require('express');
+
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const generateCode = require('../src/utils/phone-utils').generateCode;
+
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const badDomains = require('../bad-domains');
+
 const moment = require('moment');
 const db = require('./../db/models');
 const services = require('../helpers/services');
 const geoip = require('../helpers/maxmind');
+const { generateTrackingId } = require('../helpers/stepLogger');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -20,7 +24,7 @@ class ApiError extends Error {
         type = 'error_api_general',
         field = 'general',
         status = 400,
-        cause,
+        cause
     }) {
         super(`${field}:${type}`);
         this.type = type;
@@ -40,12 +44,12 @@ async function actionLimit(ip, user_id = null) {
     const created_at = {
         [Op.gte]: moment()
             .subtract(20, 'hours')
-            .toDate(),
+            .toDate()
     };
     const promises = [
         db.actions.count({
-            where: { ip, created_at, action: { [Op.ne]: 'check_username' } },
-        }),
+            where: { ip, created_at, action: { [Op.ne]: 'check_username' } }
+        })
     ];
     if (user_id) {
         promises.push(db.actions.count({ where: { user_id, created_at } }));
@@ -64,7 +68,7 @@ function verifyToken(token, type) {
     if (!token) {
         throw new ApiError({
             type: 'error_api_token_required',
-            field: 'phoneNumber',
+            field: 'phoneNumber'
         });
     }
     let decoded;
@@ -74,13 +78,13 @@ function verifyToken(token, type) {
         throw new ApiError({
             type: 'error_api_token_invalid',
             field: 'phoneNumber',
-            cause,
+            cause
         });
     }
     if (type && decoded.type !== type) {
         throw new ApiError({
             field: 'phoneNumber',
-            type: 'error_api_token_invalid_type',
+            type: 'error_api_token_invalid_type'
         });
     }
     return decoded;
@@ -98,7 +102,7 @@ function apiMiddleware(handler) {
                     err = new ApiError({
                         type: 'error_api_general',
                         status: 500,
-                        cause: err,
+                        cause: err
                     });
                 }
                 if (err.status >= 500) {
@@ -146,25 +150,25 @@ router.post(
         if (!skipRecaptcha && !req.body.recaptcha) {
             throw new ApiError({
                 type: 'error_api_recaptcha_required',
-                field: 'recaptcha',
+                field: 'recaptcha'
             });
         }
         if (!req.body.email) {
             throw new ApiError({
                 type: 'error_api_email_required',
-                field: 'email',
+                field: 'email'
             });
         }
         if (!validator.isEmail(req.body.email)) {
             throw new ApiError({
                 type: 'error_api_email_format',
-                field: 'email',
+                field: 'email'
             });
         }
         if (badDomains.includes(req.body.email.split('@')[1])) {
             throw new ApiError({
                 type: 'error_api_domain_blacklisted',
-                field: 'email',
+                field: 'email'
             });
         }
 
@@ -173,20 +177,19 @@ router.post(
         await db.actions.create({
             action: 'request_email',
             ip: req.ip,
-            metadata: { email: req.body.email },
+            metadata: { email: req.body.email }
         });
 
         const userCount = await db.users.count({
             where: {
                 email: req.body.email,
-                email_is_verified: true,
-            },
+                email_is_verified: true
+            }
         });
-
         if (userCount > 0) {
             throw new ApiError({
                 type: 'error_api_email_used',
-                field: 'email',
+                field: 'email'
             });
         }
 
@@ -194,11 +197,10 @@ router.post(
             'is_email_registered',
             [req.body.email]
         );
-
         if (emailRegistered) {
             throw new ApiError({
                 type: 'error_api_email_used',
-                field: 'email',
+                field: 'email'
             });
         }
 
@@ -209,15 +211,15 @@ router.post(
                 throw new ApiError({
                     type: 'error_api_recaptcha_invalid',
                     field: 'recaptcha',
-                    cause,
+                    cause
                 });
             }
         }
 
         let user = await db.users.findOne({
             where: {
-                email: req.body.email,
-            },
+                email: req.body.email
+            }
         });
 
         if (!user) {
@@ -236,6 +238,7 @@ router.post(
                 metadata: { query: JSON.parse(req.body.query) },
                 username: req.body.username,
                 username_booked_at: new Date(),
+                tracking_id: req.body.xref || generateTrackingId()
             });
         } else {
             user.username = req.body.username;
@@ -254,7 +257,7 @@ router.post(
             if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
                 throw new ApiError({
                     field: 'email',
-                    type: 'error_api_wait_one_minute',
+                    type: 'error_api_wait_one_minute'
                 });
             }
 
@@ -262,7 +265,7 @@ router.post(
             const mailToken = jwt.sign(
                 {
                     type: 'confirm_email',
-                    email: user.email,
+                    email: user.email
                 },
                 process.env.JWT_SECRET
             );
@@ -271,7 +274,7 @@ router.post(
             await services.sendEmail(user.email, 'confirm_email', {
                 url: `${req.protocol}://${req.get(
                     'host'
-                )}/confirm-email?token=${mailToken}`,
+                )}/confirm-email?token=${mailToken}`
             });
 
             // Update the user to reflect that the verification email was sent.
@@ -282,12 +285,12 @@ router.post(
         const token = jwt.sign(
             {
                 type: 'signup',
-                email: user.email,
+                email: user.email
             },
             process.env.JWT_SECRET
         );
 
-        return { success: true, token };
+        return { success: true, token, xref: user.tracking_id };
     })
 );
 
@@ -303,13 +306,13 @@ router.post(
         if (!req.body.phoneNumber) {
             throw new ApiError({
                 type: 'error_api_phone_required',
-                field: 'phoneNumber',
+                field: 'phoneNumber'
             });
         }
         if (!req.body.prefix) {
             throw new ApiError({
                 type: 'error_api_country_code_required',
-                field: 'prefix',
+                field: 'prefix'
             });
         }
 
@@ -317,7 +320,7 @@ router.post(
         if (!countryCode) {
             throw new ApiError({
                 field: 'prefix',
-                type: 'error_api_prefix_invalid',
+                type: 'error_api_prefix_invalid'
             });
         }
 
@@ -328,7 +331,7 @@ router.post(
         if (!isValid) {
             throw new ApiError({
                 field: 'phoneNumber',
-                type: 'error_phone_invalid',
+                type: 'error_phone_invalid'
             });
         }
 
@@ -340,20 +343,20 @@ router.post(
             throw new ApiError({
                 field: 'phoneNumber',
                 type: 'error_phone_invalid',
-                cause,
+                cause
             });
         }
 
         const user = await db.users.findOne({
             where: {
-                email: decoded.email,
-            },
+                email: decoded.email
+            }
         });
 
         if (!user) {
             throw new ApiError({
                 field: 'phoneNumber',
-                type: 'error_api_unknown_user',
+                type: 'error_api_unknown_user'
             });
         }
 
@@ -366,21 +369,21 @@ router.post(
         ) {
             throw new ApiError({
                 field: 'phoneNumber',
-                type: 'error_api_wait',
+                type: 'error_api_wait'
             });
         }
 
         const phoneExists = await db.users.count({
             where: {
                 phone_number: phoneNumber,
-                phone_number_is_verified: true,
-            },
+                phone_number_is_verified: true
+            }
         });
 
         if (phoneExists > 0) {
             throw new ApiError({
                 field: 'phoneNumber',
-                type: 'error_api_phone_used',
+                type: 'error_api_phone_used'
             });
         }
 
@@ -392,7 +395,7 @@ router.post(
         if (phoneRegistered) {
             throw new ApiError({
                 field: 'phoneNumber',
-                type: 'error_api_phone_used',
+                type: 'error_api_phone_used'
             });
         }
 
@@ -402,7 +405,7 @@ router.post(
                 last_attempt_verify_phone_number: new Date(),
                 phone_code: phoneCode,
                 phone_number: phoneNumber,
-                phone_code_attempts: 0,
+                phone_code_attempts: 0
             },
             { where: { email: decoded.email } }
         );
@@ -411,7 +414,7 @@ router.post(
             action: 'send_sms',
             ip: req.ip,
             metadata: { phoneNumber },
-            user_id: user.id,
+            user_id: user.id
         });
 
         try {
@@ -424,14 +427,14 @@ router.post(
                 throw new ApiError({
                     cause,
                     field: 'phoneNumber',
-                    type: 'error_phone_format',
+                    type: 'error_phone_format'
                 });
             } else {
                 throw cause;
             }
         }
 
-        return { success: true, phoneNumber };
+        return { success: true, phoneNumber, xref: user.tracking_id };
     })
 );
 
@@ -460,7 +463,7 @@ router.get(
     apiMiddleware(async req => {
         const decoded = verifyToken(req.query.token, 'confirm_email');
         const user = await db.users.findOne({
-            where: { email: decoded.email },
+            where: { email: decoded.email }
         });
         if (!user) {
             throw new ApiError({ type: 'error_api_email_exists_not' });
@@ -468,7 +471,7 @@ router.get(
         const token = jwt.sign(
             {
                 type: 'signup',
-                email: decoded.email,
+                email: decoded.email
             },
             process.env.JWT_SECRET
         );
@@ -486,6 +489,7 @@ router.get(
             success: true,
             token,
             username: user.username,
+            xref: user.tracking_id
         };
     })
 );
@@ -502,30 +506,30 @@ router.post(
         if (!req.body.code) {
             throw new ApiError({
                 field: 'code',
-                type: 'error_api_code_required',
+                type: 'error_api_code_required'
             });
         }
 
         const user = await db.users.findOne({
-            where: { email: decoded.email },
+            where: { email: decoded.email }
         });
 
         if (!user) {
             throw new ApiError({
                 field: 'code',
-                type: 'error_api_unknown_user',
+                type: 'error_api_unknown_user'
             });
         }
         if (user.phone_number_is_verified) {
             throw new ApiError({
                 field: 'code',
-                type: 'error_api_phone_verified',
+                type: 'error_api_phone_verified'
             });
         }
         if (user.phone_code_attempts >= 5) {
             throw new ApiError({
                 field: 'code',
-                type: 'error_api_phone_too_many',
+                type: 'error_api_phone_too_many'
             });
         }
 
@@ -534,7 +538,7 @@ router.post(
             await user.save();
             throw new ApiError({
                 field: 'code',
-                type: 'error_api_code_invalid',
+                type: 'error_api_code_invalid'
             });
         }
 
@@ -568,7 +572,7 @@ router.post(
         const decoded = verifyToken(req.body.token, 'create_account');
 
         const user = await db.users.findOne({
-            where: { email: decoded.email },
+            where: { email: decoded.email }
         });
         if (!user) {
             throw new ApiError({ type: 'error_api_user_exists_not' });
@@ -576,7 +580,7 @@ router.post(
 
         if (user.status === 'manual_review' || user.status === 'rejected') {
             throw new ApiError({
-                type: 'error_api_account_verification_pending',
+                type: 'error_api_account_verification_pending'
             });
         }
 
@@ -586,13 +590,13 @@ router.post(
 
         if (user.status !== 'approved') {
             throw new ApiError({
-                type: 'error_api_account_verification_pending',
+                type: 'error_api_account_verification_pending'
             });
         }
 
         await db.users.update(
             {
-                email_is_verified: true,
+                email_is_verified: true
             },
             { where: { email: decoded.email } }
         );
@@ -604,15 +608,16 @@ router.post(
                 username: '',
                 reservedUsername: user.username,
                 email: user.email,
+                xref: user.tracking_id
             };
         }
-
         return {
             success: true,
             username: user.username,
             reservedUsername: '',
             query: user.metadata.query,
             email: user.email,
+            xref: user.tracking_id
         };
     })
 );
@@ -638,14 +643,14 @@ router.post(
             throw new ApiError({ type: 'error_api_email_required' });
         }
         const user = await db.users.findOne({
-            where: { email: decoded.email },
+            where: { email: decoded.email }
         });
         if (!user) {
             throw new ApiError({ type: 'error_api_user_exists_not' });
         }
         if (user.status !== 'approved') {
             throw new ApiError({
-                type: 'error_api_account_verification_pending',
+                type: 'error_api_account_verification_pending'
             });
         }
         const creationHash = hash
@@ -653,13 +658,13 @@ router.post(
             .toString('hex');
         await db.users.update(
             {
-                creation_hash: creationHash,
+                creation_hash: creationHash
             },
             {
                 where: {
                     email: decoded.email,
-                    creation_hash: null,
-                },
+                    creation_hash: null
+                }
             }
         );
         const weightThreshold = 1;
@@ -669,23 +674,23 @@ router.post(
         const owner = {
             weight_threshold: weightThreshold,
             account_auths: accountAuths,
-            key_auths: [[publicKeys.owner, 1]],
+            key_auths: [[publicKeys.owner, 1]]
         };
         const active = {
             weight_threshold: weightThreshold,
             account_auths: accountAuths,
-            key_auths: [[publicKeys.active, 1]],
+            key_auths: [[publicKeys.active, 1]]
         };
         const posting = {
             weight_threshold: weightThreshold,
             account_auths: accountAuths,
-            key_auths: [[publicKeys.posting, 1]],
+            key_auths: [[publicKeys.posting, 1]]
         };
         const [activeCreationHash] = await db.sequelize.query(
             'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ?',
             {
                 replacements: [decoded.email],
-                type: db.sequelize.QueryTypes.SELECT,
+                type: db.sequelize.QueryTypes.SELECT
             }
         );
 
@@ -703,12 +708,12 @@ router.post(
                 metadata,
                 owner,
                 posting,
-                username,
+                username
             });
         } catch (cause) {
             await db.users.update(
                 {
-                    creation_hash: null,
+                    creation_hash: null
                 },
                 { where: { email: decoded.email } }
             );
@@ -718,13 +723,13 @@ router.post(
             throw new ApiError({
                 type: 'error_api_create_account',
                 cause,
-                status: 500,
+                status: 500
             });
         }
 
         await db.users.update(
             {
-                status: 'created',
+                status: 'created'
             },
             { where: { email: decoded.email } }
         );
@@ -733,8 +738,8 @@ router.post(
             username,
             {
                 phone: user.phone_number.replace(/[^+0-9]+/g, ''),
-                email: user.email,
-            },
+                email: user.email
+            }
         ];
 
         services.conveyorCall('set_user_data', params).catch(error => {
@@ -782,22 +787,22 @@ router.post(
         await db.actions.create({
             action: 'check_username',
             ip: req.ip,
-            metadata: { username },
+            metadata: { username }
         });
 
         const userExists = await services.checkUsername(username);
         if (userExists) {
             throw new ApiError({
                 type: 'error_api_username_used',
-                status: 200,
+                status: 200
             });
         }
         const user = await db.users.findOne({
             where: {
                 username,
-                email_is_verified: true,
+                email_is_verified: true
             },
-            order: [['username_booked_at', 'DESC']],
+            order: [['username_booked_at', 'DESC']]
         });
         const oneWeek = 7 * 24 * 60 * 60 * 1000;
         if (
@@ -806,7 +811,7 @@ router.post(
         ) {
             throw new ApiError({
                 type: 'error_api_username_reserved',
-                status: 200,
+                status: 200
             });
         }
         return { success: true };

@@ -1,13 +1,16 @@
 /* eslint-disable react/prop-types */
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
-import logStep from '../../helpers/stepLogger';
 import Loading from '../widgets/Loading';
 
 class Index extends Component {
+    static propTypes = {
+        setTrackingId: PropTypes.func.isRequired,
+        logCheckpoint: PropTypes.func.isRequired
+    };
     constructor(props) {
         super(props);
         this.state = {
@@ -17,19 +20,18 @@ class Index extends Component {
             email: null,
             token: null,
             error: '',
-            approved: null,
+            approved: null
         };
     }
 
     componentWillMount() {
-        const { intl } = this.props;
+        const { intl, logCheckpoint, setTrackingId } = this.props;
         const token = this.props.location.query.token;
         if (!token) {
             this.setState({
                 status: 'error',
-                error: intl.formatMessage({ id: 'error_token_required' }),
+                error: intl.formatMessage({ id: 'error_token_required' })
             });
-            logStep('confirm_email_error', 4);
         } else {
             fetch(`/api/confirm_email?token=${this.props.location.query.token}`)
                 .then(checkStatus)
@@ -42,12 +44,13 @@ class Index extends Component {
                         email: data.email,
                         username: data.username,
                         token: data.token,
-                        approved: data.approved,
+                        xref: data.xref,
+                        approved: data.approved
                     });
-                    logStep(
-                        `confirm_email_${data.success ? 'success' : 'error'}`,
-                        4
-                    );
+                    if (data.success) {
+                        setTrackingId(data.xref);
+                        logCheckpoint('email_verified');
+                    }
                 })
                 .catch(error => {
                     error.response.json().then(data => {
@@ -57,9 +60,8 @@ class Index extends Component {
                             completed: data.completed,
                             email: data.email,
                             username: data.username,
-                            token: data.token,
+                            token: data.token
                         });
-                        logStep('confirm_email_error', 4);
                     });
                 });
         }
@@ -74,6 +76,7 @@ class Index extends Component {
             username,
             token,
             approved,
+            xref
         } = this.state;
         return (
             <div className="Signup_main">
@@ -104,7 +107,7 @@ class Index extends Component {
                                     {!completed && (
                                         <p>
                                             <Link
-                                                to={`/?username=${username}&email=${email}&token=${token}`}
+                                                to={`/?username=${username}&email=${email}&token=${token}&xref=${xref}`}
                                                 className="complete-signup"
                                             >
                                                 <FormattedMessage id="continue" />

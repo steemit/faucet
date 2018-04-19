@@ -33,6 +33,7 @@ class Email extends React.Component {
             onSubmit,
             username,
             intl,
+            trackingId,
         } = this.props;
         const { fingerprint, query } = this.state;
         validateFieldsAndScroll((err, values) => {
@@ -42,6 +43,7 @@ class Email extends React.Component {
                     fingerprint,
                     query,
                     username,
+                    xref: trackingId,
                 })
                     .then(data => {
                         this.setState({ submitting: false });
