@@ -555,8 +555,7 @@ router.post(
 router.get(
     '/guess_country',
     apiMiddleware(async req => {
-        // TODO: confirm this works as intended.
-        const location = req.geoip.get(req.ip);
+        const location = geoip.get(req.ip);
         return { location };
     })
 );
