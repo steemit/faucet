@@ -4,7 +4,7 @@ import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
-import { validateEmail, validateEmailDomain } from '../../../utils/validator';
+import { validateEmail, validateEmailDomain } from '../../../../helpers/validator';
 
 class Email extends React.Component {
     static contextTypes = {

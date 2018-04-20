@@ -15,6 +15,7 @@ const db = require('./../db/models');
 const services = require('../helpers/services');
 const geoip = require('../helpers/maxmind');
 const { generateTrackingId } = require('../helpers/stepLogger');
+const { accountNameIsInvalid } = require('../helpers/validator');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -635,6 +636,10 @@ router.post(
         if (!username) {
             throw new ApiError({ type: 'error_api_username_required' });
         }
+        const nameIsInvalid = accountNameIsInvalid(username);
+        if (nameIsInvalid) {
+            throw new ApiError({ type: nameIsInvalid });
+        }
         if (!public_keys) {
             // eslint-disable-line camelcase
             throw new ApiError({ type: 'error_api_public_keys_required' });
@@ -781,14 +786,17 @@ router.post(
     '/check_username',
     apiMiddleware(async req => {
         const { username } = req.body;
-        if (!username || username.length < 3) {
-            throw new ApiError({ type: 'error_api_username_invalid' });
-        }
+
         await db.actions.create({
             action: 'check_username',
             ip: req.ip,
             metadata: { username },
         });
+
+        const nameIsInvalid = accountNameIsInvalid(username);
+        if (nameIsInvalid) {
+            throw new ApiError({ type: nameIsInvalid });
+        }
 
         const userExists = await services.checkUsername(username);
         if (userExists) {
