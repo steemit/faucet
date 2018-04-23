@@ -46,7 +46,7 @@ const accountNameIsValid = name => {
     let len;
 
     if (!name) {
-        return INVALID_ACCOUNTNAME_REASONS.error_username_required;
+        throw new Error(INVALID_ACCOUNTNAME_REASONS.error_username_required);
     }
 
     const length = name.length;
