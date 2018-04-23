@@ -33,13 +33,14 @@ const INVALID_ACCOUNTNAME_REASONS = {
 };
 
 /**
- * If the name is invalid, emits one of INVALID_ACCOUNTNAME_REASONS.
+ * If the name is invalid, throws an error with a message set to one of INVALID_ACCOUNTNAME_REASONS.
+ * See
+ * https://github.com/steemit/condenser/blob/eaf8a02658b8deaef376ec90b81d0866e52582cc/app/utils/ChainValidation.js#L4
  *
  * @param {string} name
- * @return {string|false}
+ * @return {boolean}
  */
-// https://github.com/steemit/condenser/blob/eaf8a02658b8deaef376ec90b81d0866e52582cc/app/utils/ChainValidation.js#L4
-const accountNameIsInvalid = name => {
+const accountNameIsValid = name => {
     let i;
     let label;
     let len;
@@ -51,10 +52,14 @@ const accountNameIsInvalid = name => {
     const length = name.length;
 
     if (length < 3) {
-        return INVALID_ACCOUNTNAME_REASONS.error_validation_account_min;
+        throw new Error(
+            INVALID_ACCOUNTNAME_REASONS.error_validation_account_min
+        );
     }
     if (length > 16) {
-        return INVALID_ACCOUNTNAME_REASONS.error_validation_account_max;
+        throw new Error(
+            INVALID_ACCOUNTNAME_REASONS.error_validation_account_max
+        );
     }
 
     const hasSegment = /\./.test(name);
@@ -64,34 +69,47 @@ const accountNameIsInvalid = name => {
     for (i = 0, len = ref.length; i < len; i += 1) {
         label = ref[i];
         if (!/^[a-z]/.test(label)) {
-            return hasSegment
-                ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_start
-                : INVALID_ACCOUNTNAME_REASONS.error_validation_account_start;
+            throw new Error(
+                hasSegment
+                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_start
+                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_start
+            );
         }
         if (!/^[a-z0-9-]*$/.test(label)) {
-            return hasSegment
-                ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_alpha
-                : INVALID_ACCOUNTNAME_REASONS.error_validation_account_alpha;
+            throw new Error(
+                hasSegment
+                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_alpha
+                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_alpha
+            );
         }
         if (/--/.test(label)) {
-            return hasSegment
-                ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_dash
-                : INVALID_ACCOUNTNAME_REASONS.error_validation_account_dash;
+            throw new Error(
+                hasSegment
+                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_dash
+                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_dash
+            );
         }
         if (!/[a-z0-9]$/.test(label)) {
-            return hasSegment
-                ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_end
-                : INVALID_ACCOUNTNAME_REASONS.error_validation_account_end;
+            throw new Error(
+                hasSegment
+                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_end
+                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_end
+            );
         }
         if (!(label.length >= 3)) {
-            return hasSegment
-                ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_min
-                : INVALID_ACCOUNTNAME_REASONS.error_validation_account_min;
+            throw new Error(
+                hasSegment
+                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_min
+                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_min
+            );
         }
     }
-    return false;
+    return true;
 };
 
+/**
+ * Used in src/components/Form/Signup/Email.js
+ * */
 const validateEmail = (rule, value, callback) => {
     if (value) {
         if (!validator.isEmail(value)) {
@@ -104,6 +122,9 @@ const validateEmail = (rule, value, callback) => {
     }
 };
 
+/**
+ * Used in src/components/Form/Signup/Email.js
+ * */
 const validateEmailDomain = (rule, value, callback) => {
     if (value) {
         const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
@@ -121,7 +142,7 @@ const validateEmailDomain = (rule, value, callback) => {
 
 module.exports = {
     accountNotExist,
-    accountNameIsInvalid,
+    accountNameIsValid,
     validateEmail,
     validateEmailDomain,
 };
