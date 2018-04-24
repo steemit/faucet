@@ -3,7 +3,7 @@ import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Button } from 'antd';
 import apiCall from '../../../utils/api';
-import { validateAccountName } from '../../../utils/validator';
+import { accountNameIsValid } from '../../../../helpers/validator';
 
 class Username extends React.Component {
     constructor(props) {
@@ -15,7 +15,12 @@ class Username extends React.Component {
     }
 
     validateAccountNameIntl = (rule, value, callback) => {
-        validateAccountName(rule, value, callback, this.props.intl);
+        try {
+            accountNameIsValid(value);
+        } catch (e) {
+            callback(this.props.intl.formatMessage({ id: e.message }));
+        }
+        callback();
     };
 
     validateUsername = (rule, value, callback) => {
