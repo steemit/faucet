@@ -22,6 +22,6 @@ const Root = ({ store }) => (
 
 Root.propTypes = {
     store: PropTypes.shape({ app: PropTypes.object, user: PropTypes.object })
-        .isRequired
+        .isRequired,
 };
 export default hot(module)(Root);

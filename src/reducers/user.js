@@ -26,7 +26,7 @@ const defaultState = Map({
     token: '',
     completed: false,
     step: 'username',
-    trackingId: generateTrackingId()
+    trackingId: generateTrackingId(),
 });
 
 export default function reducer(state = defaultState, action = {}) {
@@ -69,65 +69,65 @@ export default function reducer(state = defaultState, action = {}) {
 }
 
 export const guessCountryCode = () => ({
-    type: GUESS_COUNTRY_CODE
+    type: GUESS_COUNTRY_CODE,
 });
 
 export const setCountryCode = countryCode => ({
     type: SET_COUNTRY_CODE,
-    payload: { countryCode }
+    payload: { countryCode },
 });
 
 export const incrementStep = () => ({
-    type: INCREMENT_STEP
+    type: INCREMENT_STEP,
 });
 
 export const decrementStep = () => ({
-    type: DECREMENT_STEP
+    type: DECREMENT_STEP,
 });
 
 export const setStep = step => ({
     type: SET_STEP,
-    payload: { step }
+    payload: { step },
 });
 
 export const setUsername = username => ({
     type: SET_USERNAME,
-    payload: { username }
+    payload: { username },
 });
 
 export const setEmail = email => ({
     type: SET_EMAIL,
-    payload: { email }
+    payload: { email },
 });
 
 export const setPhone = phone => ({
     type: SET_PHONE,
-    payload: { phone }
+    payload: { phone },
 });
 
 export const setPhoneFormatted = phoneNumberFormatted => ({
     type: SET_PHONE_FORMATTED,
-    payload: { phoneNumberFormatted }
+    payload: { phoneNumberFormatted },
 });
 
 export const setToken = token => ({
     type: SET_TOKEN,
-    payload: { token }
+    payload: { token },
 });
 
 export const setPrefix = prefix => ({
     type: SET_PREFIX,
-    payload: { prefix }
+    payload: { prefix },
 });
 
 export const setCompleted = completed => ({
     type: SET_COMPLETED,
-    payload: { completed }
+    payload: { completed },
 });
 
 export const setTrackingId = trackingId => ({
     type: SET_TRACKING_ID,
-    payload: { trackingId }
+    payload: { trackingId },
 });
 
 // Selectors

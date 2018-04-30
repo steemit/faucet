@@ -13,7 +13,7 @@ import locales from '../../helpers/locales.json';
 class Signup extends Component {
     static propTypes = {
         app: PropTypes.shape({
-            locale: React.PropTypes.oneOf(['en', 'fr', 'zh'])
+            locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
         }).isRequired,
         user: PropTypes.shape({
             username: PropTypes.string.isRequired,
@@ -26,14 +26,14 @@ class Signup extends Component {
             prefix: PropTypes.string,
             completed: PropTypes.bool.isRequired,
             trackingId: PropTypes.string.isRequired,
-            step: PropTypes.string.isRequired
+            step: PropTypes.string.isRequired,
         }).isRequired,
         queryParams: PropTypes.shape({
             username: PropTypes.string,
             email: PropTypes.string,
             token: PropTypes.string,
             ref: PropTypes.string,
-            xref: PropTypes.string
+            xref: PropTypes.string,
         }).isRequired,
         setLocale: PropTypes.func.isRequired,
         guessCountryCode: PropTypes.func.isRequired,
@@ -48,7 +48,7 @@ class Signup extends Component {
         setPrefix: PropTypes.func.isRequired,
         setCompleted: PropTypes.func.isRequired,
         setTrackingId: PropTypes.func.isRequired,
-        logCheckpoint: PropTypes.func.isRequired
+        logCheckpoint: PropTypes.func.isRequired,
     };
 
     static defaultProps = {
@@ -57,11 +57,11 @@ class Signup extends Component {
             email: undefined,
             token: undefined,
             ref: undefined,
-            xref: undefined
+            xref: undefined,
         },
         user: {
-            countryCode: null
-        }
+            countryCode: null,
+        },
     };
 
     componentWillMount() {
@@ -71,12 +71,12 @@ class Signup extends Component {
                 username: paramUsername,
                 email: paramEmail,
                 token: paramToken,
-                xref: paramXref
+                xref: paramXref,
             },
             guessCountryCode,
             setStep,
             setTrackingId,
-            logCheckpoint
+            logCheckpoint,
         } = this.props;
 
         guessCountryCode();
@@ -138,15 +138,15 @@ class Signup extends Component {
                 step,
                 prefix,
                 referrer,
-                trackingId
+                trackingId,
             },
             queryParams: {
                 username: paramUsername,
                 email: paramEmail,
                 token: paramToken,
-                ref: paramRef
+                ref: paramRef,
             },
-            setLocale
+            setLocale,
         } = this.props;
 
         const stepNumber = steps.indexOf(step);
@@ -332,13 +332,13 @@ class Signup extends Component {
                                                     onClick={() =>
                                                         this.setState({
                                                             step: 'phoneNumber',
-                                                            stepNumber: 2
+                                                            stepNumber: 2,
                                                         })
                                                     }
                                                 >
                                                     <FormattedMessage id="edit" />
                                                 </a>
-                                            )
+                                            ),
                                         }}
                                     />
                                     <br />

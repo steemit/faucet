@@ -9,7 +9,7 @@ const mapDispatchToProps = dispatch => ({
     },
     logCheckpoint: checkpoint => {
         dispatch(logCheckpoint(checkpoint));
-    }
+    },
 });
 
 const ConfirmEmailStep = connect(null, mapDispatchToProps)(ConfirmEmail);

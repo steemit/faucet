@@ -10,7 +10,7 @@ const translations = getTranslations(locale);
 const antdLocales = {
     en: enUS,
     fr: frFR,
-    default: enUS
+    default: enUS,
 };
 
 const initialState = Map({
@@ -25,9 +25,9 @@ const initialState = Map({
         // user gets email with link to /confirm-email
         'phoneNumber',
         'confirmPhoneNumber',
-        'finish'
+        'finish',
         // user gets email with link to /create-account
-    ])
+    ]),
 });
 
 export default (state = initialState, action = {}) => {
@@ -35,7 +35,7 @@ export default (state = initialState, action = {}) => {
         case SET_LOCALE:
             return state.merge({
                 locale: action.payload.locale,
-                translations: getTranslations(action.payload.locale)
+                translations: getTranslations(action.payload.locale),
             });
         default:
             return state;
@@ -44,7 +44,7 @@ export default (state = initialState, action = {}) => {
 
 export const setLocale = newLocale => ({
     type: SET_LOCALE,
-    payload: { locale: newLocale }
+    payload: { locale: newLocale },
 });
 
 // Selectors.
