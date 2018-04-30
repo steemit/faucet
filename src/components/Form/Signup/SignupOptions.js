@@ -12,6 +12,8 @@ const SignupOptions = ({
     referrer,
 }) => {
     const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
+    const capitalizeFirstLetter = string =>
+        string.charAt(0).toUpperCase() + string.slice(1);
     return (
         <div>
             <h1>
@@ -21,7 +23,7 @@ const SignupOptions = ({
                 {referrer && (
                     <FormattedMessage
                         id="signup_options_referrer"
-                        values={{ referrer: referrer.toUpperCase() }}
+                        values={{ referrer: capitalizeFirstLetter(referrer) }}
                     />
                 )}
             </p>
