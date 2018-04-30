@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
-import { Form, Button, Modal, Icon } from 'antd';
+import { Button, Modal, Icon } from 'antd';
 import './SignupOptions.less';
 
 const SignupOptions = ({
