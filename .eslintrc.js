@@ -13,26 +13,15 @@ module.exports = {
     browser: true,
     jest: true,
   },
-  extends: 'airbnb',
+  extends: ['airbnb', 'prettier', 'prettier/react'],
   rules: {
     'no-restricted-syntax': 0,
     'global-require': 0,
     'no-param-reassign': 0,
     'consistent-return': 0,
-    'arrow-parens': ['error', 'as-needed'],
     'camelcase': 0,
-    'comma-dangle': ['error', {
-      'arrays': 'only-multiline',
-      'objects': 'only-multiline',
-      'imports': 'never',
-      'exports': 'never',
-      'functions': 'ignore'
-    }],
     'import/no-extraneous-dependencies': 0,
-    'indent': ['error', 4, { 'SwitchCase': 1 }],
     'no-mixed-operators': 0,
     'react/jsx-filename-extension': [1, { extensions: ['.js'] }],
-    'react/jsx-indent': ['error', 4],
-    'react/jsx-indent-props': ['error', 4]
   },
 };
