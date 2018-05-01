@@ -9,11 +9,13 @@ import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
 import './Signup.less';
 import locales from '../../helpers/locales.json';
+import SignupOptions from './Form/Signup/SignupOptions';
 
 class Signup extends Component {
     static propTypes = {
         app: PropTypes.shape({
-            locale: React.PropTypes.oneOf(['en', 'fr', 'zh'])
+            locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
+            signupModalVisible: React.PropTypes.bool.isRequired,
         }).isRequired,
         user: PropTypes.shape({
             username: PropTypes.string.isRequired,
@@ -26,14 +28,14 @@ class Signup extends Component {
             prefix: PropTypes.string,
             completed: PropTypes.bool.isRequired,
             trackingId: PropTypes.string.isRequired,
-            step: PropTypes.string.isRequired
+            step: PropTypes.string.isRequired,
         }).isRequired,
         queryParams: PropTypes.shape({
             username: PropTypes.string,
             email: PropTypes.string,
             token: PropTypes.string,
             ref: PropTypes.string,
-            xref: PropTypes.string
+            xref: PropTypes.string,
         }).isRequired,
         setLocale: PropTypes.func.isRequired,
         guessCountryCode: PropTypes.func.isRequired,
@@ -48,7 +50,9 @@ class Signup extends Component {
         setPrefix: PropTypes.func.isRequired,
         setCompleted: PropTypes.func.isRequired,
         setTrackingId: PropTypes.func.isRequired,
-        logCheckpoint: PropTypes.func.isRequired
+        logCheckpoint: PropTypes.func.isRequired,
+        showSignupModal: PropTypes.func.isRequired,
+        hideSignupModal: PropTypes.func.isRequired,
     };
 
     static defaultProps = {
@@ -57,11 +61,11 @@ class Signup extends Component {
             email: undefined,
             token: undefined,
             ref: undefined,
-            xref: undefined
+            xref: undefined,
         },
         user: {
-            countryCode: null
-        }
+            countryCode: null,
+        },
     };
 
     componentWillMount() {
@@ -71,12 +75,12 @@ class Signup extends Component {
                 username: paramUsername,
                 email: paramEmail,
                 token: paramToken,
-                xref: paramXref
+                xref: paramXref,
             },
             guessCountryCode,
             setStep,
             setTrackingId,
-            logCheckpoint
+            logCheckpoint,
         } = this.props;
 
         guessCountryCode();
@@ -96,6 +100,11 @@ class Signup extends Component {
 
     goBack = () => {
         this.props.decrementStep();
+    };
+
+    handleFreeSignup = () => {
+        this.props.incrementStep();
+        this.props.logCheckpoint('free_signup_chosen');
     };
 
     handleSubmitUsername = values => {
@@ -127,7 +136,7 @@ class Signup extends Component {
 
     render() {
         const {
-            app: { locale, steps },
+            app: { locale, steps, signupModalVisible },
             user: {
                 username,
                 email,
@@ -138,15 +147,17 @@ class Signup extends Component {
                 step,
                 prefix,
                 referrer,
-                trackingId
+                trackingId,
             },
             queryParams: {
                 username: paramUsername,
                 email: paramEmail,
                 token: paramToken,
-                ref: paramRef
+                ref: paramRef,
             },
-            setLocale
+            setLocale,
+            showSignupModal,
+            hideSignupModal,
         } = this.props;
 
         const stepNumber = steps.indexOf(step);
@@ -239,9 +250,40 @@ class Signup extends Component {
                                                     : ''
                                             }`}
                                         />
+                                        <div
+                                            className={`Signup__steps-step ${
+                                                stepNumber === 4
+                                                    ? 'waiting'
+                                                    : ''
+                                            } ${
+                                                stepNumber > 4
+                                                    ? 'processed'
+                                                    : ''
+                                            }`}
+                                        />
                                     </div>
                                 )}
                         </div>
+
+                        {step === 'paid' && (
+                            <div>
+                                {referrer === 'steemit' && (
+                                    <object
+                                        data="img/steemit-logo.svg"
+                                        type="image/svg+xml"
+                                        id="app-logo"
+                                        aria-label="logo"
+                                    />
+                                )}
+                                <SignupOptions
+                                    signupModalVisible={signupModalVisible}
+                                    hideSignupModal={hideSignupModal}
+                                    showSignupModal={showSignupModal}
+                                    handleFreeSignup={this.handleFreeSignup}
+                                    referrer={referrer || undefined}
+                                />
+                            </div>
+                        )}
                         {step === 'username' && (
                             <div className="form-content">
                                 {referrer === 'steemit' && (
@@ -332,13 +374,13 @@ class Signup extends Component {
                                                     onClick={() =>
                                                         this.setState({
                                                             step: 'phoneNumber',
-                                                            stepNumber: 2
+                                                            stepNumber: 2,
                                                         })
                                                     }
                                                 >
                                                     <FormattedMessage id="edit" />
                                                 </a>
-                                            )
+                                            ),
                                         }}
                                     />
                                     <br />
@@ -381,10 +423,10 @@ class Signup extends Component {
                     </div>
                     <div
                         className={`Signup__icons ${
-                            step === 'username' ? 'username-icons' : ''
+                            step === 'paid' ? 'username-icons' : ''
                         }`}
                     >
-                        {step === 'username' && (
+                        {step === 'paid' && (
                             <div>
                                 <h3>
                                     <FormattedMessage id="signup_username_right_title" />
@@ -395,6 +437,14 @@ class Signup extends Component {
                             </div>
                         )}
                         {step === 'username' && (
+                            <img
+                                src="/img/signup-options.svg"
+                                id="signup-options"
+                                aria-label="signup-options"
+                                alt="signup-options"
+                            />
+                        )}
+                        {step === 'paid' && (
                             <img
                                 src="/img/signup-username.png"
                                 id="signup-username"
