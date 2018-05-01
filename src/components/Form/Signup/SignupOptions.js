@@ -74,7 +74,7 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://blocktrades.us/create-steem-account"
                     onClick={() => {
-                        logCheckpoint('blocktrades');
+                        logCheckpoint('blocktrades_signup_chosen');
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
@@ -90,7 +90,7 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://anon.steem.network/"
                     onClick={() => {
-                        logCheckpoint('AnonSteem');
+                        logCheckpoint('anonSteem_signup_chosen');
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
@@ -105,7 +105,7 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://steemit.com/news/@timcliff/new-tool-from-busy-org-create-new-steem-blockchain-accounts-with-steemconnect"
                     onClick={() => {
-                        logCheckpoint('SteemConnect');
+                        logCheckpoint('steemConnect_signup_chosen');
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
