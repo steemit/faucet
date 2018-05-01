@@ -93,7 +93,7 @@ class Signup extends Component {
             setStep('phoneNumber');
         }
 
-        if (!paramUsername && step === 'paid') {
+        if (!paramUsername && step === 'signupOptions') {
             logCheckpoint('signup_start');
         }
     }
@@ -266,7 +266,7 @@ class Signup extends Component {
                                 )}
                         </div>
 
-                        {step === 'paid' && (
+                        {step === 'signupOptions' && (
                             <div>
                                 {referrer === 'steemit' && (
                                     <object
@@ -425,10 +425,10 @@ class Signup extends Component {
                     </div>
                     <div
                         className={`Signup__icons ${
-                            step === 'paid' ? 'username-icons' : ''
+                            step === 'signupOptions' ? 'username-icons' : ''
                         }`}
                     >
-                        {step === 'paid' && (
+                        {step === 'signupOptions' && (
                             <div>
                                 <h3>
                                     <FormattedMessage id="signup_username_right_title" />
@@ -446,7 +446,7 @@ class Signup extends Component {
                                 alt="signup-options"
                             />
                         )}
-                        {step === 'paid' && (
+                        {step === 'signupOptions' && (
                             <img
                                 src="/img/signup-username.png"
                                 id="signup-username"
