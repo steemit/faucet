@@ -93,7 +93,7 @@ class Signup extends Component {
             setStep('phoneNumber');
         }
 
-        if (!paramUsername && step === 'username') {
+        if (!paramUsername && step === 'paid') {
             logCheckpoint('signup_start');
         }
     }
@@ -105,6 +105,7 @@ class Signup extends Component {
     handleFreeSignup = () => {
         this.props.incrementStep();
         this.props.logCheckpoint('free_signup_chosen');
+        logCheckpoint('free_signup_start');
     };
 
     handleSubmitUsername = values => {
@@ -158,6 +159,7 @@ class Signup extends Component {
             setLocale,
             showSignupModal,
             hideSignupModal,
+            logCheckpoint,
         } = this.props;
 
         const stepNumber = steps.indexOf(step);
@@ -280,6 +282,7 @@ class Signup extends Component {
                                     hideSignupModal={hideSignupModal}
                                     showSignupModal={showSignupModal}
                                     handleFreeSignup={this.handleFreeSignup}
+                                    logCheckpoint={logCheckpoint}
                                     referrer={referrer || undefined}
                                 />
                             </div>
