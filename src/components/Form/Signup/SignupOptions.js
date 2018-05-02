@@ -13,8 +13,15 @@ const SignupOptions = ({
     logCheckpoint,
 }) => {
     const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
+
     const capitalizeFirstLetter = string =>
         string.charAt(0).toUpperCase() + string.slice(1);
+
+    const actionWithLog = (action, loggerFn, actionName) => () => {
+        loggerFn(actionName);
+        action();
+    };
+
     return (
         <div>
             <h1>
@@ -54,7 +61,11 @@ const SignupOptions = ({
                     type="default"
                     htmlType="button"
                     className="pay"
-                    onClick={showSignupModal}
+                    onClick={actionWithLog(
+                        showSignupModal,
+                        logCheckpoint,
+                        'paid_signup_options_modal_shown'
+                    )}
                 >
                     <FormattedMessage id="signup_options_button_pay" />
                     <br />
@@ -74,7 +85,7 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://blocktrades.us/create-steem-account"
                     onClick={() => {
-                        logCheckpoint('blocktrades_signup_chosen');
+                        logCheckpoint('paid_signup_clicked_blocktrades');
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
@@ -90,7 +101,7 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://anon.steem.network/"
                     onClick={() => {
-                        logCheckpoint('anonSteem_signup_chosen');
+                        logCheckpoint('paid_signup_clicked_anonsteem');
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
@@ -105,7 +116,7 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://steemit.com/news/@timcliff/new-tool-from-busy-org-create-new-steem-blockchain-accounts-with-steemconnect"
                     onClick={() => {
-                        logCheckpoint('steemConnect_signup_chosen');
+                        logCheckpoint('paid_signup_clicked_steemconnect');
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
