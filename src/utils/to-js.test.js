@@ -1,8 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Map } from 'immutable';
 import toJS from './to-js';
 
 const MockComponent = props => <h1> Hello {props.name} </h1>;
+MockComponent.propTypes = {
+    name: PropTypes.string.isRequired,
+};
 
 const mockProps = {
     name: 'Foo',

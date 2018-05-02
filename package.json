@@ -9,8 +9,11 @@
   "scripts": {
     "start": "./bin/www",
     "start-dev": "nodemon --ignore src ./bin/www | bunyan -o short",
-    "test": "jest",
-    "lint": "eslint --fix \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\" && nsp check --output summary",
+    "jest": "jest",
+    "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
+    "lint-fix": "eslint --fix \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
+    "nsp": "nsp check --output summary",
+    "test": "yarn run lint && yarn run jest && yarn run nsp",
     "build": "webpack -p --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress -p --config webpack/webpack.config.js",
     "precommit": "lint-staged"
