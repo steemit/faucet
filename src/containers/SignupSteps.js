@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import toJS from '../utils/to-js';
-import { setLocale } from '../reducers/app';
+import { setLocale, showSignupModal, hideSignupModal } from '../reducers/app';
 import {
     guessCountryCode,
     incrementStep,
@@ -36,6 +36,12 @@ const mapDispatchToProps = dispatch => ({
     },
     decrementStep: () => {
         dispatch(decrementStep());
+    },
+    showSignupModal: () => {
+        dispatch(showSignupModal());
+    },
+    hideSignupModal: () => {
+        dispatch(hideSignupModal());
     },
     setStep: stepName => {
         dispatch(setStep(stepName));

@@ -32,13 +32,13 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  height: 100%;
-  min-height: 570px;
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 0 auto;
-
+  @media (min-width: @screen-md) {
+     height: 100%;
+   }
   .Signup__form, .Signup__icons {
-    max-width: 500px;
+    max-width: 600px;
     min-height: 600px;
     width: 100%;
     margin-bottom: 50px;
@@ -70,6 +70,7 @@
     min-height: 50px;
     flex: 1;
     align-items: flex-start;
+    padding-bottom: 1.5rem;
 
     .Signup__steps {
       display: flex;
@@ -112,9 +113,7 @@
 
     .form-actions {
       position: absolute;
-      bottom: 0;
       width: calc(~'100% - 100px');
-      max-width: 400px;
 
       @media (max-width: @screen-md) {
         width: calc(~'100% - 40px');
@@ -196,7 +195,7 @@
       color: #4ba2f2;
       background: none;
       font-size: 16px;
-
+      border: none;
       &:hover {
         color: #4ba2f2;
       }
