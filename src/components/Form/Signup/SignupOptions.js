@@ -10,10 +10,18 @@ const SignupOptions = ({
     showSignupModal,
     handleFreeSignup,
     referrer,
+    logCheckpoint,
 }) => {
     const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
+
     const capitalizeFirstLetter = string =>
         string.charAt(0).toUpperCase() + string.slice(1);
+
+    const actionWithLog = (action, loggerFn, actionName) => () => {
+        loggerFn(actionName);
+        action();
+    };
+
     return (
         <div>
             <h1>
@@ -53,7 +61,11 @@ const SignupOptions = ({
                     type="default"
                     htmlType="button"
                     className="pay"
-                    onClick={showSignupModal}
+                    onClick={actionWithLog(
+                        showSignupModal,
+                        logCheckpoint,
+                        'paid_signup_options_modal_shown'
+                    )}
                 >
                     <FormattedMessage id="signup_options_button_pay" />
                     <br />
@@ -72,6 +84,9 @@ const SignupOptions = ({
                 <a
                     className="external-link"
                     href="https://blocktrades.us/create-steem-account"
+                    onClick={() => {
+                        logCheckpoint('paid_signup_clicked_blocktrades');
+                    }}
                 >
                     <Button type="primary" ghost htmlType="button">
                         Blocktrades
@@ -82,7 +97,13 @@ const SignupOptions = ({
                     <FormattedMessage id="signup_options_blocktrades" />
                 </p>
 
-                <a className="external-link" href="https://anon.steem.network/">
+                <a
+                    className="external-link"
+                    href="https://anon.steem.network/"
+                    onClick={() => {
+                        logCheckpoint('paid_signup_clicked_anonsteem');
+                    }}
+                >
                     <Button type="primary" ghost htmlType="button">
                         AnonSteem
                         <Icon type="link" />
@@ -94,6 +115,9 @@ const SignupOptions = ({
                 <a
                     className="external-link"
                     href="https://steemit.com/news/@timcliff/new-tool-from-busy-org-create-new-steem-blockchain-accounts-with-steemconnect"
+                    onClick={() => {
+                        logCheckpoint('paid_signup_clicked_steemconnect');
+                    }}
                 >
                     <Button type="primary" ghost htmlType="button">
                         SteemConnect
@@ -117,6 +141,7 @@ SignupOptions.propTypes = {
     hideSignupModal: PropTypes.func.isRequired,
     showSignupModal: PropTypes.func.isRequired,
     handleFreeSignup: PropTypes.func.isRequired,
+    logCheckpoint: PropTypes.func.isRequired,
     referrer: PropTypes.string,
 };
 

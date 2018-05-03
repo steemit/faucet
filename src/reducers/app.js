@@ -21,7 +21,7 @@ const initialState = Map({
     antdLocales,
     // TODO: add steps for confirm-email and create-account routes.
     steps: List([
-        'paid',
+        'signupOptions',
         'username',
         'email',
         'checkYourEmail',
