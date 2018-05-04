@@ -14,6 +14,7 @@ import Dashboard from "./dashboard"
 import "./main.css"
 import SignupDetail from "./signup-detail"
 import SignupList from "./signup-list"
+import SearchList from "./signup-search"
 
 interface UserSession {
   name: string
@@ -177,6 +178,13 @@ class Main extends React.Component<MainProps, MainState> {
         location={props.location}
       />
     )
+    const renderSearchList = (props: RouteComponentProps<any>) => (
+      <SearchList
+        api={this.api}
+        history={props.history}
+        location={props.location}
+      />
+    )
     const renderDashboard = (props: RouteComponentProps<any>) => (
       <Dashboard api={this.api} />
     )
@@ -231,6 +239,10 @@ class Main extends React.Component<MainProps, MainState> {
                 <Icon type="solution" />
                 <span className="nav-text">Signups</span>
               </Menu.Item>
+              <Menu.Item key="/admin/search">
+                <Icon type="search" />
+                <span className="nav-text">Search</span>
+              </Menu.Item>
             </Menu>
           </Layout.Sider>
           <Layout>
@@ -256,6 +268,11 @@ class Main extends React.Component<MainProps, MainState> {
                   path="/admin/signups"
                   exact={true}
                   render={renderSignupList}
+                />
+                <Route
+                  path="/admin/search"
+                  exact={true}
+                  render={renderSearchList}
                 />
                 <Route path="/admin/signups/:id" render={renderSignupDetail} />
               </Switch>
