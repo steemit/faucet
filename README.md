@@ -87,3 +87,7 @@ Add the following to `.vscode/launch.json` configurations array:
     "envFile": "${workspaceFolder}/.env",
   }
 ```
+
+## Testing
+
+The `test` command will run three other scripts in sequence: static analysis (`eslint`), unit and integration tests (`jest`), and dependency security check (`nsp`).

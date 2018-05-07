@@ -113,6 +113,28 @@
         "If you ever lose your password, your account will be irretrievably lost. We do not have your password, and we cannot help you recover it.",
     "send_sms": "We need to send you a quick text.",
     "sign_in": "Sign in",
+    "signup_options": "Sign up options",
+    "signup_options_body_1":
+        "The Steem blockchain powers many real time content apps like Steemit, and is run by community members all around the world. To help protect them against bots and name squatters, a small fee is charged to create new accounts.",
+    "signup_options_body_2":
+        "We're happy to cover this fee for you but we'll need your email and phone number to manually check that you're a real person. This process could take 1-2 weeks.",
+    "signup_options_body_3":
+        "If you'd like to skip the queue or stay anonymous, you can pay the account creation fee using a third party service.",
+    "signup_options_button_free": "Sign up for free",
+    "signup_options_button_free_caveat": "1-2 week queue",
+    "signup_options_button_pay": "Pay to sign up",
+    "signup_options_button_pay_caveat": "Get instant access",
+    "signup_options_referrer":
+        "{referrer} is not a typical social app. It's powered by the Steem blockchain.",
+    "signup_options_modal_title": "Choose a third party paid option",
+    "signup_options_blocktrades":
+        "A third-party tool that accepts Bitcoin, Ethereum, Litecoin, STEEM and more. Blocktrades charges it's own small fee.",
+    "signup_options_anonsteem":
+        "A third-party tool that accepts Bitcoin, Litecoin and STEEM. AnonSteem also charges it's own a small fee.",
+    "signup_options_steemconnect":
+        "Try this option if you already have a Steem account and want to pay to set up a new account for yourself or a friend.",
+    "signup_options_disclaimer":
+        "Note: Steemit, Inc does not receive any money from paid accounts.",
     "signup_username_right_text":
         "A single Steem account gets you into all Steem-based apps",
     "signup_username_right_title": "One account is all you need",

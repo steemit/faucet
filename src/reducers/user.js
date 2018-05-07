@@ -25,7 +25,7 @@ const defaultState = Map({
     referrer: 'steemit',
     token: '',
     completed: false,
-    step: 'username',
+    step: 'signupOptions',
     trackingId: generateTrackingId(),
 });
 

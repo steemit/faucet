@@ -9,11 +9,13 @@ import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import LanguageItem from './LanguageItem';
 import './Signup.less';
 import locales from '../../helpers/locales.json';
+import SignupOptions from './Form/Signup/SignupOptions';
 
 class Signup extends Component {
     static propTypes = {
         app: PropTypes.shape({
             locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
+            signupModalVisible: React.PropTypes.bool.isRequired,
         }).isRequired,
         user: PropTypes.shape({
             username: PropTypes.string.isRequired,
@@ -49,6 +51,8 @@ class Signup extends Component {
         setCompleted: PropTypes.func.isRequired,
         setTrackingId: PropTypes.func.isRequired,
         logCheckpoint: PropTypes.func.isRequired,
+        showSignupModal: PropTypes.func.isRequired,
+        hideSignupModal: PropTypes.func.isRequired,
     };
 
     static defaultProps = {
@@ -89,13 +93,18 @@ class Signup extends Component {
             setStep('phoneNumber');
         }
 
-        if (!paramUsername && step === 'username') {
+        if (!paramUsername && step === 'signupOptions') {
             logCheckpoint('signup_start');
         }
     }
 
     goBack = () => {
         this.props.decrementStep();
+    };
+
+    handleFreeSignup = () => {
+        this.props.incrementStep();
+        this.props.logCheckpoint('free_signup_chosen');
     };
 
     handleSubmitUsername = values => {
@@ -127,7 +136,7 @@ class Signup extends Component {
 
     render() {
         const {
-            app: { locale, steps },
+            app: { locale, steps, signupModalVisible },
             user: {
                 username,
                 email,
@@ -147,6 +156,9 @@ class Signup extends Component {
                 ref: paramRef,
             },
             setLocale,
+            showSignupModal,
+            hideSignupModal,
+            logCheckpoint,
         } = this.props;
 
         const stepNumber = steps.indexOf(step);
@@ -239,9 +251,41 @@ class Signup extends Component {
                                                     : ''
                                             }`}
                                         />
+                                        <div
+                                            className={`Signup__steps-step ${
+                                                stepNumber === 4
+                                                    ? 'waiting'
+                                                    : ''
+                                            } ${
+                                                stepNumber > 4
+                                                    ? 'processed'
+                                                    : ''
+                                            }`}
+                                        />
                                     </div>
                                 )}
                         </div>
+
+                        {step === 'signupOptions' && (
+                            <div>
+                                {referrer === 'steemit' && (
+                                    <object
+                                        data="img/steemit-logo.svg"
+                                        type="image/svg+xml"
+                                        id="app-logo"
+                                        aria-label="logo"
+                                    />
+                                )}
+                                <SignupOptions
+                                    signupModalVisible={signupModalVisible}
+                                    hideSignupModal={hideSignupModal}
+                                    showSignupModal={showSignupModal}
+                                    handleFreeSignup={this.handleFreeSignup}
+                                    logCheckpoint={logCheckpoint}
+                                    referrer={referrer || undefined}
+                                />
+                            </div>
+                        )}
                         {step === 'username' && (
                             <div className="form-content">
                                 {referrer === 'steemit' && (
@@ -381,10 +425,10 @@ class Signup extends Component {
                     </div>
                     <div
                         className={`Signup__icons ${
-                            step === 'username' ? 'username-icons' : ''
+                            step === 'signupOptions' ? 'username-icons' : ''
                         }`}
                     >
-                        {step === 'username' && (
+                        {step === 'signupOptions' && (
                             <div>
                                 <h3>
                                     <FormattedMessage id="signup_username_right_title" />
@@ -395,6 +439,14 @@ class Signup extends Component {
                             </div>
                         )}
                         {step === 'username' && (
+                            <img
+                                src="/img/signup-options.svg"
+                                id="signup-options"
+                                aria-label="signup-options"
+                                alt="signup-options"
+                            />
+                        )}
+                        {step === 'signupOptions' && (
                             <img
                                 src="/img/signup-username.png"
                                 id="signup-username"
