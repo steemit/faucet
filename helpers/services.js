@@ -8,6 +8,7 @@
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
 const geoip = require('../helpers/maxmind');
+const { checkpoints } = require('../constants');
 
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined;
 
@@ -233,6 +234,87 @@ function recaptchaRequiredForIp(ip) {
     return location && location.country && location.country.iso_code !== 'CN';
 }
 
+/**
+ * Retrieves signup data from InfluxDB and formats for use in the dashboard.
+ * Returns an array where each element includes:
+ *  - a human-readable label `human`,
+ *  - `symbol`, the db column name that matches the frontend step constants,
+ *  - `count`
+ *  - `percent` calculated by dividing the total signup events for this period by this event
+ *
+ * @param {Date} dateFrom RFC3339 UTC
+ * @param {Date} dateTo RFC3339 UTC
+ * @return {Array}
+ */
+async function getOverseerStats(dateFrom, dateTo) {
+    const response = await (await fetch(
+        `${process.env.INFLUXDB_URL}/query?db=overseer`,
+        {
+            method: 'POST',
+            headers: new Headers({
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }),
+            body: `q=${buildFaucetInfluxQuery(dateFrom, dateTo)}`,
+        }
+    )).json();
+    if (!response.results) {
+        throw new Error('influxdb query error');
+    }
+
+    let mappedResults;
+    try {
+        mappedResults = response.results.reduce(
+            (acc, cur) => ({
+                ...acc,
+                [cur.series[0].columns[1]]: cur.series[0].values[0][1] || null,
+            }),
+            {}
+        );
+    } catch (error) {
+        throw new Error('influxdb data error');
+    }
+
+    return checkpoints.reduce(
+        (acc, cur) => [
+            ...acc,
+            {
+                ...cur,
+                count: mappedResults[cur.symbol],
+                percent: parseInt(
+                    mappedResults[cur.symbol] /
+                        mappedResults['signup_start'] *
+                        100
+                ),
+            },
+        ],
+        []
+    );
+}
+
+/**
+ * Constructs an InfluxDB query to get faucet data for each funnel step.
+ *
+ * @param {string} dateFrom RFC3339 UTC
+ * @param {string} dateTo RFC3339 UTC
+ * @returns {string} InfluxDB query
+ */
+const buildFaucetInfluxQuery = (dateFrom, dateTo) =>
+    checkpoints
+        .reduce(
+            (acc, cur) => [
+                ...acc,
+                encodeURIComponent(
+                    `SELECT COUNT("step") AS "${
+                        cur.symbol
+                    }" FROM "overseer"."autogen"."signup" WHERE time >= '${dateFrom}' AND time <= '${dateTo}' AND "step"='${
+                        cur.symbol
+                    }'; `
+                ),
+            ],
+            []
+        )
+        .join('');
+
 module.exports = {
     checkUsername,
     classifySignup,
@@ -245,4 +327,5 @@ module.exports = {
     verifyCaptcha,
     recaptchaRequiredForIp,
     locationFromIp,
+    getOverseerStats,
 };

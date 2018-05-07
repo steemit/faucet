@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 import { Button, Modal, Icon } from 'antd';
+import { CHECKPOINTS } from '../../../../constants';
 import './SignupOptions.less';
 
 const SignupOptions = ({
@@ -64,7 +65,7 @@ const SignupOptions = ({
                     onClick={actionWithLog(
                         showSignupModal,
                         logCheckpoint,
-                        'paid_signup_options_modal_shown'
+                        CHECKPOINTS.paid_signup_options_modal_shown
                     )}
                 >
                     <FormattedMessage id="signup_options_button_pay" />
@@ -85,7 +86,9 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://blocktrades.us/create-steem-account"
                     onClick={() => {
-                        logCheckpoint('paid_signup_clicked_blocktrades');
+                        logCheckpoint(
+                            CHECKPOINTS.paid_signup_clicked_blocktrades
+                        );
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
@@ -101,7 +104,9 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://anon.steem.network/"
                     onClick={() => {
-                        logCheckpoint('paid_signup_clicked_anonsteem');
+                        logCheckpoint(
+                            CHECKPOINTS.paid_signup_clicked_anonsteem
+                        );
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
@@ -116,7 +121,9 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://steemit.com/news/@timcliff/new-tool-from-busy-org-create-new-steem-blockchain-accounts-with-steemconnect"
                     onClick={() => {
-                        logCheckpoint('paid_signup_clicked_steemconnect');
+                        logCheckpoint(
+                            CHECKPOINTS.paid_signup_clicked_steemconnect
+                        );
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">

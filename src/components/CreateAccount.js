@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import steem from '@steemit/steem-js';
 import { Button, Form, Icon, Popover } from 'antd';
+import { CHECKPOINTS } from '../../constants';
 import LanguageItem from './LanguageItem';
 import FormSignupUsername from './Form/Signup/Username';
 import FormCreateAccountPassword from './Form/CreateAccount/Password';
@@ -67,7 +68,7 @@ class CreateAccount extends Component {
                             xref: data.xref,
                         });
                         setTrackingId(data.xref);
-                        logCheckpoint('creation_started');
+                        logCheckpoint(CHECKPOINTS.creation_started);
                     } else {
                         this.setState({
                             step: 'error',
@@ -142,7 +143,7 @@ class CreateAccount extends Component {
             stepNumber: 2,
             password: values.password,
         });
-        this.props.logCheckpoint('password_chosen');
+        this.props.logCheckpoint(CHECKPOINTS.password_chosen);
     };
 
     handleSubmit = () => {
@@ -168,7 +169,7 @@ class CreateAccount extends Component {
             .then(data => {
                 if (data.success) {
                     this.setState({ step: 'created' });
-                    logCheckpoint('account_created');
+                    logCheckpoint(CHECKPOINTS.account_created);
                 } else {
                     this.setState({
                         step: 'error',

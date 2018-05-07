@@ -5,6 +5,7 @@ import { FormattedMessage, injectIntl } from 'react-intl';
 import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import Loading from '../widgets/Loading';
+import { CHECKPOINTS } from '../../constants';
 
 class Index extends Component {
     static propTypes = {
@@ -49,7 +50,7 @@ class Index extends Component {
                     });
                     if (data.success) {
                         setTrackingId(data.xref);
-                        logCheckpoint('email_verified');
+                        logCheckpoint(CHECKPOINTS.email_verified);
                     }
                 })
                 .catch(error => {
