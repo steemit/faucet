@@ -9,7 +9,7 @@
   "scripts": {
     "start": "./bin/www",
     "start-dev": "nodemon --ignore src ./bin/www | bunyan -o short",
-    "jest": "jest",
+    "jest": "env $(tr \"\\\\n\" \" \" < .env.example) jest",
     "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "lint-fix": "eslint --fix \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "nsp": "nsp check --output summary",
