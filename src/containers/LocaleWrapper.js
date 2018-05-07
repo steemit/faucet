@@ -5,7 +5,7 @@ import Locale from '../components/Locale';
 const mapStateToProps = state => ({
     locale: state.app.get('locale'),
     translations: state.app.get('translations'),
-    antdLocales: state.app.get('antdLocales')
+    antdLocales: state.app.get('antdLocales'),
 });
 const LocaleWrapper = connect(mapStateToProps, null)(toJS(Locale));
 export default LocaleWrapper;

@@ -5,7 +5,7 @@ const SET_LOGGED_CHECKPOINT = 'tracking/SET_LOGGED_CHECKPOINT';
 
 const defaultState = Map({
     checkpoint: '',
-    loggedCheckpoints: List([])
+    loggedCheckpoints: List([]),
 });
 
 export default function reducer(state = defaultState, action = {}) {
@@ -24,12 +24,12 @@ export default function reducer(state = defaultState, action = {}) {
 
 export const logCheckpoint = checkpoint => ({
     type: LOG_CHECKPOINT,
-    payload: { checkpoint }
+    payload: { checkpoint },
 });
 
 export const setLoggedCheckpoint = loggedCheckpoint => ({
     type: SET_LOGGED_CHECKPOINT,
-    payload: { loggedCheckpoint }
+    payload: { loggedCheckpoint },
 });
 
 // Selectors

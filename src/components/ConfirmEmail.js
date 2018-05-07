@@ -9,7 +9,7 @@ import Loading from '../widgets/Loading';
 class Index extends Component {
     static propTypes = {
         setTrackingId: PropTypes.func.isRequired,
-        logCheckpoint: PropTypes.func.isRequired
+        logCheckpoint: PropTypes.func.isRequired,
     };
     constructor(props) {
         super(props);
@@ -20,7 +20,7 @@ class Index extends Component {
             email: null,
             token: null,
             error: '',
-            approved: null
+            approved: null,
         };
     }
 
@@ -30,7 +30,7 @@ class Index extends Component {
         if (!token) {
             this.setState({
                 status: 'error',
-                error: intl.formatMessage({ id: 'error_token_required' })
+                error: intl.formatMessage({ id: 'error_token_required' }),
             });
         } else {
             fetch(`/api/confirm_email?token=${this.props.location.query.token}`)
@@ -45,7 +45,7 @@ class Index extends Component {
                         username: data.username,
                         token: data.token,
                         xref: data.xref,
-                        approved: data.approved
+                        approved: data.approved,
                     });
                     if (data.success) {
                         setTrackingId(data.xref);
@@ -60,7 +60,7 @@ class Index extends Component {
                             completed: data.completed,
                             email: data.email,
                             username: data.username,
-                            token: data.token
+                            token: data.token,
                         });
                     });
                 });
@@ -76,7 +76,7 @@ class Index extends Component {
             username,
             token,
             approved,
-            xref
+            xref,
         } = this.state;
         return (
             <div className="Signup_main">

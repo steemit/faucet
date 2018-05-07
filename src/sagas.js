@@ -81,7 +81,7 @@ function* rootSaga() {
         watchGuessCountryCodeSaga(),
         watchIncrementStepSaga(),
         watchDecrementStepSaga(),
-        watchLogCheckpointSaga()
+        watchLogCheckpointSaga(),
     ]);
 }
 

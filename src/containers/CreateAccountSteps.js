@@ -5,7 +5,7 @@ import { logCheckpoint } from '../reducers/tracking';
 import { setTrackingId } from '../reducers/user';
 
 const mapStateToProps = state => ({
-    locale: state.app.get('locale')
+    locale: state.app.get('locale'),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -17,7 +17,7 @@ const mapDispatchToProps = dispatch => ({
     },
     setTrackingId: trackingId => {
         dispatch(setTrackingId(trackingId));
-    }
+    },
 });
 
 const CreateAccountSteps = connect(mapStateToProps, mapDispatchToProps)(

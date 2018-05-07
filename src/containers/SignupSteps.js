@@ -13,7 +13,7 @@ import {
     setToken,
     setPrefix,
     setCompleted,
-    setTrackingId
+    setTrackingId,
 } from '../reducers/user';
 import { logCheckpoint } from '../reducers/tracking';
 import Signup from '../components/Signup';
@@ -21,7 +21,7 @@ import Signup from '../components/Signup';
 const mapStateToProps = (state, ownProps) => ({
     queryParams: ownProps.location.query,
     app: state.app,
-    user: state.user
+    user: state.user,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -72,7 +72,7 @@ const mapDispatchToProps = dispatch => ({
     },
     logCheckpoint: checkpoint => {
         dispatch(logCheckpoint(checkpoint));
-    }
+    },
 });
 
 const SignupSteps = connect(mapStateToProps, mapDispatchToProps)(toJS(Signup));

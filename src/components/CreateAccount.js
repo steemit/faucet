@@ -13,7 +13,7 @@ import locales from '../../helpers/locales.json';
 class CreateAccount extends Component {
     static defaultProps = {
         location: PropTypes.shape(),
-        form: PropTypes.shape()
+        form: PropTypes.shape(),
     };
     static propTypes = {
         location: PropTypes.shape(),
@@ -21,7 +21,7 @@ class CreateAccount extends Component {
         locale: PropTypes.string.isRequired,
         setLocale: PropTypes.func.isRequired,
         setTrackingId: PropTypes.func.isRequired,
-        logCheckpoint: PropTypes.func.isRequired
+        logCheckpoint: PropTypes.func.isRequired,
     };
 
     constructor(props) {
@@ -34,7 +34,7 @@ class CreateAccount extends Component {
             password: '',
             reservedUsername: '',
             email: '',
-            query: {}
+            query: {},
         };
     }
 
@@ -43,16 +43,16 @@ class CreateAccount extends Component {
             location: { query: { token } },
             intl,
             logCheckpoint,
-            setTrackingId
+            setTrackingId,
         } = this.props;
         if (!token) {
             this.setState({
                 step: 'error',
-                error: intl.formatMessage({ id: 'error_token_required' })
+                error: intl.formatMessage({ id: 'error_token_required' }),
             });
         } else {
             apiCall('/api/confirm_account', {
-                token
+                token,
             })
                 .then(data => {
                     if (data.success) {
@@ -64,21 +64,21 @@ class CreateAccount extends Component {
                             reservedUsername: data.reservedUsername,
                             email: data.email,
                             query: data.query,
-                            xref: data.xref
+                            xref: data.xref,
                         });
                         setTrackingId(data.xref);
                         logCheckpoint('creation_started');
                     } else {
                         this.setState({
                             step: 'error',
-                            error: intl.formatMessage({ id: data.error })
+                            error: intl.formatMessage({ id: data.error }),
                         });
                     }
                 })
                 .catch(error => {
                     this.setState({
                         step: 'error',
-                        error: intl.formatMessage({ id: error.type })
+                        error: intl.formatMessage({ id: error.type }),
                     });
                 });
         }
@@ -132,7 +132,7 @@ class CreateAccount extends Component {
         this.setState({
             step: 'password',
             stepNumber: 1,
-            username: values.username
+            username: values.username,
         });
     };
 
@@ -140,7 +140,7 @@ class CreateAccount extends Component {
         this.setState({
             step: 'password_confirm',
             stepNumber: 2,
-            password: values.password
+            password: values.password,
         });
         this.props.logCheckpoint('password_chosen');
     };
@@ -149,7 +149,7 @@ class CreateAccount extends Component {
         const {
             location: { query: { token } },
             intl,
-            logCheckpoint
+            logCheckpoint,
         } = this.props;
         const { username, password, email } = this.state;
 
@@ -157,13 +157,13 @@ class CreateAccount extends Component {
             'owner',
             'active',
             'posting',
-            'memo'
+            'memo',
         ]);
         apiCall('/api/create_account', {
             token,
             username,
             email,
-            public_keys: JSON.stringify(publicKeys)
+            public_keys: JSON.stringify(publicKeys),
         })
             .then(data => {
                 if (data.success) {
@@ -172,7 +172,7 @@ class CreateAccount extends Component {
                 } else {
                     this.setState({
                         step: 'error',
-                        error: intl.formatMessage({ id: data.error })
+                        error: intl.formatMessage({ id: data.error }),
                     });
                 }
             })
@@ -180,8 +180,8 @@ class CreateAccount extends Component {
                 this.setState({
                     step: 'error',
                     error: intl.formatMessage({
-                        id: 'error_api_create_account'
-                    })
+                        id: 'error_api_create_account',
+                    }),
                 });
             });
     };
@@ -193,7 +193,7 @@ class CreateAccount extends Component {
             error,
             username,
             reservedUsername,
-            password
+            password,
         } = this.state;
         const isPasswordOrConfirmStep =
             step === 'password' || step === 'password_confirm';
@@ -317,7 +317,7 @@ class CreateAccount extends Component {
                                             values={{
                                                 username: (
                                                     <b>{reservedUsername}</b>
-                                                )
+                                                ),
                                             }}
                                         />
                                     </span>

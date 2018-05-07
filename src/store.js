@@ -9,7 +9,7 @@ import tracking from './reducers/tracking';
 const reducers = combineReducers({
     app,
     user,
-    tracking
+    tracking,
 });
 
 if (window.config.STEEMJS_URL) {
