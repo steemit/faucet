@@ -197,6 +197,13 @@ addHandler('/list_signups', async req => {
                         });
                     });
                     break;
+                case 'regexUsernameFilters':
+                    value.map(f => {
+                        andList.push({
+                            [or]: [{ username: { [regexp]: f } }],
+                        });
+                    });
+                    break;
                 case 'regexEmailFilters':
                     value.map(f => {
                         andList.push({

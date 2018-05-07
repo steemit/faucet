@@ -47,6 +47,7 @@ interface SearchListState {
   pageNumber: number
   itemsPerPage: number
   searchTerms?: string[]
+  regexUsernameFilters?: string[]
   regexEmailFilters?: string[]
   exclusiveEmailFilters?: string[]
   inclusiveEmailFilters?: string[]
@@ -103,6 +104,7 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
       selectedRowKeys: [],
       signups: [],
       totalSignups: 0,
+      regexUsernameFilters: [],
       regexEmailFilters: [],
       inclusiveEmailFilters: [],
       exclusiveEmailFilters: [],
@@ -129,6 +131,9 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
     }
     if (this.state.searchTerms && this.state.searchTerms.length > 0) {
       filters.push({name: "searchTerms", value: this.state.searchTerms});
+    }
+    if (this.state.regexUsernameFilters && this.state.regexUsernameFilters.length > 0) {
+      filters.push({name: "regexUsernameFilters", value: this.state.regexUsernameFilters});
     }
     if (this.state.regexEmailFilters && this.state.regexEmailFilters.length > 0) {
       filters.push({name: "regexEmailFilters", value: this.state.regexEmailFilters});
@@ -177,17 +182,6 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
     this.setState({ selectedRowKeys })
   }
 
-  public onPageChange = (page: number, pageSize: number) => {
-    // const offset = (page - 1) * pageSize
-    /*
-    const query = parseSearchListQuery(this.props.location.search)
-    if (query.offset !== offset) {
-      query.offset = offset
-      this.pushQuery(query)
-    }
-    */
-  }
-
   handleSearch = (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault()
     this.loadData()
@@ -195,6 +189,10 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
 
   public onSearchChange = (value: string[]) => {
     this.setState({ searchTerms: value})
+  }
+
+  public onRegexUsernameFiltersChange = (value: string[]) => {
+    this.setState({ regexUsernameFilters: value})
   }
 
   public onRegexEmailFiltersChange = (value: string[]) => {
@@ -280,13 +278,7 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
       totalSignups,
       dateFrom,
       dateTo,
-//      offset,
-//      exclusiveEmailFilters,
-//      itemsPerPage,
-//      page,
-//      pageNumber,
     } = this.state
-    //const query = parseSearchListQuery(this.props.location.search)
     const rowSelection = {
       getCheckboxProps: (signup: SignupModel) => ({
         disabled: signup.status !== "manual_review",
@@ -295,10 +287,10 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
       onChange: this.onSelectChange,
       selectedRowKeys,
     }
+    // TODO: Get pagination to work on search page.
     const pagination = {
-      //current: query.offset / ITEMS_PER_PAGE + 1,
       current: 1,
-      onChange: this.onPageChange,
+      // onChange: this.onPageChange,
       pageSize: ITEMS_PER_PAGE,
       total: totalSignups,
     }
@@ -403,6 +395,18 @@ class SearchList extends React.Component<SearchListProps, SearchListState> {
                     onChange={this.onExclusivePhoneNumberFiltersChange}
                     tokenSeparators={[',']}
                     placeholder={'exclude phone numbers containing'}
+                  >
+                  </Select>
+                </Col>
+              </Row>
+              <Row gutter={8}>
+                <Col span={12}>
+                  <Select
+                    mode="tags"
+                    style={{ width: '100%' }}
+                    onChange={this.onRegexUsernameFiltersChange}
+                    tokenSeparators={[',']}
+                    placeholder={'regex username search'}
                   >
                   </Select>
                 </Col>
