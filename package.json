@@ -30,14 +30,13 @@
     "immutable": "3.8.2",
     "isomorphic-fetch": "2.2.1",
     "jsonwebtoken": "8.1.1",
-    "lodash": "4.17.4",
     "maxmind": "2.4.0",
     "moment": "2.20.1",
     "mysql2": "1.5.1",
     "redux-saga": "0.16.0",
     "sequelize": "4.32.1",
     "serve-favicon": "2.4.5",
-    "twilio": "3.11.1",
+    "twilio": "3.16.0",
     "validator": "9.2.0"
   },
   "devDependencies": {

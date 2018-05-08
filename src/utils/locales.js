@@ -1,6 +1,5 @@
 /* eslint-disable global-require,import/no-dynamic-require */
 import { addLocaleData } from 'react-intl';
-import merge from 'lodash/merge';
 import availableLocales from '../../helpers/locales.json';
 import defaultLocale from '../locales/en.json';
 
@@ -8,7 +7,10 @@ export const translations = {};
 
 Object.keys(availableLocales).forEach(key => {
     const localeImport = require(`../locales/${key}.json`);
-    translations[key] = merge({}, defaultLocale, localeImport);
+    translations[key] = {
+        ...defaultLocale,
+        ...localeImport,
+    };
     const localeIntl = require(`react-intl/locale-data/${key}`);
     addLocaleData(localeIntl);
 });

@@ -2,7 +2,6 @@
 import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Icon, Input, Select, Button } from 'antd';
-import _ from 'lodash';
 import apiCall from '../../../utils/api';
 import countries from '../../../../countries.json';
 
@@ -121,7 +120,7 @@ class PhoneNumber extends React.Component {
             >
                 {countries.map(country => (
                     <Select.Option
-                        key={_.uniqueId()}
+                        key={`${country.prefix}_${country.iso}`}
                         value={`${country.prefix}_${country.iso}`}
                         label={`${country.name} (+${country.prefix})`}
                     >
