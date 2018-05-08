@@ -91,3 +91,9 @@ Add the following to `.vscode/launch.json` configurations array:
 ## Testing
 
 The `test` command will run three other scripts in sequence: static analysis (`eslint`), unit and integration tests (`jest`), and dependency security check (`nsp`).
+
+You do need to supply dummy values for some required environment variables. Do so like this:
+
+```
+env $(tr "\\n" " " < .env.example) yarn test
+```

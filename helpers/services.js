@@ -7,6 +7,7 @@
 
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
+const geoip = require('../helpers/maxmind');
 
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined;
 
@@ -211,6 +212,27 @@ async function condenserTransfer(email, username, ownerKey) {
     }
 }
 
+/**
+ * Get location information for an IP.
+ *
+ * @param {string} ip ip address
+ * @return {object} maxmind location data
+ */
+function locationFromIp(ip) {
+    return geoip.get(ip);
+}
+
+/**
+ * Should recaptcha be required for this IP address?
+ *
+ * @param {string} ip ip address
+ * @return {boolean}
+ */
+function recaptchaRequiredForIp(ip) {
+    const location = locationFromIp(ip);
+    return location && location.country && location.country.iso_code !== 'CN';
+}
+
 module.exports = {
     checkUsername,
     classifySignup,
@@ -221,4 +243,6 @@ module.exports = {
     sendSMS,
     validatePhone,
     verifyCaptcha,
+    recaptchaRequiredForIp,
+    locationFromIp,
 };
