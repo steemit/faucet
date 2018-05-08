@@ -294,7 +294,11 @@ async function handleRequestSms(req) {
         });
     }
 
-    const user = await database.findUser({ email: decoded.email });
+    const user = await database.findUser({
+        where: {
+            email: decoded.email,
+        },
+    });
 
     if (!user) {
         throw new ApiError({
