@@ -77,7 +77,6 @@ describe('request email verification step', () => {
                 {
                     where: {
                         email: 'foo@bar.com',
-                        username: 'username',
                     },
                 },
             ],
@@ -86,49 +85,6 @@ describe('request email verification step', () => {
         // We should create a new user record
         expect(mockDb.createUser.mock.calls.length).toEqual(1);
         expect(mockDb.createUserMockSave.mock.calls.length).toEqual(1);
-
-        expect(ret.success).toEqual(true);
-
-        return new Promise(resolve => resolve());
-    });
-
-    it('should let a user request an email verification who has tried before with the same name & email', async () => {
-        jest.mock('../db/models');
-        jest.mock('../helpers/services');
-        jest.mock('../helpers/database');
-        const apiHandlers = require('./apiHandlers');
-        const mockDb = require('../helpers/database');
-
-        mockDb.findUser = mockDb.findUserSuccessUnverified;
-
-        const ret = await apiHandlers.handleRequestEmail(
-            'ip',
-            'recaptcha',
-            'foo@bar.com',
-            'fingerprint',
-            { query: 'string' },
-            'username',
-            'xref',
-            'protocol',
-            'host'
-        );
-
-        // We should try to find an existing signup record matching this one's email and username.
-        expect(mockDb.findUser.mock.calls).toEqual([
-            [
-                {
-                    where: {
-                        email: 'foo@bar.com',
-                        username: 'username',
-                    },
-                },
-            ],
-        ]);
-
-        // We should use the existing uesr and not create a new user record
-        expect(mockDb.createUser.mock.calls.length).toEqual(0);
-        expect(mockDb.createUserMockSave.mock.calls.length).toEqual(0);
-        expect(mockDb.findUserMockSave.mock.calls.length).toEqual(2);
 
         expect(ret.success).toEqual(true);
 

@@ -170,7 +170,6 @@ async function handleRequestEmail(
     const existingUser = await database.findUser({
         where: {
             email,
-            username,
         },
     });
 
