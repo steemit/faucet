@@ -284,6 +284,13 @@ async function handleRequestSms(req) {
 
     phoneNumber = phoneUtil.format(phoneNumber, PNF.E164);
 
+    await database.logAction({
+        action: 'try_number',
+        ip: req.ip,
+        metadata: { phoneNumber },
+        user_id: user.id,
+    });
+
     try {
         await services.validatePhone(phoneNumber);
     } catch (cause) {
