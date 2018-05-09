@@ -271,6 +271,19 @@ async function handleRequestSms(req) {
         });
     }
 
+    const user = await database.findUser({
+        where: {
+            email: decoded.email,
+        },
+    });
+
+    if (!user) {
+        throw new ApiError({
+            field: 'phoneNumber',
+            type: 'error_api_unknown_user',
+        });
+    }
+
     let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
 
     const isValid = phoneUtil.isValidNumber(phoneNumber);
@@ -298,19 +311,6 @@ async function handleRequestSms(req) {
             field: 'phoneNumber',
             type: 'error_phone_invalid',
             cause,
-        });
-    }
-
-    const user = await database.findUser({
-        where: {
-            email: decoded.email,
-        },
-    });
-
-    if (!user) {
-        throw new ApiError({
-            field: 'phoneNumber',
-            type: 'error_api_unknown_user',
         });
     }
 
