@@ -235,6 +235,30 @@ function recaptchaRequiredForIp(ip) {
 }
 
 /**
+ * Constructs an InfluxDB query to get faucet data for each funnel step.
+ *
+ * @param {string} dateFrom RFC3339 UTC
+ * @param {string} dateTo RFC3339 UTC
+ * @returns {string} InfluxDB query
+ */
+const buildFaucetInfluxQuery = (dateFrom, dateTo) =>
+    checkpoints
+        .reduce(
+            (acc, cur) => [
+                ...acc,
+                encodeURIComponent(
+                    `SELECT COUNT("step") AS "${
+                        cur.symbol
+                    }" FROM "overseer"."autogen"."signup" WHERE time >= '${dateFrom}' AND time <= '${dateTo}' AND "step"='${
+                        cur.symbol
+                    }'; `
+                ),
+            ],
+            []
+        )
+        .join('');
+
+/**
  * Retrieves signup data from InfluxDB and formats for use in the dashboard.
  * Returns an array where each element includes:
  *  - a human-readable label `human`,
@@ -274,6 +298,10 @@ async function getOverseerStats(dateFrom, dateTo) {
         throw new Error('influxdb data error');
     }
 
+    if (typeof mappedResults.signup_start !== 'number') {
+        throw new Error('missing signup_start value in influx stats');
+    }
+
     return checkpoints.reduce(
         (acc, cur) => [
             ...acc,
@@ -282,38 +310,15 @@ async function getOverseerStats(dateFrom, dateTo) {
                 count: mappedResults[cur.symbol],
                 percent: parseInt(
                     mappedResults[cur.symbol] /
-                        mappedResults['signup_start'] *
-                        100
+                        mappedResults.signup_start *
+                        100,
+                    10
                 ),
             },
         ],
         []
     );
 }
-
-/**
- * Constructs an InfluxDB query to get faucet data for each funnel step.
- *
- * @param {string} dateFrom RFC3339 UTC
- * @param {string} dateTo RFC3339 UTC
- * @returns {string} InfluxDB query
- */
-const buildFaucetInfluxQuery = (dateFrom, dateTo) =>
-    checkpoints
-        .reduce(
-            (acc, cur) => [
-                ...acc,
-                encodeURIComponent(
-                    `SELECT COUNT("step") AS "${
-                        cur.symbol
-                    }" FROM "overseer"."autogen"."signup" WHERE time >= '${dateFrom}' AND time <= '${dateTo}' AND "step"='${
-                        cur.symbol
-                    }'; `
-                ),
-            ],
-            []
-        )
-        .join('');
 
 module.exports = {
     checkUsername,
