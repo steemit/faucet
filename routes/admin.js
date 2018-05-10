@@ -169,7 +169,7 @@ addHandler('/list_signups', async req => {
         query.offset = offset;
     }
     if (Array.isArray(filters) && filters.length > 0) {
-        const { or, eq, ne, like, notLike, and, gte, lte } = Sequelize.Op;
+        const { or, eq, ne, like, notLike, and, gte, lte, regexp, notRegexp} = Sequelize.Op;
         const andList = [];
         for (const filter of filters) {
             // eslint-disable-line
@@ -182,6 +182,7 @@ addHandler('/list_signups', async req => {
             }
             const nLike = negate ? notLike : like
             const nEq = negate ? ne :  eq
+            const nRegexp = negate ? notRegexp : regexp
             switch (name) {
                 case 'text':
                     andList.push({
@@ -198,6 +199,26 @@ addHandler('/list_signups', async req => {
                     break;
                 case 'ip':
                     andList.push({ ip: { [nEq]: value } });
+                    break;
+                case 'username':
+                    andList.push({ username: { [nEq]: value } });
+                    break;
+                case 'phone':
+                case 'phone_number':
+                    andList.push({ phone_number: { [nEq]: value } });
+                    break;
+                case 'email':
+                    andList.push({ email: { [nEq]: value } });
+                    break;
+                case 'username_re':
+                    andList.push({ username: { [nRegexp]: value } });
+                    break;
+                case 'email_re':
+                    andList.push({ email: { [nRegexp]: value } });
+                    break;
+                case 'phone_re':
+                case 'phone_number_re':
+                    andList.push({ phone_number: { [nRegexp]: value } });
                     break;
                 case 'from':
                     andList.push({ created_at: { [gte]: new Date(value) } });
