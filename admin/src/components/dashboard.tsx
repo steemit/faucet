@@ -104,6 +104,11 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         </div>
         <div className="dashboard-analytics">
           <h2>Analytics</h2>
+          <p>During the specified time range, how many signup-related actions happened?</p>
+          <p>
+            Note that this query is only a total number, not a funnel-style query that would
+            count based on certain sessions.
+          </p>
           <Row type="flex" gutter={16}>
             <RangePicker
               showTime={{ format: "HH:mm" }}
