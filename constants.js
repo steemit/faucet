@@ -21,7 +21,23 @@ const checkpoints = [
         symbol: CHECKPOINTS.signup_start,
     },
     {
-        human: 'Pressed "Free Signup"',
+        human: 'Pressed "Pay to sign up"',
+        symbol: CHECKPOINTS.paid_signup_options_modal_shown,
+    },
+    {
+        human: 'Clicked blocktrades',
+        symbol: CHECKPOINTS.paid_signup_clicked_blocktrades,
+    },
+    {
+        human: 'Clicked anonsteem',
+        symbol: CHECKPOINTS.paid_signup_clicked_anonsteem,
+    },
+    {
+        human: 'Clicked steemconnect',
+        symbol: CHECKPOINTS.paid_signup_clicked_steemconnect,
+    },
+    {
+        human: 'Pressed "Sign up for free"',
         symbol: CHECKPOINTS.free_signup_chosen,
     },
     {
