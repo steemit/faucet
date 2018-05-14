@@ -294,11 +294,10 @@ async function getOverseerStats(dateFrom, dateTo) {
                     [cur.series[0].columns[1]]:
                         cur.series[0].values[0][1] || null,
                 };
-            } else {
-                return {
-                    ...acc,
-                };
             }
+            return {
+                ...acc,
+            };
         }, {});
     } catch (error) {
         throw new Error('influxdb data error');
