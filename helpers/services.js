@@ -287,13 +287,19 @@ async function getOverseerStats(dateFrom, dateTo) {
 
     let mappedResults;
     try {
-        mappedResults = response.results.reduce(
-            (acc, cur) => ({
-                ...acc,
-                [cur.series[0].columns[1]]: cur.series[0].values[0][1] || null,
-            }),
-            {}
-        );
+        mappedResults = response.results.reduce((acc, cur) => {
+            if (cur.series[0]) {
+                return {
+                    ...acc,
+                    [cur.series[0].columns[1]]:
+                        cur.series[0].values[0][1] || null,
+                };
+            } else {
+                return {
+                    ...acc,
+                };
+            }
+        }, {});
     } catch (error) {
         throw new Error('influxdb data error');
     }
