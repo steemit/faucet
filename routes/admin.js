@@ -169,7 +169,7 @@ addHandler('/list_signups', async req => {
         query.offset = offset;
     }
     if (Array.isArray(filters) && filters.length > 0) {
-        const { or, like, and, gte, lte } = Sequelize.Op;
+        const { or, like, notLike, and, gte, lte, regexp } = Sequelize.Op;
         const andList = [];
         for (const filter of filters) {
             // eslint-disable-line
@@ -183,6 +183,60 @@ addHandler('/list_signups', async req => {
                             { phone_number: { [like]: `%${value}%` } },
                             { fingerprint: { [like]: `%${value}%` } },
                         ],
+                    });
+                    break;
+                case 'searchTerms':
+                    value.map(f => {
+                        andList.push({
+                            [or]: [
+                                { email: { [like]: `%${f}%` } },
+                                { username: { [like]: `%${f}%` } },
+                                { phone_number: { [like]: `%${f}%` } },
+                                { fingerprint: { [like]: `%${f}%` } },
+                            ],
+                        });
+                    });
+                    break;
+                case 'regexUsernameFilters':
+                    value.map(f => {
+                        andList.push({
+                            [or]: [{ username: { [regexp]: f } }],
+                        });
+                    });
+                    break;
+                case 'regexEmailFilters':
+                    value.map(f => {
+                        andList.push({
+                            [or]: [{ email: { [regexp]: f } }],
+                        });
+                    });
+                    break;
+                case 'inclusiveEmailFilters':
+                    value.map(f => {
+                        andList.push({
+                            [or]: [{ email: { [like]: `%${f}%` } }],
+                        });
+                    });
+                    break;
+                case 'exclusiveEmailFilters':
+                    value.map(f => {
+                        andList.push({
+                            email: { [notLike]: `%${f}%` },
+                        });
+                    });
+                    break;
+                case 'inclusivePhoneNumberFilters':
+                    value.map(f => {
+                        andList.push({
+                            phone_number: { [like]: `%${f}%` },
+                        });
+                    });
+                    break;
+                case 'exclusivePhoneNumberFilters':
+                    value.map(f => {
+                        andList.push({
+                            phone_number: { [notLike]: `%${f}%` },
+                        });
                     });
                     break;
                 case 'status':
