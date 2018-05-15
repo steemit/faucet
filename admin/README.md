@@ -7,8 +7,12 @@ Client-side react app for interacting with faucet's `/admin` endpoints. The app 
 
 Development
 -----------
+1. From the `root` dir, run **Faucet** locally with:  
+```
+env $(tr "\\n" " " < .env) yarn start-dev
+```
 
-To start a live-reloading development server set the env var `REACT_APP_SERVER_ADDRESS` to point to your local faucet instance (usually `http://localhost:3001/admin`) and run `yarn start`.
+2. From the `admin` dir, to run **Faucet Admin**  first set the env var `REACT_APP_SERVER_ADDRESS` to point to your local faucet instance (usually `http://localhost:3001/admin`) and then run `yarn start`. This is a live-reloading development server.
 
 ```
 REACT_APP_SERVER_ADDRESS="http://localhost:3001/admin" yarn start

@@ -42,11 +42,7 @@ Copy `.env.example` to `.env` and edit as needed. (`.env-admin.example` for fauc
 env $(tr "\\n" " " < .env) yarn start-dev # or just start, if you don't want nodemon
 ```
 ### Faucet-Admin
-```
-env $(tr "\\n" " " < .env-admin) node bin/www
-```
-
-The app listens on port 3000 by default. (3100 for faucet-admin)
+See the readme in `/admin`
 
 ## Docker
 
