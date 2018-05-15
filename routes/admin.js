@@ -169,27 +169,56 @@ addHandler('/list_signups', async req => {
         query.offset = offset;
     }
     if (Array.isArray(filters) && filters.length > 0) {
-        const { or, like, and, gte, lte } = Sequelize.Op;
+        const { or, eq, ne, like, notLike, and, gte, lte, regexp, notRegexp} = Sequelize.Op;
         const andList = [];
         for (const filter of filters) {
             // eslint-disable-line
-            const { name, value } = filter;
+            const { value } = filter;
+            let name = filter.name
+            let negate = false
+            if (name[0] === '!') {
+                negate = true
+                name = name.slice(1)
+            }
+            const nLike = negate ? notLike : like
+            const nEq = negate ? ne :  eq
+            const nRegexp = negate ? notRegexp : regexp
             switch (name) {
                 case 'text':
                     andList.push({
-                        [or]: [
-                            { email: { [like]: `%${value}%` } },
-                            { username: { [like]: `%${value}%` } },
-                            { phone_number: { [like]: `%${value}%` } },
-                            { fingerprint: { [like]: `%${value}%` } },
+                        [negate ? and : or]: [
+                            { email: { [nLike]: `%${value}%` } },
+                            { username: { [nLike]: `%${value}%` } },
+                            { phone_number: { [nLike]: `%${value}%` } },
+                            { fingerprint: { [nLike]: `%${value}%` } },
                         ],
                     });
                     break;
                 case 'status':
-                    andList.push({ status: value });
+                    andList.push({ status: { [nEq]: value } });
                     break;
                 case 'ip':
-                    andList.push({ ip: value });
+                    andList.push({ ip: { [nEq]: value } });
+                    break;
+                case 'username':
+                    andList.push({ username: { [nEq]: value } });
+                    break;
+                case 'phone':
+                case 'phone_number':
+                    andList.push({ phone_number: { [nEq]: value } });
+                    break;
+                case 'email':
+                    andList.push({ email: { [nEq]: value } });
+                    break;
+                case 'username_re':
+                    andList.push({ username: { [nRegexp]: value } });
+                    break;
+                case 'email_re':
+                    andList.push({ email: { [nRegexp]: value } });
+                    break;
+                case 'phone_re':
+                case 'phone_number_re':
+                    andList.push({ phone_number: { [nRegexp]: value } });
                     break;
                 case 'from':
                     andList.push({ created_at: { [gte]: new Date(value) } });
