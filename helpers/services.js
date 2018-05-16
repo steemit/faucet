@@ -196,10 +196,6 @@ async function checkUsername(username) {
  * @param user User (aka Signup) instance to check
  */
 async function classifySignup(user) {
-    if (DEBUG_MODE) {
-        logger.warn('Classify signup for %s as manual_review', user.id)
-        return {status: 'manual_review', note: 'DEBUG MODE'}
-    }
     const metadata = {
         browser_date: user.fingerprint.date,
         browser_lang: user.fingerprint.lang,
