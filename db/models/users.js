@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => (
     metadata: DataTypes.JSON,
     creation_hash: DataTypes.STRING,
     tracking_id: DataTypes.STRING,
+    review_note: DataTypes.STRING,
   }, {
     freezeTableName: true,
     underscored: true,

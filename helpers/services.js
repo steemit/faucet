@@ -89,6 +89,24 @@ async function sendEmail(to, template, context) {
 }
 
 /**
+ * Send out the approval email.
+ * @param to Email to send approval token to.
+ * @param baseUrl Url where application is served.
+ */
+async function sendApprovalEmail(to, baseUrl) {
+    const mailToken = jwt.sign(
+        {
+            type: 'create_account',
+            email: to,
+        },
+        process.env.JWT_SECRET
+    );
+    await sendEmail(to, 'create_account', {
+        url: `${baseUrl}/create-account?token=${mailToken}`,
+    });
+}
+
+/**
  * Call conveyor method.
  * @param method Method name of method to be called, without prefix e.g. `is_phone_registered`.
  * @param params (optional) Parameters for the call.
@@ -178,10 +196,29 @@ async function checkUsername(username) {
  */
 async function classifySignup(user) {
     if (DEBUG_MODE) {
-        logger.warn('Verify signup for %s', user.id);
+        logger.warn('Classify signup for %s as manual_review', user.id)
+        return {status: 'manual_review', note: 'DEBUG MODE'}
     }
-    // TODO: call out to gatekeeper when launched
-    return 'manual_review';
+    const metadata = {
+        browser_date: user.fingerprint.date,
+        browser_lang: user.fingerprint.lang,
+        browser_ref: user.fingerprint.ref,
+        email: user.email,
+        phone_number: user.phone_number,
+        remote_addr: user.ip,
+        user_agent: user.fingerprint.ua,
+        username: user.username,
+    }
+    const device = user.fingerprint.device
+    if (device && device.renderer && device.vendor) {
+        metadata.browser_gpu = `${ device.vendor } ${ device.renderer }`
+    }
+    return steem.api.signedCallAsync(
+        'gatekeeper.check',
+        {metadata},
+        conveyorAccount,
+        conveyorKey,
+    )
 }
 
 /**
@@ -239,10 +276,11 @@ module.exports = {
     condenserTransfer,
     conveyorCall,
     createAccount,
+    locationFromIp,
+    recaptchaRequiredForIp,
+    sendApprovalEmail,
     sendEmail,
     sendSMS,
     validatePhone,
     verifyCaptcha,
-    recaptchaRequiredForIp,
-    locationFromIp,
 };

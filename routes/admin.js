@@ -253,18 +253,10 @@ addHandler('/approve_signups', async req => {
                 'Invalid status for approval, must be in manual_review'
             );
         }
-        const mailToken = jwt.sign(
-            {
-                type: 'create_account',
-                email: signup.email,
-            },
-            process.env.JWT_SECRET
+        await services.sendApprovalEmail(
+            user.email,
+            `${req.protocol}://${req.get('host')}`
         );
-        await services.sendEmail(signup.email, 'create_account', {
-            url: `${req.protocol}://${req.get(
-                'host'
-            )}/create-account?token=${mailToken}`,
-        });
         signup.status = 'approved'; // eslint-disable-line
         await signup.save();
     };
