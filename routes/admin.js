@@ -220,6 +220,12 @@ addHandler('/list_signups', async req => {
                 case 'phone_number_re':
                     andList.push({ phone_number: { [nRegexp]: value } });
                     break;
+                case 'note':
+                    andList.push({ review_note: { [nLike]: `%${value}%` } });
+                    break;
+                case 'note_re':
+                    andList.push({ review_note: { [nRegexp]: value } });
+                    break;
                 case 'from':
                     andList.push({ created_at: { [gte]: new Date(value) } });
                     break;
