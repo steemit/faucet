@@ -19,4 +19,5 @@ export interface SignupModel {
   creation_hash: string
   created_at: string // date
   updated_at: string // date
+  review_note: string
 }
