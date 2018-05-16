@@ -8,6 +8,7 @@
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
 const geoip = require('../helpers/maxmind');
+const jwt = require('jsonwebtoken');
 
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined;
 

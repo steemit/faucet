@@ -294,7 +294,7 @@ class SignupDetail extends React.Component<
           </p>
           <p>
             <span className="label">Gatekeeper note</span>
-            <span className="value">{signup.review_note || 'n/a'}</span>
+            <span className="value">{signup.review_note || "n/a"}</span>
           </p>
           <p>
             <span className="label">Created</span>

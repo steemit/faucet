@@ -1,6 +1,5 @@
 const express = require('express');
 const fs = require('fs');
-const jwt = require('jsonwebtoken');
 const path = require('path');
 const db = require('./../db/models');
 const geoip = require('../helpers/maxmind');
@@ -260,7 +259,7 @@ addHandler('/approve_signups', async req => {
             );
         }
         await services.sendApprovalEmail(
-            user.email,
+            signup.email,
             `${req.protocol}://${req.get('host')}`
         );
         signup.status = 'approved'; // eslint-disable-line
