@@ -205,6 +205,7 @@ async function classifySignup(user) {
         browser_lang: user.fingerprint.lang,
         browser_ref: user.fingerprint.ref,
         email: user.email,
+        id: String(user.id),
         phone_number: user.phone_number,
         remote_addr: user.ip,
         user_agent: user.fingerprint.ua,
