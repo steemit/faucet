@@ -1,5 +1,6 @@
 FROM node:9-alpine as build-stage
 
+
 WORKDIR /app
 
 # install build dependencies
