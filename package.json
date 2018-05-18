@@ -12,8 +12,7 @@
     "jest": "env $(tr \"\\\\n\" \" \" < .env.example) jest",
     "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
     "lint-fix": "eslint --fix \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
-    "nsp": "nsp check --output summary",
-    "test": "yarn run lint && yarn run jest && yarn run nsp",
+    "test": "yarn run lint && yarn run jest",
     "build": "webpack -p --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress -p --config webpack/webpack.config.js",
     "precommit": "lint-staged"
@@ -83,7 +82,6 @@
     "lint-staged": "6.0.1",
     "lodash-webpack-plugin": "0.10.6",
     "nodemon": "1.12.1",
-    "nsp": "3.1.0",
     "postcss-loader": "2.0.6",
     "prettier": "1.10.2",
     "react": "15.3.2",
