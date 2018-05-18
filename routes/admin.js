@@ -123,19 +123,29 @@ function addHandler(route, handler) {
 
 addHandler('/whoami', async req => ({ email: req.user.email }));
 
-addHandler('/dashboard', async () => {
-    // TODO: this could call out to overseer for some nice graphs
+/**
+ * @param {object} res
+ * @param {string} res.body.dateFrom - passed to `new Date()`
+ * @param {string} res.body.dateTo - passed to `new Date()`
+ */
+addHandler('/dashboard', async ({ body: { dateFrom, dateTo } }) => {
     const [approved, rejected, pending, created] = await Promise.all([
         db.users.count({ where: { status: 'approved' } }),
         db.users.count({ where: { status: 'rejected' } }),
         db.users.count({ where: { status: 'manual_review' } }),
         db.users.count({ where: { status: 'created' } }),
     ]);
+
+    const analytics = await services.getOverseerStats(dateFrom, dateTo);
+
     return {
-        approved,
-        rejected,
-        pending,
-        created,
+        approvals: {
+            approved,
+            rejected,
+            pending,
+            created,
+        },
+        analytics,
     };
 });
 

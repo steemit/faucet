@@ -38,6 +38,7 @@ RUN JOBS=max yarn install --non-interactive --frozen-lockfile && \
 FROM node:9-alpine
 WORKDIR /app
 COPY --from=build-stage /app/app.js app.js
+COPY --from=build-stage /app/constants.js constants.js
 COPY --from=build-stage /app/bad-domains.js bad-domains.js
 COPY --from=build-stage /app/bin bin
 COPY --from=build-stage /app/countries.json countries.json

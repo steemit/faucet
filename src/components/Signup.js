@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Button, Icon, Popover } from 'antd';
+import { CHECKPOINTS } from '../../constants';
 import FormSignupUsername from './Form/Signup/Username';
 import FormSignupEmail from './Form/Signup/Email';
 import FormSignupEmailChinese from './Form/Signup/EmailChinese';
@@ -94,7 +95,7 @@ class Signup extends Component {
         }
 
         if (!paramUsername && step === 'signupOptions') {
-            logCheckpoint('signup_start');
+            logCheckpoint(CHECKPOINTS.signup_start);
         }
     }
 
@@ -104,20 +105,20 @@ class Signup extends Component {
 
     handleFreeSignup = () => {
         this.props.incrementStep();
-        this.props.logCheckpoint('free_signup_chosen');
+        this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
     };
 
     handleSubmitUsername = values => {
         this.props.incrementStep();
         this.props.setUsername(values.username);
-        this.props.logCheckpoint('username_chosen');
+        this.props.logCheckpoint(CHECKPOINTS.username_chosen);
     };
 
     handleSubmitEmail = (values, token) => {
         this.props.incrementStep();
         this.props.setEmail(values.email);
         this.props.setToken(token);
-        this.props.logCheckpoint('email_submitted');
+        this.props.logCheckpoint(CHECKPOINTS.email_submitted);
     };
 
     handleSubmitPhoneNumber = values => {
@@ -125,13 +126,13 @@ class Signup extends Component {
         this.props.setPhone(values.phoneNumber);
         this.props.setPhoneFormatted(values.phoneNumberFormatted);
         this.props.setPrefix(values.prefix);
-        this.props.logCheckpoint('phone_submitted');
+        this.props.logCheckpoint(CHECKPOINTS.phone_submitted);
     };
 
     handleSubmitConfirmPhoneNumber = completed => {
         this.props.incrementStep();
         this.props.setCompleted(completed);
-        this.props.logCheckpoint('phone_verified');
+        this.props.logCheckpoint(CHECKPOINTS.phone_verified);
     };
 
     render() {
