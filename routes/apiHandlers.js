@@ -10,7 +10,7 @@ const badDomains = require('../bad-domains');
 const services = require('../helpers/services');
 const database = require('../helpers/database');
 const { generateTrackingId } = require('../helpers/stepLogger');
-const { accountNameIsValid } = require('../helpers/validator');
+const { accountNameIsValid, normalizeEmail } = require('../helpers/validator');
 const { ApiError } = require('../helpers/errortypes.js');
 
 /**
@@ -180,6 +180,7 @@ async function handleRequestEmail(
     } else {
         const newUser = await database.createUser({
             email,
+            email_normalized: normalizeEmail(email),
             email_is_verified: false,
             last_attempt_verify_email: null,
             phone_number: '',

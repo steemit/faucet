@@ -140,9 +140,17 @@ const validateEmailDomain = (rule, value, callback) => {
     }
 };
 
+// Remove dots and plus sign aliases from an email address.
+const normalizeEmail = email =>
+    `${email
+        .split('@')[0]
+        .replace(/\./g, '')
+        .replace(/\+.*/, '')}@${email.split('@')[1]}`;
+
 module.exports = {
     accountNotExist,
     accountNameIsValid,
     validateEmail,
     validateEmailDomain,
+    normalizeEmail,
 };
