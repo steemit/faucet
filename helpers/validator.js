@@ -147,7 +147,7 @@ const normalizeEmail = email => {
     const username = email.split('@')[0].replace(/\+.*/, '');
     const domain = email.split('@')[1];
 
-    if (gmailDomains.indexOf(domain) > -1) {
+    if (gmailDomains.includes(domain)) {
         return `${username.replace(/\./g, '')}@gmail.com`;
     }
 
