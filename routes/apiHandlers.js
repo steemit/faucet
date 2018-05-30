@@ -47,17 +47,26 @@ function verifyToken(token, type) {
  * Called both after email and phone verification,
  * if both steps are completed classifies the signup and sets the user state.
  */
-async function finalizeSignup(user) {
+async function finalizeSignup(user, req) {
     // only act if both email and phone is verified
     if (!user.phone_number_is_verified || !user.email_is_verified) {
         return false;
     }
-    const status = await services.classifySignup(user);
-    // TODO: send out approval email if status is 'approved'
-    if (status === 'approved') {
-        throw new Error('Not implemented');
+    let result;
+    try {
+        result = await services.classifySignup(user);
+    } catch (error) {
+        req.log.warn(error, 'Classification failed, setting to manual_review');
+        result = { status: 'manual_review', note: `ERROR: ${error.message}` };
     }
-    user.status = status;
+    if (result.status === 'approved') {
+        await services.sendApprovalEmail(
+            user.email,
+            `${req.protocol}://${req.get('host')}`
+        );
+    }
+    user.status = result.status;
+    user.review_note = result.note;
     await user.save();
     return true;
 }
@@ -406,7 +415,7 @@ async function handleConfirmEmail(req) {
     if (!user.email_is_verified) {
         user.email_is_verified = true;
         await user.save();
-        await finalizeSignup(user);
+        await finalizeSignup(user, req);
     }
 
     return {
@@ -469,7 +478,7 @@ async function handleConfirmSms(req) {
     user.phone_number_is_verified = true;
     await user.save();
 
-    const completed = await finalizeSignup(user);
+    const completed = await finalizeSignup(user, req);
 
     return { success: true, completed };
 }

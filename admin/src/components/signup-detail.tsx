@@ -57,6 +57,22 @@ function ActionTimeline({ actions }: { actions: any[] }) {
             <small>{formatDate(action.created_at)}</small>
           </Timeline.Item>
         )
+      case "try_number":
+        return (
+          <Timeline.Item
+            key={idx}
+            dot={
+              <Icon
+                type="phone"
+                style={{ fontSize: "16px", color: "#1890FF" }}
+              />
+            }
+          >
+            Try number {action.metadata.phoneNumber}
+            <br />
+            <small>{formatDate(action.created_at)}</small>
+          </Timeline.Item>
+        )
       case "send_sms":
         return (
           <Timeline.Item
@@ -275,6 +291,10 @@ class SignupDetail extends React.Component<
             <small>
               {location && location.country ? location.country.names.en : ""}
             </small>
+          </p>
+          <p>
+            <span className="label">Gatekeeper note</span>
+            <span className="value">{signup.review_note || "n/a"}</span>
           </p>
           <p>
             <span className="label">Created</span>

@@ -1,6 +1,5 @@
 const express = require('express');
 const fs = require('fs');
-const jwt = require('jsonwebtoken');
 const path = require('path');
 const db = require('./../db/models');
 const geoip = require('../helpers/maxmind');
@@ -179,20 +178,31 @@ addHandler('/list_signups', async req => {
         query.offset = offset;
     }
     if (Array.isArray(filters) && filters.length > 0) {
-        const { or, eq, ne, like, notLike, and, gte, lte, regexp, notRegexp} = Sequelize.Op;
+        const {
+            or,
+            eq,
+            ne,
+            like,
+            notLike,
+            and,
+            gte,
+            lte,
+            regexp,
+            notRegexp,
+        } = Sequelize.Op;
         const andList = [];
         for (const filter of filters) {
             // eslint-disable-line
             const { value } = filter;
-            let name = filter.name
-            let negate = false
+            let name = filter.name;
+            let negate = false;
             if (name[0] === '!') {
-                negate = true
-                name = name.slice(1)
+                negate = true;
+                name = name.slice(1);
             }
-            const nLike = negate ? notLike : like
-            const nEq = negate ? ne :  eq
-            const nRegexp = negate ? notRegexp : regexp
+            const nLike = negate ? notLike : like;
+            const nEq = negate ? ne : eq;
+            const nRegexp = negate ? notRegexp : regexp;
             switch (name) {
                 case 'text':
                     andList.push({
@@ -230,6 +240,12 @@ addHandler('/list_signups', async req => {
                 case 'phone_number_re':
                     andList.push({ phone_number: { [nRegexp]: value } });
                     break;
+                case 'note':
+                    andList.push({ review_note: { [nLike]: `%${value}%` } });
+                    break;
+                case 'note_re':
+                    andList.push({ review_note: { [nRegexp]: value } });
+                    break;
                 case 'from':
                     andList.push({ created_at: { [gte]: new Date(value) } });
                     break;
@@ -263,18 +279,10 @@ addHandler('/approve_signups', async req => {
                 'Invalid status for approval, must be in manual_review'
             );
         }
-        const mailToken = jwt.sign(
-            {
-                type: 'create_account',
-                email: signup.email,
-            },
-            process.env.JWT_SECRET
+        await services.sendApprovalEmail(
+            signup.email,
+            `${req.protocol}://${req.get('host')}`
         );
-        await services.sendEmail(signup.email, 'create_account', {
-            url: `${req.protocol}://${req.get(
-                'host'
-            )}/create-account?token=${mailToken}`,
-        });
         signup.status = 'approved'; // eslint-disable-line
         await signup.save();
     };

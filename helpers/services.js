@@ -8,6 +8,7 @@
 const fetch = require('isomorphic-fetch');
 const steem = require('@steemit/steem-js');
 const geoip = require('../helpers/maxmind');
+const jwt = require('jsonwebtoken');
 const { checkpoints } = require('../constants');
 
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined;
@@ -87,6 +88,24 @@ async function sendEmail(to, template, context) {
     } else {
         return mail.send(to, template, context);
     }
+}
+
+/**
+ * Send out the approval email.
+ * @param to Email to send approval token to.
+ * @param baseUrl Url where application is served.
+ */
+async function sendApprovalEmail(to, baseUrl) {
+    const mailToken = jwt.sign(
+        {
+            type: 'create_account',
+            email: to,
+        },
+        process.env.JWT_SECRET
+    );
+    await sendEmail(to, 'create_account', {
+        url: `${baseUrl}/create-account?token=${mailToken}`,
+    });
 }
 
 /**
@@ -178,11 +197,27 @@ async function checkUsername(username) {
  * @param user User (aka Signup) instance to check
  */
 async function classifySignup(user) {
-    if (DEBUG_MODE) {
-        logger.warn('Verify signup for %s', user.id);
+    const metadata = {
+        browser_date: user.fingerprint.date,
+        browser_lang: user.fingerprint.lang,
+        browser_ref: user.fingerprint.ref,
+        email: user.email,
+        id: String(user.id),
+        phone_number: user.phone_number,
+        remote_addr: user.ip,
+        user_agent: user.fingerprint.ua,
+        username: user.username,
+    };
+    const device = user.fingerprint.device;
+    if (device && device.renderer && device.vendor) {
+        metadata.browser_gpu = `${device.vendor} ${device.renderer}`;
     }
-    // TODO: call out to gatekeeper when launched
-    return 'manual_review';
+    return steem.api.signedCallAsync(
+        'gatekeeper.check',
+        { metadata },
+        conveyorAccount,
+        conveyorKey
+    );
 }
 
 /**
@@ -331,11 +366,12 @@ module.exports = {
     condenserTransfer,
     conveyorCall,
     createAccount,
+    getOverseerStats,
+    locationFromIp,
+    recaptchaRequiredForIp,
+    sendApprovalEmail,
     sendEmail,
     sendSMS,
     validatePhone,
     verifyCaptcha,
-    recaptchaRequiredForIp,
-    locationFromIp,
-    getOverseerStats,
 };
