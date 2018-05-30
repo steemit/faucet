@@ -140,12 +140,19 @@ const validateEmailDomain = (rule, value, callback) => {
     }
 };
 
-// Remove dots and plus sign aliases from an email address.
-const normalizeEmail = email =>
-    `${email
-        .split('@')[0]
-        .replace(/\./g, '')
-        .replace(/\+.*/, '')}@${email.split('@')[1]}`;
+// Remove dots (if gmail) and plus sign aliases from an email address.
+const normalizeEmail = email => {
+    const gmailDomains = ['gmail.com', 'googlemail.com'];
+
+    const username = email.split('@')[0].replace(/\+.*/, '');
+    const domain = email.split('@')[1];
+
+    if (gmailDomains.indexOf(domain) > -1) {
+        return `${username.replace(/\./g, '')}@gmail.com`;
+    }
+
+    return `${username}@${domain}`;
+};
 
 module.exports = {
     accountNotExist,
