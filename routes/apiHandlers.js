@@ -10,7 +10,7 @@ const badDomains = require('../bad-domains');
 const services = require('../helpers/services');
 const database = require('../helpers/database');
 const { generateTrackingId } = require('../helpers/stepLogger');
-const { accountNameIsValid } = require('../helpers/validator');
+const { accountNameIsValid, normalizeEmail } = require('../helpers/validator');
 const { ApiError } = require('../helpers/errortypes.js');
 
 /**
@@ -57,7 +57,7 @@ async function finalizeSignup(user, req) {
         result = await services.classifySignup(user);
     } catch (error) {
         req.log.warn(error, 'Classification failed, setting to manual_review');
-        result = {status: 'manual_review', note: `ERROR: ${ error.message }`};
+        result = { status: 'manual_review', note: `ERROR: ${error.message}` };
     }
     if (result.status === 'approved') {
         await services.sendApprovalEmail(
@@ -189,6 +189,7 @@ async function handleRequestEmail(
     } else {
         const newUser = await database.createUser({
             email,
+            email_normalized: normalizeEmail(email),
             email_is_verified: false,
             last_attempt_verify_email: null,
             phone_number: '',

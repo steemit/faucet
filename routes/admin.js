@@ -122,19 +122,29 @@ function addHandler(route, handler) {
 
 addHandler('/whoami', async req => ({ email: req.user.email }));
 
-addHandler('/dashboard', async () => {
-    // TODO: this could call out to overseer for some nice graphs
+/**
+ * @param {object} res
+ * @param {string} res.body.dateFrom - passed to `new Date()`
+ * @param {string} res.body.dateTo - passed to `new Date()`
+ */
+addHandler('/dashboard', async ({ body: { dateFrom, dateTo } }) => {
     const [approved, rejected, pending, created] = await Promise.all([
         db.users.count({ where: { status: 'approved' } }),
         db.users.count({ where: { status: 'rejected' } }),
         db.users.count({ where: { status: 'manual_review' } }),
         db.users.count({ where: { status: 'created' } }),
     ]);
+
+    const analytics = await services.getOverseerStats(dateFrom, dateTo);
+
     return {
-        approved,
-        rejected,
-        pending,
-        created,
+        approvals: {
+            approved,
+            rejected,
+            pending,
+            created,
+        },
+        analytics,
     };
 });
 
@@ -168,20 +178,31 @@ addHandler('/list_signups', async req => {
         query.offset = offset;
     }
     if (Array.isArray(filters) && filters.length > 0) {
-        const { or, eq, ne, like, notLike, and, gte, lte, regexp, notRegexp} = Sequelize.Op;
+        const {
+            or,
+            eq,
+            ne,
+            like,
+            notLike,
+            and,
+            gte,
+            lte,
+            regexp,
+            notRegexp,
+        } = Sequelize.Op;
         const andList = [];
         for (const filter of filters) {
             // eslint-disable-line
             const { value } = filter;
-            let name = filter.name
-            let negate = false
+            let name = filter.name;
+            let negate = false;
             if (name[0] === '!') {
-                negate = true
-                name = name.slice(1)
+                negate = true;
+                name = name.slice(1);
             }
-            const nLike = negate ? notLike : like
-            const nEq = negate ? ne :  eq
-            const nRegexp = negate ? notRegexp : regexp
+            const nLike = negate ? notLike : like;
+            const nEq = negate ? ne : eq;
+            const nRegexp = negate ? notRegexp : regexp;
             switch (name) {
                 case 'text':
                     andList.push({

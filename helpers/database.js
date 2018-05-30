@@ -5,6 +5,7 @@ const { Sequelize } = db;
 const { Op } = Sequelize;
 
 const { ApiError } = require('./errortypes');
+const { normalizeEmail } = require('./validator');
 
 /**
  * Throws if user or ip exceeds number of allowed actions within time period.
@@ -30,9 +31,11 @@ async function actionLimit(ip, user_id = null) {
 }
 
 async function emailIsInUse(email) {
+    // Normalize email
+    const normalized = normalizeEmail(email);
     const userCount = await db.users.count({
         where: {
-            email,
+            email_normalized: normalized,
             email_is_verified: true,
         },
     });
