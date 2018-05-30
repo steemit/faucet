@@ -144,8 +144,11 @@ const validateEmailDomain = (rule, value, callback) => {
 const normalizeEmail = email => {
     const gmailDomains = ['gmail.com', 'googlemail.com'];
 
-    const username = email.split('@')[0].replace(/\+.*/, '');
-    const domain = email.split('@')[1];
+    const username = email
+        .split('@')[0]
+        .replace(/\+.*/, '')
+        .toLowerCase();
+    const domain = email.split('@')[1].toLowerCase();
 
     if (gmailDomains.includes(domain)) {
         return `${username.replace(/\./g, '')}@gmail.com`;
