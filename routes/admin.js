@@ -274,11 +274,6 @@ addHandler('/approve_signups', async req => {
         where: { id: ids },
     });
     const approve = async signup => {
-        if (signup.status !== 'manual_review') {
-            throw new Error(
-                'Invalid status for approval, must be in manual_review'
-            );
-        }
         await services.sendApprovalEmail(
             signup.email,
             `${req.protocol}://${req.get('host')}`
@@ -309,11 +304,6 @@ addHandler('/reject_signups', async req => {
         where: { id: ids },
     });
     const reject = async signup => {
-        if (signup.status !== 'manual_review') {
-            throw new Error(
-                'Invalid status for rejection, must be in manual_review'
-            );
-        }
         signup.status = 'rejected'; // eslint-disable-line
         await signup.save();
     };
