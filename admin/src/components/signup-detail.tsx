@@ -1,4 +1,14 @@
-import { Badge, Button, Card, Divider, Icon, Modal, Timeline, Tree } from "antd"
+import {
+  Badge,
+  Button,
+  Card,
+  Divider,
+  Icon,
+  Modal,
+  Popconfirm,
+  Timeline,
+  Tree,
+} from "antd"
 import { History } from "history"
 import * as moment from "moment"
 import * as React from "react"
@@ -223,29 +233,52 @@ class SignupDetail extends React.Component<
     const { actions, loading, signup, location, cardAction } = this.state
     const title = `Signup ${this.props.match.id}`
     let details = null
-    const actionsEnabled =
-      signup && signup.status === "manual_review" && !cardAction
-    const cardActions = (
-      <div>
+    const actionsEnabled = signup && !cardAction
+    const cardActions = [
+      {
+        call: this.onApprove,
+        loading: cardAction === CardAction.Approve,
+        name: "Approve",
+      },
+      {
+        call: this.onReject,
+        loading: cardAction === CardAction.Reject,
+        name: "Reject",
+      },
+    ]
+
+    const actionElements: JSX.Element[] = []
+    const needsConfirm = signup && signup.status !== "manual_review"
+    for (const action of cardActions) {
+      const button = (
         <Button
-          loading={cardAction === CardAction.Approve}
+          key={`action-button-${action.name}`}
+          loading={action.loading}
           disabled={!actionsEnabled}
-          onClick={this.onApprove}
+          onClick={needsConfirm ? undefined : action.call}
+          type={needsConfirm ? "dashed" : undefined}
           size="small"
         >
-          Approve
+          {action.name}
         </Button>
-        <Divider type="vertical" />
-        <Button
-          loading={cardAction === CardAction.Reject}
-          disabled={!actionsEnabled}
-          onClick={this.onReject}
-          size="small"
-        >
-          Reject
-        </Button>
-      </div>
-    )
+      )
+      if (needsConfirm) {
+        actionElements.push(
+          <Popconfirm
+            key={`action-confirm-${action.name}`}
+            okText="Do it!"
+            title="Are you sure you want to change the status of a signup that is not in manual review?"
+            onConfirm={action.call}
+          >
+            {button}
+          </Popconfirm>,
+        )
+      } else {
+        actionElements.push(button)
+      }
+      actionElements.push(<Divider type="vertical" />)
+    }
+    actionElements.pop() // drop the last divider
     const verifiedLabel = (verified: boolean) => (
       <Badge
         status={verified ? "success" : "default"}
@@ -313,7 +346,7 @@ class SignupDetail extends React.Component<
     }
     return (
       <div className="signup-detail">
-        <Card loading={loading} title={title} extra={cardActions}>
+        <Card loading={loading} title={title} extra={actionElements}>
           {details}
         </Card>
       </div>

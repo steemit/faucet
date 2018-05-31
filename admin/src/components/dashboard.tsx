@@ -10,20 +10,20 @@ import "./dashboard.css"
 const { RangePicker } = DatePicker
 
 interface DashboardProps {
-  api: API,
+  api: API
 }
 
 interface DashboardState {
-  data?: any,
-  dateFrom: Date,
-  dateTo: Date,
+  data?: any
+  dateFrom: Date
+  dateTo: Date
 }
 
 interface CheckpointApiData {
-  human: string,
-  symbol: string,
-  count: number,
-  percent: number,
+  human: string
+  symbol: string
+  count: number
+  percent: number
 }
 
 class Dashboard extends React.Component<DashboardProps, DashboardState> {
@@ -104,10 +104,13 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         </div>
         <div className="dashboard-analytics">
           <h2>Analytics</h2>
-          <p>During the specified time range, how many signup-related actions happened?</p>
           <p>
-            Note that this query is only a total number, not a funnel-style query that would
-            count based on certain sessions.
+            During the specified time range, how many signup-related actions
+            happened?
+          </p>
+          <p>
+            Note that this query is only a total number, not a funnel-style
+            query that would count based on certain sessions.
           </p>
           <Row type="flex" gutter={16}>
             <RangePicker
@@ -115,18 +118,25 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
               format="YYYY-MM-DD HH:mm"
               placeholder={["Start Time", "End Time"]}
               onOk={onDateOk}
-              defaultValue={[ moment(this.state.dateFrom), moment(this.state.dateTo) ]}
+              defaultValue={[
+                moment(this.state.dateFrom),
+                moment(this.state.dateTo),
+              ]}
             />
           </Row>
           <Row type="flex" gutter={16}>
             <Col xs={24} lg={24}>
-              <Card
-                bordered={true}
-              >
+              <Card bordered={true}>
                 <ol>
-                  {this.state.data.analytics.map((checkpoint: CheckpointApiData) => <li key={checkpoint.symbol}>
-                    {checkpoint.human}: {checkpoint.count} ({checkpoint.percent}%)
-                  </li>)}
+                  {this.state.data.analytics.map(
+                    (checkpoint: CheckpointApiData) => (
+                      <li key={checkpoint.symbol}>
+                        {checkpoint.human}: {checkpoint.count} ({
+                          checkpoint.percent
+                        }%)
+                      </li>
+                    ),
+                  )}
                 </ol>
               </Card>
             </Col>
