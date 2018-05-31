@@ -55,6 +55,9 @@ async function finalizeSignup(user, req) {
     let result;
     try {
         result = await services.classifySignup(user);
+        if (!['manual_review', 'approved', 'rejected'].includes(result.status)) {
+            throw new Error('Got invalid response from gatekeeper')
+        }
     } catch (error) {
         req.log.warn(error, 'Classification failed, setting to manual_review');
         result = { status: 'manual_review', note: `ERROR: ${error.message}` };
