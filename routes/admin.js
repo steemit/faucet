@@ -210,7 +210,6 @@ addHandler('/list_signups', async req => {
                             { email: { [nLike]: `%${value}%` } },
                             { username: { [nLike]: `%${value}%` } },
                             { phone_number: { [nLike]: `%${value}%` } },
-                            { fingerprint: { [nLike]: `%${value}%` } },
                         ],
                     });
                     break;
@@ -251,6 +250,50 @@ addHandler('/list_signups', async req => {
                     break;
                 case 'to':
                     andList.push({ created_at: { [lte]: new Date(value) } });
+                    break;
+                case 'fingerprint.ua':
+                    andList.push({
+                        fingerprint: Sequelize.where(
+                            Sequelize.literal("fingerprint -> '$.ua'"),
+                            { [nRegexp]: value }
+                        ),
+                    });
+                    break;
+                case 'fingerprint.ref':
+                    andList.push({
+                        fingerprint: Sequelize.where(
+                            Sequelize.literal("fingerprint -> '$.ref'"),
+                            { [nRegexp]: value }
+                        ),
+                    });
+                    break;
+                case 'fingerprint.lang':
+                    andList.push({
+                        fingerprint: Sequelize.where(
+                            Sequelize.literal("fingerprint -> '$.lang'"),
+                            { [nRegexp]: value }
+                        ),
+                    });
+                    break;
+                case 'fingerprint.device.vendor':
+                    andList.push({
+                        fingerprint: Sequelize.where(
+                            Sequelize.literal(
+                                "fingerprint -> '$.device.vendor'"
+                            ),
+                            { [nRegexp]: value }
+                        ),
+                    });
+                    break;
+                case 'fingerprint.device.renderer':
+                    andList.push({
+                        fingerprint: Sequelize.where(
+                            Sequelize.literal(
+                                "fingerprint -> '$.device.renderer'"
+                            ),
+                            { [nRegexp]: value }
+                        ),
+                    });
                     break;
                 default:
                     throw new Error(`Unknown filter: ${name}`);

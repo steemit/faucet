@@ -38,7 +38,7 @@ enum TableAction {
 
 const ITEMS_PER_PAGE = 50
 
-const SEARCH_FILTER_PATTERN = /(!?\w+):([^ ]+)/g
+const SEARCH_FILTER_PATTERN = /(!?[a-z.]*):([^ ]+)/g
 
 function parseSearchFilter(filter: string) {
   const filters: SignupListFilter[] = []
