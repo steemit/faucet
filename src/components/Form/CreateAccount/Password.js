@@ -55,7 +55,10 @@ class Password extends Component {
     };
 
     requireTerms = (rule, value, callback) => {
-        if (value) callback();
+        if (value) {
+            callback();
+            return;
+        }
 
         callback(false);
     };
