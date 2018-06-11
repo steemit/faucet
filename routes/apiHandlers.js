@@ -55,8 +55,10 @@ async function finalizeSignup(user, req) {
     let result;
     try {
         result = await services.classifySignup(user);
-        if (!['manual_review', 'approved', 'rejected'].includes(result.status)) {
-            throw new Error('Got invalid response from gatekeeper')
+        if (
+            !['manual_review', 'approved', 'rejected'].includes(result.status)
+        ) {
+            throw new Error('Got invalid response from gatekeeper');
         }
     } catch (error) {
         req.log.warn(error, 'Classification failed, setting to manual_review');
@@ -531,6 +533,7 @@ async function handleConfirmAccount(token) {
             success: true,
             username: '',
             reservedUsername: user.username,
+            query: user.metadata.query,
             email: user.email,
             xref: user.tracking_id,
         };

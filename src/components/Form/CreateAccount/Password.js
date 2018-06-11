@@ -1,13 +1,15 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { Component } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import { message, Form, Input, Button } from 'antd';
+import { message, Form, Input, Button, Checkbox } from 'antd';
 import createSuggestedPassword from '../../../utils/auth';
 
-class Password extends React.Component {
+class Password extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            tosChecked: false,
+            privacyChecked: false,
             submitting: false,
         };
     }
@@ -52,6 +54,15 @@ class Password extends React.Component {
         }
     };
 
+    requireTerms = (rule, value, callback) => {
+        if (value) {
+            callback();
+            return;
+        }
+
+        callback(false);
+    };
+
     handleSubmit = e => {
         e.preventDefault();
         if (this.state.submitting) return;
@@ -72,6 +83,8 @@ class Password extends React.Component {
             init,
             intl,
             goBack,
+            requireAgreements,
+            submitMsgId,
         } = this.props;
         return (
             <Form
@@ -126,6 +139,72 @@ class Password extends React.Component {
                         </a>
                     </Form.Item>
                 )}
+                {requireAgreements && [
+                    <Form.Item key="agree_tos">
+                        {getFieldDecorator('agree_tos', {
+                            rules: [
+                                {
+                                    required: true,
+                                    message: intl.formatMessage({
+                                        id: 'must_agree_tos',
+                                    }),
+                                    validator: this.requireTerms,
+                                },
+                            ],
+                            valuePropName: 'checked',
+                            initialValue: false,
+                        })(
+                            <Checkbox>
+                                <FormattedMessage
+                                    id="i_agree_to_document"
+                                    values={{
+                                        document: (
+                                            <a
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                href="https://steemit.com/tos.html"
+                                            >
+                                                <FormattedMessage id="terms_of_service" />
+                                            </a>
+                                        ),
+                                    }}
+                                />
+                            </Checkbox>
+                        )}
+                    </Form.Item>,
+                    <Form.Item key="agree_pp">
+                        {getFieldDecorator('agree_pp', {
+                            rules: [
+                                {
+                                    required: true,
+                                    message: intl.formatMessage({
+                                        id: 'must_agree_pp',
+                                    }),
+                                    validator: this.requireTerms,
+                                },
+                            ],
+                            valuePropName: 'checked',
+                            initialValue: false,
+                        })(
+                            <Checkbox>
+                                <FormattedMessage
+                                    id="i_agree_to_document"
+                                    values={{
+                                        document: (
+                                            <a
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                href="https://steemit.com/privacy.html"
+                                            >
+                                                <FormattedMessage id="privacy_policy" />
+                                            </a>
+                                        ),
+                                    }}
+                                />
+                            </Checkbox>
+                        )}
+                    </Form.Item>,
+                ]}
                 <div className="form-actions">
                     <Form.Item>
                         <Button
@@ -133,7 +212,7 @@ class Password extends React.Component {
                             htmlType="submit"
                             loading={this.state.submitting}
                         >
-                            <FormattedMessage id="continue" />
+                            <FormattedMessage id={submitMsgId || 'continue'} />
                         </Button>
                     </Form.Item>
                     {goBack && (

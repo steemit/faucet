@@ -350,10 +350,18 @@ class CreateAccount extends Component {
                                 <p>
                                     <FormattedMessage id="confirm_password" />
                                 </p>
+                                <p>
+                                    <FormattedMessage id="master_password" />
+                                </p>
                                 <FormCreateAccountPassword
                                     onSubmit={this.handleSubmit}
                                     password={password}
+                                    requireAgreements={
+                                        this.state.query.ref === 'steemit' ||
+                                        this.state.query.ref === undefined
+                                    }
                                     goBack={this.goBack}
+                                    submitMsgId={'create_account'}
                                 />
                             </div>
                         )}
