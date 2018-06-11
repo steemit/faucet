@@ -15,6 +15,9 @@ const SET_PREFIX = 'user/SET_PREFIX';
 const SET_COMPLETED = 'user/SET_COMPLETED';
 const SET_TRACKING_ID = 'user/SET_TRACKING_ID';
 
+// Provide the referrer based on whatever our ref is set to at page load.
+const referrerMatch = window.location.search.match(/\?ref=([a-zA-Z*])/);
+
 const defaultState = Map({
     username: '',
     email: '',
@@ -22,7 +25,10 @@ const defaultState = Map({
     countryCode: null,
     phoneNumberFormatted: '',
     prefix: '',
-    referrer: 'steemit',
+    referrer:
+        referrerMatch && referrerMatch.length === 2
+            ? referrerMatch[1]
+            : 'steemit',
     token: '',
     completed: false,
     step: 'signupOptions',
