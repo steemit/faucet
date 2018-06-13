@@ -188,6 +188,7 @@ class Email extends React.Component {
                             type="primary"
                             htmlType="submit"
                             loading={this.state.submitting}
+                            style={{ background: '#f5222d' }}
                         >
                             <FormattedMessage id="continue" />
                         </Button>
@@ -197,6 +198,7 @@ class Email extends React.Component {
                             <Button
                                 htmlType="button"
                                 className="back"
+                                style={{ color: '#f5222d' }}
                                 onClick={() => goBack('username', 0)}
                             >
                                 <FormattedMessage id="go_back" />
