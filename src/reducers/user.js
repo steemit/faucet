@@ -16,7 +16,7 @@ const SET_COMPLETED = 'user/SET_COMPLETED';
 const SET_TRACKING_ID = 'user/SET_TRACKING_ID';
 
 // Provide the referrer based on whatever our ref is set to at page load.
-const referrerMatch = window.location.search.match(/\?ref=([a-zA-Z*])/);
+const referrerMatch = window.location.search.match(/\?ref=([a-zA-Z]*)/);
 
 const defaultState = Map({
     username: '',
