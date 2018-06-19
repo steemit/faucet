@@ -166,7 +166,12 @@ addHandler('/get_signup', async req => {
     // TODO: geoip lookup should be stored per signup in database
     //       so that it is searchable
     const location = geoip.get(user.ip);
-    return { user, actions, location };
+    const ipintel = await fetch(
+        `https://check.getipintel.net/check.php?ip=${
+            user.ip
+        }&contact=bchodoroff@steemit.com`
+    ).then(res => res.text());
+    return { user, actions, ipintel, location };
 });
 
 addHandler('/list_signups', adminHandlers.listSignups);

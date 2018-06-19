@@ -36,6 +36,7 @@ interface SignupDetailState {
   actions?: any[]
   loading: boolean
   cardAction?: CardAction
+  ipintel?: number
   location?: any
   signup?: SignupModel
 }
@@ -166,6 +167,7 @@ class SignupDetail extends React.Component<
       .then((result) => {
         this.setState({
           actions: result.actions,
+          ipintel: result.ipintel,
           loading: false,
           location: result.location,
           signup: result.user,
@@ -230,7 +232,7 @@ class SignupDetail extends React.Component<
   }
 
   public render() {
-    const { actions, loading, signup, location, cardAction } = this.state
+    const { actions, ipintel, loading, signup, location, cardAction } = this.state
     const title = `Signup ${this.props.match.id}`
     let details = null
     const actionsEnabled = signup && !cardAction
@@ -325,6 +327,12 @@ class SignupDetail extends React.Component<
               {location && location.country ? location.country.names.en : ""}
             </small>
           </p>
+          {ipintel &&
+            <p>
+              <span className="label">IP Intel score</span>
+              <span className="value">{ipintel}</span>
+            </p>
+          }
           <p>
             <span className="label">Gatekeeper note</span>
             <span className="value">{signup.review_note || "n/a"}</span>
