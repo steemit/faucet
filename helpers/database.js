@@ -45,6 +45,8 @@ async function emailIsInUse(email) {
 const logAction = async data => db.actions.create(data);
 
 const findUser = async where => db.users.findOne(where);
+const findUsers = async query => db.users.findAll(query);
+const countUsers = async where => db.users.count({ where });
 
 const usernameIsBooked = async username => {
     const user = await findUser({
@@ -83,6 +85,8 @@ module.exports = {
     emailIsInUse,
     logAction,
     findUser,
+    findUsers,
+    countUsers,
     usernameIsBooked,
     createUser,
     phoneIsInUse,
