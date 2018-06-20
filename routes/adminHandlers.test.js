@@ -95,6 +95,10 @@ describe('adminHandlers listSignups', () => {
                         name: 'fingerprint.device.renderer',
                         value: 'fingerprint_renderer_test',
                     },
+                    {
+                        name: 'fingerprint.device',
+                        value: 'fingerprint_device_test',
+                    },
                 ],
             },
         });
@@ -138,6 +142,11 @@ describe('adminHandlers listSignups', () => {
             attribute: { val: "fingerprint -> '$.device.renderer'" },
             comparator: '=',
             logic: { [regexp]: 'fingerprint_renderer_test' },
+        });
+        expect(q[18].fingerprint).toEqual({
+            attribute: { val: "fingerprint -> '$.device'" },
+            comparator: '=',
+            logic: { [regexp]: 'fingerprint_device_test' },
         });
     });
 });
