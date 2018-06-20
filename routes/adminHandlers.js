@@ -100,6 +100,14 @@ async function listSignups(req) {
                         }),
                     });
                     break;
+                case 'fingerprint.device':
+                    andList.push({
+                        fingerprint: where(
+                            literal("fingerprint -> '$.device'"),
+                            { [nRegexp]: value }
+                        ),
+                    });
+                    break;
                 case 'fingerprint.device.vendor':
                     andList.push({
                         fingerprint: where(
