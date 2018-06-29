@@ -22,17 +22,17 @@ const clientConfig = getClientConfig();
 // removes actions and completed requests older than 60 days
 async function cleanupDb() {
   const expiry = process.env.DATABASE_EXPIRY ? parseInt(process.env.DATABASE_EXPIRY) : 60;
-  const numActions = await db.actions.destroy({
-    where: { created_at: { [Op.lt]: moment().subtract(expiry, 'days').toDate() } },
-  });
-  if (numActions > 0) {
-    logger.info('removed %d old actions', numActions);
-  }
   const numUsers = await db.users.destroy({
     where: { updated_at: { [Op.lt]: moment().subtract(expiry, 'days').toDate() } },
   });
   if (numUsers > 0) {
     logger.info('removed %d old users', numUsers);
+  }
+  const numActions = await db.actions.destroy({
+    where: { created_at: { [Op.lt]: moment().subtract(expiry, 'days').toDate() } },
+  });
+  if (numActions > 0) {
+    logger.info('removed %d old actions', numActions);
   }
 }
 setInterval(() => {
