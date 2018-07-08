@@ -9,6 +9,7 @@ function getClientConfig() {
         'RECAPTCHA_SITE_KEY',
         'STEEMJS_URL',
         'DEFAULT_REDIRECT_URI',
+        'SIFTSCIENCE_JS_SNIPPET_KEY',
     ];
 
     return JSON.stringify(

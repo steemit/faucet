@@ -52,9 +52,21 @@ async function finalizeSignup(user, req) {
     if (!user.phone_number_is_verified || !user.email_is_verified) {
         return false;
     }
-    let result;
+    // First, create the completed signup request in Gatekeeper.
+    // Allow Gatekeeper to relate it to other data based on the
+    // "faucet session id", in the form of `${email}+faucetsession` (used in frontend)
     try {
-        result = await services.classifySignup(user);
+        const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
+        user.set('gatekeeper_id', signupInGatekeeper.id);
+    } catch (error) {
+        console.warn('gatekeeper.signup_create failed');
+    }
+
+    // Finally, ask Gatekeeper for its judgement.
+    let result;
+
+    try {
+        result = await services.gatekeeperCheck(user);
         if (
             !['manual_review', 'approved', 'rejected'].includes(result.status)
         ) {
@@ -70,6 +82,7 @@ async function finalizeSignup(user, req) {
             `${req.protocol}://${req.get('host')}`
         );
     }
+
     user.status = result.status;
     user.review_note = result.note;
     await user.save();
@@ -662,6 +675,12 @@ async function handleCreateAccount(req) {
         },
         { where: { email: decoded.email } }
     );
+
+    try {
+        await services.gatekeeperMarkSignupCreated(user);
+    } catch (error) {
+        console.warn('gatekeeper.signup_mark_created failed', { error });
+    }
 
     const params = [
         username,

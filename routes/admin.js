@@ -166,13 +166,25 @@ addHandler('/get_signup', async req => {
     // TODO: geoip lookup should be stored per signup in database
     //       so that it is searchable
     const location = geoip.get(user.ip);
-    return { user, actions, location };
+
+    let gatekeeperData;
+    try {
+        gatekeeperData = await services.gatekeeperSignupGet(user.gatekeeper_id);
+    } catch (error) {
+        console.warn('cannot get gatekeeper data for signup', {
+            error,
+            userId: user.id,
+        });
+    }
+
+    return { user, actions, location, gatekeeperData };
 });
 
 addHandler('/list_signups', adminHandlers.listSignups);
 
 addHandler('/approve_signups', async req => {
     const { ids } = req.body;
+    const adminUsername = req.user.email;
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
@@ -184,6 +196,13 @@ addHandler('/approve_signups', async req => {
             signup.email,
             `${req.protocol}://${req.get('host')}`
         );
+
+        try {
+            await services.gatekeeperMarkSignupApproved(signup, adminUsername);
+        } catch (error) {
+            console.warn('gatekeeper.signup_mark_approved failed', { error });
+        }
+
         signup.status = 'approved'; // eslint-disable-line
         await signup.save();
     };
@@ -203,6 +222,7 @@ addHandler('/approve_signups', async req => {
 
 addHandler('/reject_signups', async req => {
     const { ids } = req.body;
+    const adminUsername = req.user.email;
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
@@ -210,6 +230,12 @@ addHandler('/reject_signups', async req => {
         where: { id: ids },
     });
     const reject = async signup => {
+        try {
+            await services.gatekeeperMarkSignupRejected(signup, adminUsername);
+        } catch (error) {
+            console.warn('gatekeeper.signup_mark_approved failed', { error });
+        }
+
         signup.status = 'rejected'; // eslint-disable-line
         await signup.save();
     };

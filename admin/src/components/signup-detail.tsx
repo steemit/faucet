@@ -34,6 +34,7 @@ enum CardAction {
 
 interface SignupDetailState {
   actions?: any[]
+  gatekeeperScores: object
   loading: boolean
   cardAction?: CardAction
   location?: any
@@ -141,6 +142,18 @@ function FingerprintTree({ fingerprint }: { fingerprint: Fingerprint }) {
   return <Tree defaultExpandAll={true}>{render(fingerprint)}</Tree>
 }
 
+function extractScoresFromGatekeeperData(gatekeeperData: object) {
+  return Object.keys(gatekeeperData).reduce((acc: object, cur: string) => {
+    if (cur.indexOf("Score") > -1 && gatekeeperData[cur]) { // todo: ameliorate magic cross-codebase string :(
+      return {
+        ...acc,
+        [cur]: gatekeeperData[cur],
+      }
+    }
+    return acc
+  }, {})
+}
+
 class SignupDetail extends React.Component<
   SignupDetailProps,
   SignupDetailState
@@ -148,6 +161,7 @@ class SignupDetail extends React.Component<
   constructor(props: SignupDetailProps, context?: any) {
     super(props, context)
     this.state = {
+      gatekeeperScores: {},
       loading: false,
     }
   }
@@ -166,6 +180,7 @@ class SignupDetail extends React.Component<
       .then((result) => {
         this.setState({
           actions: result.actions,
+          gatekeeperScores: extractScoresFromGatekeeperData(result.gatekeeperData),
           loading: false,
           location: result.location,
           signup: result.user,
@@ -230,7 +245,7 @@ class SignupDetail extends React.Component<
   }
 
   public render() {
-    const { actions, loading, signup, location, cardAction } = this.state
+    const { actions, gatekeeperScores, loading, signup, location, cardAction } = this.state
     const title = `Signup ${this.props.match.id}`
     let details = null
     const actionsEnabled = signup && !cardAction
@@ -276,7 +291,7 @@ class SignupDetail extends React.Component<
       } else {
         actionElements.push(button)
       }
-      actionElements.push(<Divider type="vertical" />)
+      actionElements.push(<Divider key="divider" type="vertical" />)
     }
     actionElements.pop() // drop the last divider
     const verifiedLabel = (verified: boolean) => (
@@ -328,6 +343,14 @@ class SignupDetail extends React.Component<
           <p>
             <span className="label">Gatekeeper note</span>
             <span className="value">{signup.review_note || "n/a"}</span>
+          </p>
+          <p>
+            <span className="label">Gatekeeper scores</span>
+            <span className="value">
+                {Object.keys(gatekeeperScores).map((k) => <span key={k} className="details__value-list">
+                  {k}: {gatekeeperScores[k]}
+                </span>)}
+            </span>
           </p>
           <p>
             <span className="label">Created</span>

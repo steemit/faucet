@@ -10,3 +10,11 @@
     margin-left: 16px;
     margin-right: 8px;
 }
+
+.signup-detail .details .details__value-list::after {
+    content: ', ';
+}
+
+.signup-detail .details .details__value-list:last-child::after {
+    content: '';
+}
