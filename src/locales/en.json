@@ -119,7 +119,7 @@
     "resend": "Resend",
     "save_password": "Confirm username and password",
     "save_password_text":
-        "If you ever lose your password, your account will be irretrievably lost. We do not have your password, and we cannot help you recover it.",
+        "We have generateed a highly secure Master password for you. Please copy it and store it in a safe place offline, like on a text file on a USB drive.",
     "send_sms": "We need to send you a quick text.",
     "sign_in": "Sign in",
     "signup_options": "Sign up options",
