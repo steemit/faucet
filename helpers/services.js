@@ -193,6 +193,34 @@ async function checkUsername(username) {
 }
 
 /**
+ * Pulls out browser fingerprinting metadata from user data.
+ *
+ * @param {object} user sequelize model instance
+ * @returns {object}
+ */
+function extractMetadataFromUser(user) {
+    const metadata = {
+        browser_date: user.fingerprint.date,
+        browser_lang: user.fingerprint.lang,
+        browser_ref: user.fingerprint.ref,
+        email: user.email,
+        id: String(user.id),
+        phone_number: user.phone_number,
+        remote_addr: user.ip,
+        user_agent: user.fingerprint.ua,
+        username: user.username,
+    };
+
+    const device = user.fingerprint.device;
+
+    if (device && device.renderer && device.vendor) {
+        metadata.browser_gpu = `${device.vendor} ${device.renderer}`;
+    }
+
+    return metadata;
+}
+
+/**
  * Call out to gatekeeper to check for approval status.
  * @param user User (aka Signup) instance to check
  */
@@ -272,34 +300,6 @@ async function gatekeeperMarkSignupCreated(user) {
         conveyorAccount,
         conveyorKey
     );
-}
-
-/**
- * Pulls out browser fingerprinting metadata from user data.
- *
- * @param {object} user sequelize model instance
- * @returns {object}
- */
-function extractMetadataFromUser(user) {
-    const metadata = {
-        browser_date: user.fingerprint.date,
-        browser_lang: user.fingerprint.lang,
-        browser_ref: user.fingerprint.ref,
-        email: user.email,
-        id: String(user.id),
-        phone_number: user.phone_number,
-        remote_addr: user.ip,
-        user_agent: user.fingerprint.ua,
-        username: user.username,
-    };
-
-    const device = user.fingerprint.device;
-
-    if (device && device.renderer && device.vendor) {
-        metadata.browser_gpu = `${device.vendor} ${device.renderer}`;
-    }
-
-    return metadata;
 }
 
 /**

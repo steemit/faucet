@@ -144,7 +144,8 @@ function FingerprintTree({ fingerprint }: { fingerprint: Fingerprint }) {
 
 function extractScoresFromGatekeeperData(gatekeeperData: object) {
   return Object.keys(gatekeeperData).reduce((acc: object, cur: string) => {
-    if (cur.indexOf("Score") > -1 && gatekeeperData[cur]) { // todo: ameliorate magic cross-codebase string :(
+    if (cur.indexOf("Score") > -1 && gatekeeperData[cur]) {
+      // todo: ameliorate magic cross-codebase string :(
       return {
         ...acc,
         [cur]: gatekeeperData[cur],
@@ -180,7 +181,9 @@ class SignupDetail extends React.Component<
       .then((result) => {
         this.setState({
           actions: result.actions,
-          gatekeeperScores: extractScoresFromGatekeeperData(result.gatekeeperData),
+          gatekeeperScores: extractScoresFromGatekeeperData(
+            result.gatekeeperData,
+          ),
           loading: false,
           location: result.location,
           signup: result.user,
@@ -245,7 +248,14 @@ class SignupDetail extends React.Component<
   }
 
   public render() {
-    const { actions, gatekeeperScores, loading, signup, location, cardAction } = this.state
+    const {
+      actions,
+      gatekeeperScores,
+      loading,
+      signup,
+      location,
+      cardAction,
+    } = this.state
     const title = `Signup ${this.props.match.id}`
     let details = null
     const actionsEnabled = signup && !cardAction
@@ -347,9 +357,11 @@ class SignupDetail extends React.Component<
           <p>
             <span className="label">Gatekeeper scores</span>
             <span className="value">
-                {Object.keys(gatekeeperScores).map((k) => <span key={k} className="details__value-list">
+              {Object.keys(gatekeeperScores).map((k) => (
+                <span key={k} className="details__value-list">
                   {k}: {gatekeeperScores[k]}
-                </span>)}
+                </span>
+              ))}
             </span>
           </p>
           <p>

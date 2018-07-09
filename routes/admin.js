@@ -11,6 +11,8 @@ const { Sequelize } = db;
 
 const router = express.Router();
 
+const logger = require('../helpers/logger');
+
 const { GOOGLE_CLIENT_ID, GOOGLE_AUTHORIZED_DOMAINS } = process.env;
 if (!GOOGLE_CLIENT_ID) {
     throw new Error('GOOGLE_CLIENT_ID env var not set');
@@ -171,10 +173,13 @@ addHandler('/get_signup', async req => {
     try {
         gatekeeperData = await services.gatekeeperSignupGet(user.gatekeeper_id);
     } catch (error) {
-        console.warn('cannot get gatekeeper data for signup', {
-            error,
-            userId: user.id,
-        });
+        logger.warn(
+            {
+                error,
+                userId: user.id,
+            },
+            'cannot get gatekeeper data for signup'
+        );
     }
 
     return { user, actions, location, gatekeeperData };
@@ -200,7 +205,7 @@ addHandler('/approve_signups', async req => {
         try {
             await services.gatekeeperMarkSignupApproved(signup, adminUsername);
         } catch (error) {
-            console.warn('gatekeeper.signup_mark_approved failed', { error });
+            logger.warn({ error }, 'gatekeeper.signup_mark_approved failed');
         }
 
         signup.status = 'approved'; // eslint-disable-line
@@ -233,7 +238,7 @@ addHandler('/reject_signups', async req => {
         try {
             await services.gatekeeperMarkSignupRejected(signup, adminUsername);
         } catch (error) {
-            console.warn('gatekeeper.signup_mark_approved failed', { error });
+            logger.warn({ error }, 'gatekeeper.signup_mark_approved failed');
         }
 
         signup.status = 'rejected'; // eslint-disable-line

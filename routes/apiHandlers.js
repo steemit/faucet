@@ -7,6 +7,7 @@ const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance()
 
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const badDomains = require('../bad-domains');
+const logger = require('../helpers/logger');
 const services = require('../helpers/services');
 const database = require('../helpers/database');
 const { generateTrackingId } = require('../helpers/stepLogger');
@@ -59,7 +60,7 @@ async function finalizeSignup(user, req) {
         const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
         user.set('gatekeeper_id', signupInGatekeeper.id);
     } catch (error) {
-        console.warn('gatekeeper.signup_create failed');
+        logger.warn({ error }, 'gatekeeper.signup_create failed');
     }
 
     // Finally, ask Gatekeeper for its judgement.
@@ -679,7 +680,7 @@ async function handleCreateAccount(req) {
     try {
         await services.gatekeeperMarkSignupCreated(user);
     } catch (error) {
-        console.warn('gatekeeper.signup_mark_created failed', { error });
+        logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
     }
 
     const params = [
