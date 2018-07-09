@@ -139,6 +139,9 @@ class Password extends Component {
                         </a>
                     </Form.Item>
                 )}
+                <p>
+                    <FormattedMessage id="save_password_text" />
+                </p>
                 {requireAgreements && [
                     <Form.Item key="agree_tos">
                         {getFieldDecorator('agree_tos', {

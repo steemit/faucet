@@ -89,7 +89,7 @@
     "please_confirm": "请输入验证码来确认。",
     "redirect_button_text": "前往Steemit",
     "resend": "重新发送",
-    "save_password": "保存密码",
+    "save_password": "确认用户名和密码",
     "save_password_text":
         "如果你丢失密码，你的账号也将丢失。我们不保存你的密码，无法帮你找回密码。",
     "send_sms": "我们将给你发送短信验证码.",

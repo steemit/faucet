@@ -333,9 +333,6 @@ class CreateAccount extends Component {
                                 <h1>
                                     <FormattedMessage id="save_password" />
                                 </h1>
-                                <p>
-                                    <FormattedMessage id="save_password_text" />
-                                </p>
                                 <FormCreateAccountPassword
                                     onSubmit={this.handleSubmitPassword}
                                     init
