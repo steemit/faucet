@@ -137,9 +137,9 @@
         "{referrer} is not a typical social app. It's powered by the Steem blockchain.",
     "signup_options_modal_title": "Choose a third party paid option",
     "signup_options_blocktrades":
-        "A third-party tool that accepts Bitcoin, Ethereum, Litecoin, STEEM and more. Blocktrades charges it's own small fee.",
+        "A third-party tool that accepts Bitcoin, Ethereum, Litecoin, STEEM and more. Blocktrades charges its own small fee.",
     "signup_options_anonsteem":
-        "A third-party tool that accepts Bitcoin, Litecoin and STEEM. AnonSteem also charges it's own a small fee.",
+        "A third-party tool that accepts Bitcoin, Litecoin and STEEM. AnonSteem also charges its own a small fee.",
     "signup_options_steemconnect":
         "Try this option if you already have a Steem account and want to pay to set up a new account for yourself or a friend.",
     "signup_options_disclaimer":
