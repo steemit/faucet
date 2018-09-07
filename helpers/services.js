@@ -37,7 +37,6 @@ const conveyorAccount = getEnv('CONVEYOR_USERNAME');
 const conveyorKey = getEnv('CONVEYOR_POSTING_WIF');
 const createAccountDelegation = getEnv('CREATE_ACCOUNT_DELEGATION');
 const createAccountDelegator = getEnv('DELEGATOR_USERNAME');
-const createAccountFee = getEnv('CREATE_ACCOUNT_FEE');
 const createAccountWif = getEnv('DELEGATOR_ACTIVE_WIF');
 const recaptchaSecret = getEnv('RECAPTCHA_SECRET');
 
@@ -183,7 +182,7 @@ async function createAccount(payload) {
                 vesting_shares: createAccountDelegation,
             },
         ];
-        return await client.broadcast.sendAsync([op1, op2], createAccountWif);
+        return steem.broadcast.sendAsync([op1, op2], createAccountWif);
     }
 }
 
