@@ -170,7 +170,7 @@ async function createAccount(payload) {
                 active: payload.active,
                 posting: payload.posting,
                 memo_key: payload.memo_key,
-                json_metadata: {},
+                json_metadata: payload.metadata,
                 extensions: [],
             },
         ];
