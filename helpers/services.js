@@ -162,19 +162,28 @@ async function createAccount(payload) {
     if (DEBUG_MODE) {
         logger.warn({ accountPayload: payload }, 'Creating new account');
     } else {
-        return steem.broadcast.accountCreateWithDelegationAsync(
-            createAccountWif,
-            createAccountFee,
-            createAccountDelegation,
-            createAccountDelegator,
-            payload.username,
-            payload.owner,
-            payload.active,
-            payload.posting,
-            payload.memoKey,
-            payload.metadata,
-            []
-        );
+        const op1 = [
+            'create_claimed_account',
+            {
+                creator: createAccountDelegator,
+                new_account_name: payload.username,
+                owner: payload.owner,
+                active: payload.active,
+                posting: payload.posting,
+                memo_key: payload.memo_key,
+                json_metadata: {},
+                extensions: [],
+            },
+        ];
+        const op2 = [
+            'delegate_vesting_shares',
+            {
+                delegator: createAccountDelegator,
+                delegatee: payload.username,
+                vesting_shares: createAccountDelegation,
+            },
+        ];
+        return await client.broadcast.sendAsync([op1, op2], createAccountWif);
     }
 }
 
