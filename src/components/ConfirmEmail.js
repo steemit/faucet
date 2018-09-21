@@ -87,7 +87,7 @@ class Index extends Component {
                     <div className="Signup__form">
                         <div className="Signup__header">
                             <object
-                                data="img/logo.svg"
+                                data="img/logo-steem.svg"
                                 type="image/svg+xml"
                                 id="logo"
                                 aria-label="logo"
