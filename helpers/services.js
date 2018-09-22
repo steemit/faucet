@@ -160,7 +160,7 @@ async function createAccount(payload) {
     } else {
         return steem.api.signedCallAsync(
             `kingdom.create_account`,
-            [payload],
+            payload,
             conveyorAccount,
             conveyorKey
         );
