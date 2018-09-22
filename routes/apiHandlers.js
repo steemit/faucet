@@ -633,11 +633,11 @@ async function handleCreateAccount(req) {
     try {
         await services.createAccount({
             active,
-            memoKey: publicKeys.memo,
-            metadata,
+            memo_key: publicKeys.memo,
+            json_metadata: metadata,
             owner,
             posting,
-            username,
+            new_account_name: username,
         });
     } catch (cause) {
         await database.updateUsers(
