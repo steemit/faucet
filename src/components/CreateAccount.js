@@ -188,6 +188,14 @@ class CreateAccount extends Component {
     };
 
     render() {
+        if (
+            true ||
+            /* todo: add env var */ process.env
+                .REACT_DISABLE_ACCOUNT_CREATION === 'true'
+        ) {
+            return <div>Signups temporarily disabled</div>;
+        }
+
         const {
             step,
             stepNumber,
