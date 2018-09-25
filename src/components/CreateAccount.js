@@ -188,7 +188,7 @@ class CreateAccount extends Component {
     };
 
     render() {
-        if (config.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
+        if (window.config.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
             return <div>Signups temporarily disabled</div>;
         }
 
