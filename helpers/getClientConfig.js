@@ -9,6 +9,7 @@ function getClientConfig() {
         'RECAPTCHA_SITE_KEY',
         'STEEMJS_URL',
         'DEFAULT_REDIRECT_URI',
+        'REACT_DISABLE_ACCOUNT_CREATION',
     ];
 
     return JSON.stringify(
