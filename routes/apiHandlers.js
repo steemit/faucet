@@ -555,11 +555,7 @@ async function handleConfirmAccount(token) {
  */
 async function handleCreateAccount(req) {
     // Do not allow account creations if REACT_DISABLE_ACCOUNT_CREATION is set to true
-    if (
-        true ||
-        /* todo: env var in the future */ process.env
-            .REACT_DISABLE_ACCOUNT_CREATION === 'true'
-    ) {
+    if (process.env.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
         throw new ApiError({
             type: 'Account creation temporarily disabled',
             status: 503,
