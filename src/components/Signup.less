@@ -1,4 +1,6 @@
+@import "~antd/dist/antd.less";
 @import "../styles/screen-sizes";
+@import "../styles/custom";
 
 .signup-bg-left {
   position: fixed;
@@ -95,11 +97,11 @@
           height: 14px;
           line-height: 14px;
           border-radius: 7px;
-          background: #4ba2f2;
+          background: @primary-color;
         }
 
         &.processed {
-          background: #4ba2f2;
+          background: @primary-color;
         }
       }
     }
@@ -140,8 +142,8 @@
     }
 
     .ant-btn-primary {
-      background-color: #4ba2f2;
-      border-color: #4ba2f2;
+      background-color: @primary-color;
+      border-color: @primary-color;
       box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
     }
 
@@ -192,12 +194,12 @@
     }
 
     button.back {
-      color: #4ba2f2;
+      color: @primary-color;
       background: none;
       font-size: 16px;
       border: none;
       &:hover {
-        color: #4ba2f2;
+        color: @primary-color;
       }
     }
 
@@ -219,19 +221,19 @@
       text-align: center;
       width: 100%;
       background-color: #fff;
-      border: solid 2px #4ba2f2;
+      border: solid 2px @primary-color;
       font-size: 16px;
       font-weight: bold;
       text-transform: uppercase;
       height: 50px;
-      color: #4ba2f2;
+      color: @primary-color;
       display: block;
       border-radius: 5px;
     }
 
     a.complete-signup {
-      background-color: #4ba2f2;
-      border-color: #4ba2f2;
+      background-color: @primary-color;
+      border-color: @primary-color;
       box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
       width: 100%;
       color: #fff;

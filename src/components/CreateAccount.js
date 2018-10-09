@@ -188,6 +188,10 @@ class CreateAccount extends Component {
     };
 
     render() {
+        if (window.config.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
+            return <div>Signups temporarily disabled</div>;
+        }
+
         const {
             step,
             stepNumber,
@@ -229,7 +233,7 @@ class CreateAccount extends Component {
                     <div className="Signup__form">
                         <div className="Signup__header">
                             <object
-                                data="img/logo.svg"
+                                data="img/logo-steem.svg"
                                 type="image/svg+xml"
                                 id="logo"
                                 aria-label="logo"

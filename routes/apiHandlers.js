@@ -568,6 +568,14 @@ async function handleConfirmAccount(token) {
  * Remove the user information from our database
  */
 async function handleCreateAccount(req) {
+    // Do not allow account creations if REACT_DISABLE_ACCOUNT_CREATION is set to true
+    if (process.env.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
+        throw new ApiError({
+            type: 'Account creation temporarily disabled',
+            status: 503,
+        });
+    }
+
     const { username, public_keys, token, email } = req.body; // eslint-disable-line camelcase
     const decoded = verifyToken(token, 'create_account');
     if (!username) {
@@ -647,11 +655,11 @@ async function handleCreateAccount(req) {
     try {
         await services.createAccount({
             active,
-            memoKey: publicKeys.memo,
-            metadata,
+            memo_key: publicKeys.memo,
+            json_metadata: metadata,
             owner,
             posting,
-            username,
+            new_account_name: username,
         });
     } catch (cause) {
         await database.updateUsers(

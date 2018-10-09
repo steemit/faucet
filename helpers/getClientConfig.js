@@ -10,6 +10,7 @@ function getClientConfig() {
         'STEEMJS_URL',
         'DEFAULT_REDIRECT_URI',
         'SIFTSCIENCE_JS_SNIPPET_KEY',
+        'REACT_DISABLE_ACCOUNT_CREATION',
     ];
 
     return JSON.stringify(
