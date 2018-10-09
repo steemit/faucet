@@ -143,6 +143,10 @@ function FingerprintTree({ fingerprint }: { fingerprint: Fingerprint }) {
 }
 
 function extractScoresFromGatekeeperData(gatekeeperData: object) {
+  if (gatekeeperData === null) {
+    return {}
+  }
+
   return Object.keys(gatekeeperData).reduce((acc: object, cur: string) => {
     if (cur.indexOf("Score") > -1 && gatekeeperData[cur]) {
       // todo: ameliorate magic cross-codebase string :(
