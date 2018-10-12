@@ -6,6 +6,7 @@ import fetch from 'isomorphic-fetch';
 import { checkStatus, parseJSON } from '../utils/fetch';
 import Loading from '../widgets/Loading';
 import { CHECKPOINTS } from '../../constants';
+import SiftTracker from './SiftTracker';
 
 class Index extends Component {
     static propTypes = {
@@ -81,6 +82,7 @@ class Index extends Component {
         } = this.state;
         return (
             <div className="Signup_main">
+                <SiftTracker email={email} />
                 <div className="signup-bg-left" />
                 <div className="signup-bg-right" />
                 <div className="Signup__container">

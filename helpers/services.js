@@ -182,10 +182,12 @@ async function checkUsername(username) {
 }
 
 /**
- * Call out to gatekeeper to check for approval status.
- * @param user User (aka Signup) instance to check
+ * Pulls out browser fingerprinting metadata from user data.
+ *
+ * @param {object} user sequelize model instance
+ * @returns {object}
  */
-async function classifySignup(user) {
+function extractMetadataFromUser(user) {
     const metadata = {
         browser_date: user.fingerprint.date,
         browser_lang: user.fingerprint.lang,
@@ -197,13 +199,93 @@ async function classifySignup(user) {
         user_agent: user.fingerprint.ua,
         username: user.username,
     };
+
     const device = user.fingerprint.device;
+
     if (device && device.renderer && device.vendor) {
         metadata.browser_gpu = `${device.vendor} ${device.renderer}`;
     }
+
+    return metadata;
+}
+
+/**
+ * Call out to gatekeeper to check for approval status.
+ * @param user User (aka Signup) instance to check
+ */
+async function gatekeeperCheck(user) {
+    const metadata = extractMetadataFromUser(user);
+
     return steem.api.signedCallAsync(
         'gatekeeper.check',
         { metadata },
+        conveyorAccount,
+        conveyorKey
+    );
+}
+
+/**
+ * Retrieves signup data from Gatekeeper.
+ *
+ * @param {object} user sequelize model instance
+ */
+async function gatekeeperSignupGet(gatekeeperSignupId) {
+    return steem.api.signedCallAsync(
+        'gatekeeper.signup_get',
+        { id: gatekeeperSignupId },
+        conveyorAccount,
+        conveyorKey
+    );
+}
+
+/**
+ * Asks Gatekeeper to record a signup.
+ *
+ * @param {object} user sequelize model instance
+ */
+async function gatekeeperSignupCreate(user) {
+    return steem.api.signedCallAsync(
+        'gatekeeper.signup_create',
+        {
+            ip: user.ip,
+            username: user.username,
+            email: user.email,
+            phone: user.phone_number,
+            meta: extractMetadataFromUser(user),
+        },
+        conveyorAccount,
+        conveyorKey
+    );
+}
+
+async function gatekeeperMarkSignupApproved(user, adminUsername) {
+    return steem.api.signedCallAsync(
+        'gatekeeper.signup_mark_approved',
+        {
+            id: user.gatekeeper_id,
+            actor: adminUsername,
+        },
+        conveyorAccount,
+        conveyorKey
+    );
+}
+
+async function gatekeeperMarkSignupRejected(user, adminUsername) {
+    return steem.api.signedCallAsync(
+        'gatekeeper.signup_mark_rejected',
+        {
+            id: user.gatekeeper_id,
+            actor: adminUsername,
+        },
+        conveyorAccount,
+        conveyorKey
+    );
+}
+
+async function gatekeeperMarkSignupCreated(user) {
+    return steem.api.signedCallAsync(
+        'gatekeeper.signup_mark_created',
+        { id: user.gatekeeper_id },
         conveyorAccount,
         conveyorKey
     );
@@ -351,10 +433,15 @@ async function getOverseerStats(dateFrom, dateTo) {
 
 module.exports = {
     checkUsername,
-    classifySignup,
     condenserTransfer,
     conveyorCall,
     createAccount,
+    gatekeeperCheck,
+    gatekeeperSignupGet,
+    gatekeeperSignupCreate,
+    gatekeeperMarkSignupApproved,
+    gatekeeperMarkSignupRejected,
+    gatekeeperMarkSignupCreated,
     getOverseerStats,
     locationFromIp,
     recaptchaRequiredForIp,

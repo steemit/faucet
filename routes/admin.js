@@ -11,6 +11,8 @@ const { Sequelize } = db;
 
 const router = express.Router();
 
+const logger = require('../helpers/logger');
+
 const { GOOGLE_CLIENT_ID, GOOGLE_AUTHORIZED_DOMAINS } = process.env;
 if (!GOOGLE_CLIENT_ID) {
     throw new Error('GOOGLE_CLIENT_ID env var not set');
@@ -166,13 +168,28 @@ addHandler('/get_signup', async req => {
     // TODO: geoip lookup should be stored per signup in database
     //       so that it is searchable
     const location = geoip.get(user.ip);
-    return { user, actions, location };
+
+    let gatekeeperData;
+    try {
+        gatekeeperData = await services.gatekeeperSignupGet(user.gatekeeper_id);
+    } catch (error) {
+        logger.warn(
+            {
+                error,
+                userId: user.id,
+            },
+            'cannot get gatekeeper data for signup'
+        );
+    }
+
+    return { user, actions, location, gatekeeperData };
 });
 
 addHandler('/list_signups', adminHandlers.listSignups);
 
 addHandler('/approve_signups', async req => {
     const { ids } = req.body;
+    const adminUsername = req.user.email;
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
@@ -184,6 +201,13 @@ addHandler('/approve_signups', async req => {
             signup.email,
             `${req.protocol}://${req.get('host')}`
         );
+
+        try {
+            await services.gatekeeperMarkSignupApproved(signup, adminUsername);
+        } catch (error) {
+            logger.warn({ error }, 'gatekeeper.signup_mark_approved failed');
+        }
+
         signup.status = 'approved'; // eslint-disable-line
         await signup.save();
     };
@@ -203,6 +227,7 @@ addHandler('/approve_signups', async req => {
 
 addHandler('/reject_signups', async req => {
     const { ids } = req.body;
+    const adminUsername = req.user.email;
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
@@ -210,6 +235,12 @@ addHandler('/reject_signups', async req => {
         where: { id: ids },
     });
     const reject = async signup => {
+        try {
+            await services.gatekeeperMarkSignupRejected(signup, adminUsername);
+        } catch (error) {
+            logger.warn({ error }, 'gatekeeper.signup_mark_approved failed');
+        }
+
         signup.status = 'rejected'; // eslint-disable-line
         await signup.save();
     };

@@ -11,6 +11,7 @@ import LanguageItem from './LanguageItem';
 import './Signup.less';
 import locales from '../../helpers/locales.json';
 import SignupOptions from './Form/Signup/SignupOptions';
+import SiftTracker from './SiftTracker';
 
 class Signup extends Component {
     static propTypes = {
@@ -172,6 +173,7 @@ class Signup extends Component {
 
         return (
             <div className="Signup_main">
+                <SiftTracker email={currentEmail} />
                 <div className="signup-bg-left" />
                 <div className="signup-bg-right" />
                 <div className="language-select">
