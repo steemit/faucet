@@ -12,7 +12,8 @@ const services = require('../helpers/services');
 const database = require('../helpers/database');
 const { generateTrackingId } = require('../helpers/stepLogger');
 const { accountNameIsValid, normalizeEmail } = require('../helpers/validator');
-const { ApiError } = require('../helpers/errortypes.js');
+const { ApiError } = require('../helpers/errortypes');
+const { UserEvents } = require('../helpers/userEvents');
 
 /**
  * Verifies that the json webtoken passed was signed by us and
@@ -719,6 +720,8 @@ async function handleCreateAccount(req) {
         .catch(error => {
             req.log.error(error, 'Unable to send recovery info to condenser');
         });
+
+    UserEvents.trackSignup(req, user);
 
     return { success: true };
 }
