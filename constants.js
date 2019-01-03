@@ -4,7 +4,7 @@ const CHECKPOINTS = {
     paid_signup_clicked_blocktrades: 'paid_signup_clicked_blocktrades',
     paid_signup_clicked_anonsteem: 'paid_signup_clicked_anonsteem',
     paid_signup_clicked_steemconnect: 'paid_signup_clicked_steemconnect',
-    paid_signup_clicked_steemninja: 'paid_signup_clicked_steemconnect',
+    paid_signup_clicked_steemninja: 'paid_signup_clicked_steemninja',
     free_signup_chosen: 'free_signup_chosen',
     username_chosen: 'username_chosen',
     email_submitted: 'email_submitted',
