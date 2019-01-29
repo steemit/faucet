@@ -5,6 +5,7 @@ const CHECKPOINTS = {
     paid_signup_clicked_anonsteem: 'paid_signup_clicked_anonsteem',
     paid_signup_clicked_steemconnect: 'paid_signup_clicked_steemconnect',
     paid_signup_clicked_steemninja: 'paid_signup_clicked_steemninja',
+    paid_signup_clicked_steemwalletapp: 'paid_signup_clicked_steemwalletapp',    
     free_signup_chosen: 'free_signup_chosen',
     username_chosen: 'username_chosen',
     email_submitted: 'email_submitted',
@@ -40,6 +41,10 @@ const checkpoints = [
     {
         human: 'Clicked steemninja',
         symbol: CHECKPOINTS.paid_signup_clicked_steemninja,
+    },
+    {
+        human: 'Clicked steemwalletapp',
+        symbol: CHECKPOINTS.paid_signup_clicked_steemwalletapp,
     },
     {
         human: 'Pressed "Sign up for free"',

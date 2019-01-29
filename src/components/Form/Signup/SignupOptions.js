@@ -99,7 +99,23 @@ const SignupOptions = ({
                 <p>
                     <FormattedMessage id="signup_options_blocktrades" />
                 </p>
-
+                 <a
+                    className="external-link"
+                    href="https://steemwallet.app"
+                    onClick={() => {
+                        logCheckpoint(
+                            CHECKPOINTS.paid_signup_clicked_steemwalletapp
+                        );
+                    }}
+                >
+                    <Button type="primary" ghost htmlType="button">
+                        SteemWallet.app
+                        <Icon type="link" />
+                    </Button>
+                </a>
+                <p>
+                    <FormattedMessage id="signup_options_steemwalletapp" />
+                </p>
                 <a
                     className="external-link"
                     href="https://anon.steem.network/"

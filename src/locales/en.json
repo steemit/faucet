@@ -139,11 +139,13 @@
     "signup_options_blocktrades":
         "A third-party tool that accepts Bitcoin, Ethereum, Litecoin, STEEM and more. Blocktrades charges it's own small fee.",
     "signup_options_anonsteem":
-        "A third-party tool that accepts Bitcoin, Litecoin and STEEM. AnonSteem also charges it's own a small fee.",
+        "A third-party tool that accepts Bitcoin, Litecoin and STEEM. AnonSteem also charges it's own small fee.",
     "signup_options_steemconnect":
         "Try this option if you already have a Steem account and want to pay to set up a new account for yourself or a friend.",
     "signup_options_steemninja":
         "A third-party tool that accepts credit card payments. Steem.Ninja also charges its own small fee.",
+    "signup_options_steemwalletapp":
+        "An open-source mobile wallet utilising in-app payments for 1-tap account creation. SteemWallet charges it's own small fees.",
     "signup_options_disclaimer":
         "Note: Steemit, Inc does not receive any money from paid accounts.",
     "signup_username_right_text":
