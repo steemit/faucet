@@ -150,6 +150,24 @@ const SignupOptions = ({
                 <p>
                     <FormattedMessage id="signup_options_steemconnect" />
                 </p>
+                <a
+                    className="external-link"
+                    href="https://account.steem.ninja"
+                    onClick={() => {
+                        logCheckpoint(
+                            CHECKPOINTS.paid_signup_clicked_steemninja
+                        );
+                    }}
+                >
+                    <Button type="primary" ghost htmlType="button">
+                        Steem.Ninja
+                        <Icon type="link" />
+                    </Button>
+                </a>
+                <p>
+                    <FormattedMessage id="signup_options_steemninja" />
+                </p>
+
                 <hr />
                 <p className="modal-disclaimer">
                     <FormattedMessage id="signup_options_disclaimer" />
