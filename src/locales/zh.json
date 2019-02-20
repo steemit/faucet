@@ -12,7 +12,7 @@
     "country_code_select": "选择地区",
     "edit": "编辑",
     "email": "E-mail",
-    "enjoy_steem": "你可以使用Steem所有功能了",
+    "enjoy_steem": "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemit.co.",
     "enter_confirmation_code": "输入验证码",
     "enter_email": "输入E-mail地址",
     "enter_phone": "输入你的手机号码",
@@ -87,7 +87,7 @@
     "password_copied": "密码已复制到粘贴板",
     "phone_number": "手机号码",
     "please_confirm": "请输入验证码来确认。",
-    "redirect_button_text": "前往Steemit",
+    "redirect_button_text": "去钱包",
     "resend": "重新发送",
     "save_password": "保存密码",
     "save_password_text":

@@ -21,7 +21,7 @@
         "You've now provided all the information required. We manually review applications to protect against bots and spam. Due to a high volume of sign ups, this process may take 1–3 weeks. We'll email you as soon as you're approved.",
     "email_verified_complete_approved":
         "You are approved! Please check your email.",
-    "enjoy_steem": "You can now enjoy Steem and all its features.",
+    "enjoy_steem": "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemit.co.",
     "enter_confirmation_code": "Enter the confirmation code",
     "enter_email": "Enter your email address",
     "enter_phone": "Enter your phone number",
@@ -115,7 +115,7 @@
     "privacy_policy": "Privacy Policy",
     "must_agree_tos": "You must agree to the Terms of Service",
     "must_agree_pp": "You must agree to the Privacy Policy",
-    "redirect_button_text": "Go to Steemit",
+    "redirect_button_text": "Go to Wallet",
     "resend": "Resend",
     "save_password": "Save password",
     "save_password_text":
