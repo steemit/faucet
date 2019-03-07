@@ -21,7 +21,7 @@
     "email_verified_complete_approved":
         "Vous êtes approuvé! Merci de consulter vos emails.",
     "enjoy_steem":
-        "Vous pouvez profiter de Steem et de toutes ses fonctionnalités.",
+        "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://wallet.steemit.co.",
     "enter_confirmation_code": "Saisissez le code de confirmation",
     "enter_email": "Saisissez votre adresse mail",
     "enter_phone": "Saisissez votre numéro de téléphone",
@@ -113,7 +113,7 @@
     "phone_number": "Numéro de téléphone",
     "please_confirm":
         "Veuillez saisir le code ci-dessous afin de le confirmer.",
-    "redirect_button_text": "Aller sur Steemit",
+    "redirect_button_text": "Aller sur Portefeuille",
     "resend": "Renvoyer",
     "save_password": "Sauvegarder votre mot de passe",
     "save_password_text":

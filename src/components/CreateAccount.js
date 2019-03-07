@@ -90,11 +90,6 @@ class CreateAccount extends Component {
         if (step === 'created') {
             if (this.isWhistle()) {
                 window.postMessage('whistle_signup_complete');
-            } else {
-                const redirectUri = this.getRedirect();
-                setTimeout(() => {
-                    window.location.href = redirectUri;
-                }, 5000);
             }
         }
     }
