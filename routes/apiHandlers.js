@@ -564,6 +564,24 @@ async function handleConfirmAccount(token) {
 }
 
 /**
+ * After an account is created, make a call
+ * to the newsletter server to subscribe a user
+ */
+async function addNewsletterSubscriber(username, email) {
+    if (!process.env.NEWSLETTER_URL || !process.env.NEWSLETTER_LIST) return;
+    const url = process.env.NEWSLETTER_URL;
+    const list = process.env.NEWSLETTER_LIST;
+    const data = {
+        name: username,
+        email,
+        list,
+    };
+    needle('post', url, data).catch(err => {
+        logger.warn({ err }, 'addNewsletterSubscriber failed');
+    });
+}
+
+/**
  * Create the account on the blockchain using steem-js
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
@@ -765,20 +783,6 @@ async function handleCheckUsername(req) {
         });
     }
     return { success: true };
-}
-
-async function addNewsletterSubscriber(username, email) {
-    if (!process.env.NEWSLETTER_URL || !process.env.NEWSLETTER_LIST) return;
-    const url = process.env.NEWSLETTER_URL;
-    const list = process.env.NEWSLETTER_LIST;
-    const data = {
-        name: username,
-        email: email,
-        list: list,
-    };
-    needle('post', url, data).catch(err => {
-        logger.warn({ err }, 'addNewsletterSubscriber failed');
-    });
 }
 
 /**
