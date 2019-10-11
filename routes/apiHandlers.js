@@ -4,6 +4,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
+const needle = require('needle');
 
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const badDomains = require('../bad-domains');
@@ -563,6 +564,24 @@ async function handleConfirmAccount(token) {
 }
 
 /**
+ * After an account is created, make a call
+ * to the newsletter server to subscribe a user
+ */
+async function addNewsletterSubscriber(username, email) {
+    if (!process.env.NEWSLETTER_URL || !process.env.NEWSLETTER_LIST) return;
+    const url = process.env.NEWSLETTER_URL;
+    const list = process.env.NEWSLETTER_LIST;
+    const data = {
+        name: username,
+        email,
+        list,
+    };
+    needle('post', url, data).catch(err => {
+        logger.warn({ err }, 'addNewsletterSubscriber failed');
+    });
+}
+
+/**
  * Create the account on the blockchain using steem-js
  * Send the data to the conveyor that will store the user account
  * Remove the user information from our database
@@ -719,6 +738,9 @@ async function handleCreateAccount(req) {
         .catch(error => {
             req.log.error(error, 'Unable to send recovery info to condenser');
         });
+
+    // Add user to newsletter subscription list
+    await addNewsletterSubscriber(username, decoded.email);
 
     return { success: true };
 }
