@@ -142,8 +142,12 @@
         "A third-party tool that accepts Bitcoin, Litecoin and STEEM. AnonSteem also charges its own small fee.",
     "signup_options_steemconnect":
         "Try this option if you already have a Steem account and want to pay to set up a new account for yourself or a friend.",
+    "signup_options_buildteam":
+        "A third-party tool that accepts Bitcoin, Ethereum, Litecoin, STEEM and more. BuildTeam charges its own small fee.",
     "signup_options_steemninja":
         "A third-party tool that accepts credit cards, PayPal, and Ethereum. Steem.Ninja charges its own small fee.",
+    "signup_options_actifit":
+        "A third-party tool, Actifit charges its own small fee.",
     "signup_options_steemwalletapp":
         "An open-source mobile wallet utilising in-app payments for 1-tap account creation. SteemWallet charges its own small fees.",
     "signup_options_disclaimer":

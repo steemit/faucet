@@ -135,24 +135,24 @@ const SignupOptions = ({
                 </p>
                 <a
                     className="external-link"
-                    href="https://steemit.com/news/@timcliff/new-tool-from-busy-org-create-new-steem-blockchain-accounts-with-steemconnect"
+                    href="https://account.buildteam.io/apps/steem-account"
                     onClick={() => {
                         logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_steemconnect
+                            CHECKPOINTS.paid_signup_clicked_buildteam
                         );
                     }}
                 >
                     <Button type="primary" ghost htmlType="button">
-                        SteemConnect
+                        BuildTeam
                         <Icon type="link" />
                     </Button>
                 </a>
                 <p>
-                    <FormattedMessage id="signup_options_steemconnect" />
+                    <FormattedMessage id="signup_options_buildteam" />
                 </p>
                 <a
                     className="external-link"
-                    href="https://account.steem.ninja"
+                    href="https://widget.steem.ninja/widget.html"
                     onClick={() => {
                         logCheckpoint(
                             CHECKPOINTS.paid_signup_clicked_steemninja
@@ -166,6 +166,23 @@ const SignupOptions = ({
                 </a>
                 <p>
                     <FormattedMessage id="signup_options_steemninja" />
+                </p>
+                <a
+                  className="external-link"
+                  href="https://actifit.io/signup"
+                  onClick={() => {
+                    logCheckpoint(
+                      CHECKPOINTS.paid_signup_clicked_actifit
+                    );
+                  }}
+                >
+                  <Button type="primary" ghost htmlType="button">
+                    Actifit
+                    <Icon type="link" />
+                  </Button>
+                </a>
+                <p>
+                  <FormattedMessage id="signup_options_actifit" />
                 </p>
 
                 <hr />

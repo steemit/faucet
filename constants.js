@@ -4,8 +4,10 @@ const CHECKPOINTS = {
     paid_signup_clicked_blocktrades: 'paid_signup_clicked_blocktrades',
     paid_signup_clicked_anonsteem: 'paid_signup_clicked_anonsteem',
     paid_signup_clicked_steemconnect: 'paid_signup_clicked_steemconnect',
+    paid_signup_clicked_buildteam: 'paid_signup_clicked_buildteam',
     paid_signup_clicked_steemninja: 'paid_signup_clicked_steemninja',
-    paid_signup_clicked_steemwalletapp: 'paid_signup_clicked_steemwalletapp',    
+    paid_signup_clicked_steemwalletapp: 'paid_signup_clicked_steemwalletapp',
+    paid_signup_clicked_actifit: 'paid_signup_clicked_actifit',
     free_signup_chosen: 'free_signup_chosen',
     username_chosen: 'username_chosen',
     email_submitted: 'email_submitted',
@@ -41,6 +43,14 @@ const checkpoints = [
     {
         human: 'Clicked steemninja',
         symbol: CHECKPOINTS.paid_signup_clicked_steemninja,
+    },
+    {
+        human: 'Clicked buildteam',
+        symbol: CHECKPOINTS.paid_signup_clicked_buildteam,
+    },
+    {
+        human: 'Clicked actifit',
+        symbol: CHECKPOINTS.paid_signup_clicked_actifit,
     },
     {
         human: 'Clicked steemwalletapp',
