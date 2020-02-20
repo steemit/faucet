@@ -18,7 +18,7 @@
     "email": "Email",
     "email_verified": "Your email address has been verified.",
     "email_verified_complete":
-        "You've now provided all the information required. We manually review applications to protect against bots and spam. Due to a high volume of sign ups, this process may take 1–3 weeks. We'll email you as soon as you're approved.",
+        "You've now provided all the information required. We manually review applications to protect against bots and spam. Due to a high volume of sign ups, this process may take 1–2 days. We'll email you as soon as you're approved.",
     "email_verified_complete_approved":
         "You are approved! Please check your email.",
     "enjoy_steem": "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com",
@@ -126,11 +126,11 @@
     "signup_options_body_1":
         "The Steem blockchain powers many real time content apps like Steemit, and is run by community members all around the world. To help protect them against bots and name squatters, a small fee is charged to create new accounts.",
     "signup_options_body_2":
-        "We're happy to cover this fee for you but we'll need your email and phone number to manually check that you're a real person. This process could take 1-2 weeks.",
+        "We're happy to cover this fee for you but we'll need your email and phone number to manually check that you're a real person. This process could take 1-2 days.",
     "signup_options_body_3":
         "If you'd like to skip the queue or stay anonymous, you can pay the account creation fee using a third party service.",
     "signup_options_button_free": "Sign up for free",
-    "signup_options_button_free_caveat": "1-2 week queue",
+    "signup_options_button_free_caveat": "1-2 day queue",
     "signup_options_button_pay": "Pay to sign up",
     "signup_options_button_pay_caveat": "Get instant access",
     "signup_options_referrer":
