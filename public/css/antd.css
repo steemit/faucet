@@ -12422,7 +12422,7 @@ textarea.ant-mention-wrapper .ant-mention-editor {
   position: relative;
   width: auto;
   margin: 0 auto;
-  top: 100px;
+  top: 50px;
   padding-bottom: 24px;
 }
 .ant-modal-wrap {
