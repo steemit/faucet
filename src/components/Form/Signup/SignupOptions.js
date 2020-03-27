@@ -84,23 +84,6 @@ const SignupOptions = ({
             >
                 <a
                     className="external-link"
-                    href="https://blocktrades.us/create-steem-account"
-                    onClick={() => {
-                        logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_blocktrades
-                        );
-                    }}
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        Blocktrades
-                        <Icon type="link" />
-                    </Button>
-                </a>
-                <p>
-                    <FormattedMessage id="signup_options_blocktrades" />
-                </p>
-                 <a
-                    className="external-link"
                     href="https://steemwallet.app"
                     onClick={() => {
                         logCheckpoint(
@@ -168,21 +151,36 @@ const SignupOptions = ({
                     <FormattedMessage id="signup_options_steemninja" />
                 </p>
                 <a
-                  className="external-link"
-                  href="https://actifit.io/signup"
-                  onClick={() => {
-                    logCheckpoint(
-                      CHECKPOINTS.paid_signup_clicked_actifit
-                    );
-                  }}
+                    className="external-link"
+                    href="https://actifit.io/signup"
+                    onClick={() => {
+                        logCheckpoint(CHECKPOINTS.paid_signup_clicked_actifit);
+                    }}
                 >
-                  <Button type="primary" ghost htmlType="button">
-                    Actifit
-                    <Icon type="link" />
-                  </Button>
+                    <Button type="primary" ghost htmlType="button">
+                        Actifit
+                        <Icon type="link" />
+                    </Button>
                 </a>
                 <p>
-                  <FormattedMessage id="signup_options_actifit" />
+                    <FormattedMessage id="signup_options_actifit" />
+                </p>
+                <a
+                    className="external-link"
+                    href="https://blocktrades.us/create-steem-account"
+                    onClick={() => {
+                        logCheckpoint(
+                            CHECKPOINTS.paid_signup_clicked_blocktrades
+                        );
+                    }}
+                >
+                    <Button type="primary" ghost htmlType="button">
+                        Blocktrades
+                        <Icon type="link" />
+                    </Button>
+                </a>
+                <p>
+                    <FormattedMessage id="signup_options_blocktrades" />
                 </p>
 
                 <hr />
