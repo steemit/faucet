@@ -165,7 +165,7 @@ const SignupOptions = ({
                 <p>
                     <FormattedMessage id="signup_options_actifit" />
                 </p>
-                <a
+                {/* <a
                     className="external-link"
                     href="https://blocktrades.us/create-steem-account"
                     onClick={() => {
@@ -181,7 +181,7 @@ const SignupOptions = ({
                 </a>
                 <p>
                     <FormattedMessage id="signup_options_blocktrades" />
-                </p>
+                </p> */}
 
                 <hr />
                 <p className="modal-disclaimer">
