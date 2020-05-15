@@ -19,7 +19,7 @@ module.exports = {
       },
       created_at: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.DATE,
       }
     });
     await queryInterface.addIndex('analytics', {fields: ['event_id']})
