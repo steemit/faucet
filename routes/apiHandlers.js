@@ -828,8 +828,6 @@ async function handleAnalytics(req) {
     if (superkey) {
         // In super mode we can update `total` and `created_at` fields.
         const SUPERKEY_ENV = process.env.ANALYTICS_UPDATE_SUPERKEY;
-        // eslint-disable-next-line no-console
-        console.log(SUPERKEY_ENV);
         if (!SUPERKEY_ENV) {
             throw new ApiError({
                 type: 'error_analytics_update_superkey_not_set',

@@ -48,6 +48,9 @@
     "STEEMJS_URL": {
       "required": true
     },
+    "ANALYTICS_UPDATE_SUPERKEY": {
+      "required": true
+    },
     "LOG_FORMAT": "short",
     "DEFAULT_REDIRECT_URI": ""
   },
