@@ -36,6 +36,7 @@ const condenserUrl = getEnv('CREATE_USER_URL');
 const conveyorAccount = getEnv('CONVEYOR_USERNAME');
 const conveyorKey = getEnv('CONVEYOR_POSTING_WIF');
 const recaptchaSecret = getEnv('RECAPTCHA_SECRET');
+// const analyticsIpLimitTime = getEnv('ANALYTICS_IP_LIMIT_TIME');
 
 const rpcNode = getEnv('STEEMJS_URL');
 if (rpcNode) {
