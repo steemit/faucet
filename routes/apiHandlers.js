@@ -280,9 +280,7 @@ async function handleRequestEmailCode(
     fingerprint,
     query,
     username,
-    xref,
-    protocol,
-    host
+    xref
 ) {
     const recaptchaRequired = services.recaptchaRequiredForIp(ip);
 
@@ -406,34 +404,17 @@ async function handleRequestEmailCode(
             });
         }
 
-        // Generate a mail token.
-        const mailToken = jwt.sign(
-            {
-                type: 'confirm_email_code',
-                email: user.email,
-            },
-            process.env.JWT_SECRET
-        );
-
         // Send the email.
-        await services.sendEmail(user.email, 'confirm_email', {
-            url: `${protocol}://${host}/confirm-email?token=${mailToken}`,
-        });
+        const captchaCode = Math.floor(Math.random() * 1000000).toString();
+        await services.sendEmail(user.email, 'confirm_email', captchaCode);
 
         // Update the user to reflect that the verification email was sent.
+        user.email_code = captchaCode;
         user.last_attempt_verify_email = new Date();
         await user.save();
     }
 
-    const token = jwt.sign(
-        {
-            type: 'signup',
-            email: user.email,
-        },
-        process.env.JWT_SECRET
-    );
-
-    return { success: true, token, xref: user.tracking_id };
+    return { success: true, email, xref: user.tracking_id };
 }
 
 /**
