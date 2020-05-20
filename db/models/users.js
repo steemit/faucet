@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => (
     tracking_id: DataTypes.STRING,
     review_note: DataTypes.STRING,
     gatekeeper_id: DataTypes.STRING,
+    email_code: DataTypes.STRING,
+    email_code_attempts: DataTypes.INTEGER,
   }, {
     freezeTableName: true,
     underscored: true,

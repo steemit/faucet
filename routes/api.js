@@ -73,4 +73,14 @@ router.post('/create_account', apiMiddleware(apiHandlers.handleCreateAccount));
 
 router.post('/check_username', apiMiddleware(apiHandlers.handleCheckUsername));
 
+router.post(
+    '/request_email_code',
+    apiMiddleware(apiHandlers.handleRequestEmailCode)
+);
+
+router.post(
+    '/confirm_email_code',
+    apiMiddleware(apiHandlers.handleConfirmEmailCode)
+);
+
 module.exports = router;

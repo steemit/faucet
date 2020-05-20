@@ -273,6 +273,169 @@ async function handleRequestEmail(
     return { success: true, token, xref: user.tracking_id };
 }
 
+async function handleRequestEmailCode(
+    ip,
+    recaptcha,
+    email,
+    fingerprint,
+    query,
+    username,
+    xref,
+    protocol,
+    host
+) {
+    const recaptchaRequired = services.recaptchaRequiredForIp(ip);
+
+    if (recaptchaRequired && !recaptcha) {
+        throw new ApiError({
+            type: 'error_api_recaptcha_required',
+            field: 'recaptcha',
+        });
+    }
+
+    if (recaptchaRequired) {
+        try {
+            await services.verifyCaptcha(recaptcha, ip);
+        } catch (cause) {
+            throw new ApiError({
+                type: 'error_api_recaptcha_invalid',
+                field: 'recaptcha',
+                cause,
+            });
+        }
+    }
+
+    if (!email) {
+        throw new ApiError({
+            type: 'error_api_email_required',
+            field: 'email',
+        });
+    }
+    if (!validator.isEmail(email)) {
+        throw new ApiError({
+            type: 'error_api_email_format',
+            field: 'email',
+        });
+    }
+    if (badDomains.includes(email.split('@')[1])) {
+        throw new ApiError({
+            type: 'error_api_domain_blacklisted',
+            field: 'email',
+        });
+    }
+
+    await database.actionLimit(ip);
+
+    await database.logAction({
+        action: 'request_email_code',
+        ip,
+        metadata: { email },
+    });
+
+    const emailIsInUse = await database.emailIsInUse(email);
+    if (emailIsInUse) {
+        throw new ApiError({
+            type: 'error_api_email_used',
+            field: 'email',
+        });
+    }
+
+    const emailRegistered = await services.conveyorCall('is_email_registered', [
+        email,
+    ]);
+    if (emailRegistered) {
+        throw new ApiError({
+            type: 'error_api_email_used',
+            field: 'email',
+        });
+    }
+
+    const usernameIsBooked = await database.usernameIsBooked(username);
+    if (usernameIsBooked) {
+        throw new ApiError({
+            type: 'error_api_username_reserved',
+        });
+    }
+
+    let user = null;
+
+    const existingUser = await database.findUser({
+        where: {
+            email,
+        },
+    });
+
+    if (existingUser) {
+        existingUser.username_booked_at = new Date();
+        await existingUser.save();
+        user = existingUser;
+    } else {
+        const newUser = await database.createUser({
+            email,
+            email_normalized: normalizeEmail(email),
+            email_is_verified: false,
+            last_attempt_verify_email: null,
+            phone_number: '',
+            phone_number_is_verified: false,
+            last_attempt_verify_phone_number: null,
+            ip,
+            account_is_created: false,
+            created_at: new Date(),
+            updated_at: null,
+            fingerprint,
+            metadata: { query },
+            username,
+            username_booked_at: new Date(),
+            tracking_id: xref || generateTrackingId(),
+        });
+        user = newUser;
+    }
+
+    if (!user.email_is_verified) {
+        const minusOneMinute = Date.now() - 60000;
+
+        const usersLastAttempt = user.last_attempt_verify_email
+            ? user.last_attempt_verify_email.getTime()
+            : undefined;
+
+        // If the user's last attempt was less than or exactly a minute ago, throw an error.
+        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+            throw new ApiError({
+                field: 'email',
+                type: 'error_api_wait_one_minute',
+            });
+        }
+
+        // Generate a mail token.
+        const mailToken = jwt.sign(
+            {
+                type: 'confirm_email_code',
+                email: user.email,
+            },
+            process.env.JWT_SECRET
+        );
+
+        // Send the email.
+        await services.sendEmail(user.email, 'confirm_email', {
+            url: `${protocol}://${host}/confirm-email?token=${mailToken}`,
+        });
+
+        // Update the user to reflect that the verification email was sent.
+        user.last_attempt_verify_email = new Date();
+        await user.save();
+    }
+
+    const token = jwt.sign(
+        {
+            type: 'signup',
+            email: user.email,
+        },
+        process.env.JWT_SECRET
+    );
+
+    return { success: true, token, xref: user.tracking_id };
+}
+
 /**
  * Checks the phone validity and use with the conveyor
  * The user can only request one code every minute to prevent flood
@@ -449,6 +612,59 @@ async function handleConfirmEmail(req) {
     };
 }
 
+/**
+ * Verify the Code from Confirmation Email
+ */
+async function handleConfirmEmailCode(req) {
+    const decoded = verifyToken(req.body.token, 'confirm_email');
+
+    if (!req.body.code) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_code_required',
+        });
+    }
+
+    const user = await database.findUser({
+        where: { email: decoded.email },
+    });
+
+    if (!user) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_unknown_user',
+        });
+    }
+
+    if (!user.email_is_verified) {
+        user.email_is_verified = true;
+        await user.save();
+        await finalizeSignup(user, req);
+    }
+
+    if (user.email_code_attempts >= 5) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_email_too_many',
+        });
+    }
+
+    user.email_code_attempts = (user.email_code_attempts || 0) + 1;
+    if (user.email_code !== req.body.code) {
+        await user.save();
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_code_invalid',
+        });
+    }
+
+    user.email_is_verified = true;
+    await user.save();
+
+    const completed = await finalizeSignup(user, req);
+
+    return { success: true, completed };
+}
 /**
  * Verify the SMS code and then ask the gatekeeper for the status of the account
  * do decide the next step

@@ -70,6 +70,13 @@ module.exports = {
       creation_hash: {
         type: Sequelize.STRING,
       },
+      email_code: {
+          type: Sequelize.STRING,
+      },
+      email_code_attempts: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0,
+      },
     })
   ),
   down: queryInterface => queryInterface.dropTable('users'),
