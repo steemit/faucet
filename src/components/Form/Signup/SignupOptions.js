@@ -58,22 +58,6 @@ const SignupOptions = ({
                         <FormattedMessage id="signup_options_button_free_caveat" />
                     </span>
                 </Button>
-                <Button
-                    type="default"
-                    htmlType="button"
-                    className="pay"
-                    onClick={actionWithLog(
-                        showSignupModal,
-                        logCheckpoint,
-                        CHECKPOINTS.paid_signup_options_modal_shown
-                    )}
-                >
-                    <FormattedMessage id="signup_options_button_pay" />
-                    <br />
-                    <span className="btn-caveat">
-                        <FormattedMessage id="signup_options_button_pay_caveat" />
-                    </span>
-                </Button>
             </div>
 
             <Modal
