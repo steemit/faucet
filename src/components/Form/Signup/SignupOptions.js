@@ -8,7 +8,7 @@ import './SignupOptions.less';
 const SignupOptions = ({
     signupModalVisible,
     hideSignupModal,
-    showSignupModal,
+    // showSignupModal,
     handleFreeSignup,
     referrer,
     logCheckpoint,
@@ -18,10 +18,10 @@ const SignupOptions = ({
     const capitalizeFirstLetter = string =>
         string.charAt(0).toUpperCase() + string.slice(1);
 
-    const actionWithLog = (action, loggerFn, actionName) => () => {
-        loggerFn(actionName);
-        action();
-    };
+    // const actionWithLog = (action, loggerFn, actionName) => () => {
+    //     loggerFn(actionName);
+    //     action();
+    // };
 
     return (
         <div>
@@ -179,7 +179,7 @@ const SignupOptions = ({
 SignupOptions.propTypes = {
     signupModalVisible: PropTypes.bool.isRequired,
     hideSignupModal: PropTypes.func.isRequired,
-    showSignupModal: PropTypes.func.isRequired,
+    // showSignupModal: PropTypes.func.isRequired,
     handleFreeSignup: PropTypes.func.isRequired,
     logCheckpoint: PropTypes.func.isRequired,
     referrer: PropTypes.string,
