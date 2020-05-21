@@ -23,6 +23,8 @@ module.exports = {
         username_booked_at: new Date(),
         metadata: JSON.stringify({ query: { uid: '12345' } }),
         creation_hash: '5a234b0a964be4a73c0bf78df675038e1e297c4726cd7340bfeeaf036ceeb885',
+        email_code: '503681',
+        email_code_attempts: 1,
       },
       // Approved user with last attempt to verify email before fix in #246
       {

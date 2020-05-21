@@ -75,7 +75,17 @@ router.post('/check_username', apiMiddleware(apiHandlers.handleCheckUsername));
 
 router.post(
     '/request_email_code',
-    apiMiddleware(apiHandlers.handleRequestEmailCode)
+    apiMiddleware(req =>
+        apiHandlers.handleRequestEmailCode(
+            req.ip,
+            req.body.recaptcha,
+            req.body.email,
+            JSON.parse(req.body.fingerprint),
+            JSON.parse(req.body.query),
+            req.body.username,
+            req.body.xref
+        )
+    )
 );
 
 router.post(
