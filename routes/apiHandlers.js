@@ -998,4 +998,6 @@ module.exports = {
     handleCreateAccount,
     handleCheckUsername,
     handleGuessCountry,
+    handleConfirmEmailCode,
+    handleRequestEmailCode,
 };
