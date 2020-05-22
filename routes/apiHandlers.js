@@ -597,7 +597,7 @@ async function handleConfirmEmail(req) {
  * Verify the Code from Confirmation Email
  */
 async function handleConfirmEmailCode(req) {
-    const decoded = verifyToken(req.body.token, 'confirm_email');
+    const currentEmail = req.body.email;
 
     if (!req.body.code) {
         throw new ApiError({
@@ -607,7 +607,7 @@ async function handleConfirmEmailCode(req) {
     }
 
     const user = await database.findUser({
-        where: { email: decoded.email },
+        where: { email: currentEmail },
     });
 
     if (!user) {
