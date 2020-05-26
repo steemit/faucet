@@ -12,7 +12,8 @@
     "country_code_select": "选择地区",
     "edit": "编辑",
     "email": "E-mail",
-    "enjoy_steem": "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com",
+    "enjoy_steem":
+        "即将完成！请前往 http://steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。",
     "enter_confirmation_code": "输入验证码",
     "enter_email": "输入E-mail地址",
     "enter_phone": "输入你的手机号码",
@@ -106,5 +107,24 @@
     "username_know_steemit":
         "选择一个用户名. 它是你在Steemit和所有基于Steem应用的标志。",
     "username_steemit_login": "已经拥有账号? {link}",
-    "welcome": "欢迎"
+    "welcome": "欢迎",
+
+    "###################################################": "2020-05-22",
+    "signup_pay_tip1": "您会一直保持匿名。",
+    "signup_pay_tip2": "使用第三方服务支付账户创建费用。",
+    "signup_pay_tip3": "第三方平台会收取一小笔手续费。",
+    "signup_free_tip1": "创建新账户的费用将由我们承担。",
+    "signup_free_tip2": "您需要提交邮箱和手机号以验证您非机器人。",
+    "signup_options_button_pay": "付费注册",
+    "signup_options_button_free": "免费注册",
+    "signup_options_referrer":
+        "{referrer}与一般社交应用不同，Steemit 基于 Steem 区块链运行。",
+    "signup_options_body_1":
+        "Steem 区块链支持包括 Stemmit 在内的众多实时内容应用，并由遍布全球的社区成员负责运营。为避免机器人攻击或恶意占用用户名行为，创建账户需收取一小笔费用。",
+    "signup_options": "注册选项",
+    "confirmPassword": "确认密码",
+    "create_account": "创建账户",
+    "create_account_tip1": "点击创建账户后请耐心等待约10秒钟",
+    "create_account_tip2": "中途不要离开网页，并保证网络状况良好",
+    "create_account_tip3": "此外，成功创建账户后我们会给您发送一封欢迎邮件"
 }

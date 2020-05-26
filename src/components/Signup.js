@@ -7,13 +7,23 @@ import FormSignupEmail from './Form/Signup/Email';
 import FormSignupEmailChinese from './Form/Signup/EmailChinese';
 import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
+import FormSignupUserInfo from './Form/Signup/UserInfo';
 import LanguageItem from './LanguageItem';
 import './Signup.less';
 import locales from '../../helpers/locales.json';
 import SignupOptions from './Form/Signup/SignupOptions';
+import SavePassword from './Form/Signup/SavePassword';
+import CreateAccount from './Form/Signup/CreateAccount';
 import SiftTracker from './SiftTracker';
+import { getPendingClaimedAccounts } from '../../helpers/validator';
 
 class Signup extends Component {
+    constructor() {
+        super();
+        this.state = {
+            pending_claimed_accounts: 0,
+        };
+    }
     static propTypes = {
         app: PropTypes.shape({
             locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
@@ -70,7 +80,7 @@ class Signup extends Component {
         },
     };
 
-    componentWillMount() {
+    async componentWillMount() {
         const {
             user: { trackingId, step },
             queryParams: {
@@ -84,6 +94,14 @@ class Signup extends Component {
             setTrackingId,
             logCheckpoint,
         } = this.props;
+
+        getPendingClaimedAccounts(res => {
+            // console.log(111111,res&&res.pending_claimed_accounts)
+            this.setState({
+                pending_claimed_accounts:
+                    (res && res.pending_claimed_accounts) || 0,
+            });
+        });
 
         guessCountryCode();
 
@@ -107,6 +125,9 @@ class Signup extends Component {
     handleFreeSignup = () => {
         this.props.incrementStep();
         this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
+    };
+    handleSavePassword = () => {
+        this.props.incrementStep();
     };
 
     handleSubmitUsername = values => {
@@ -207,54 +228,30 @@ class Signup extends Component {
                                 id="logo"
                                 aria-label="logo"
                             />
-                            {step !== 'finish' &&
-                                step !== 'checkYourEmail' && (
-                                    <div className="Signup__steps">
-                                        <div
-                                            className={`Signup__steps-step ${
-                                                stepNumber === 0
-                                                    ? 'waiting'
-                                                    : ''
-                                            } ${
-                                                stepNumber > 0
-                                                    ? 'processed'
-                                                    : ''
-                                            }`}
-                                        />
-                                        <div
-                                            className={`Signup__steps-step ${
-                                                stepNumber === 1
-                                                    ? 'waiting'
-                                                    : ''
-                                            } ${
-                                                stepNumber > 1
-                                                    ? 'processed'
-                                                    : ''
-                                            }`}
-                                        />
-                                        <div
-                                            className={`Signup__steps-step ${
-                                                stepNumber === 2
-                                                    ? 'waiting'
-                                                    : ''
-                                            } ${
-                                                stepNumber > 2
-                                                    ? 'processed'
-                                                    : ''
-                                            }`}
-                                        />
-                                        <div
-                                            className={`Signup__steps-step ${
-                                                stepNumber === 3
-                                                    ? 'waiting'
-                                                    : ''
-                                            } ${
-                                                stepNumber > 3
-                                                    ? 'processed'
-                                                    : ''
-                                            }`}
-                                        />
-                                        <div
+                            {step !== 'finish' && (
+                                // step !== 'checkYourEmail' &&
+                                <div className="Signup__steps">
+                                    <div
+                                        className={`Signup__steps-step ${
+                                            stepNumber === 0 ? 'waiting' : ''
+                                        } ${stepNumber > 0 ? 'processed' : ''}`}
+                                    />
+                                    <div
+                                        className={`Signup__steps-step ${
+                                            stepNumber === 1 ? 'waiting' : ''
+                                        } ${stepNumber > 1 ? 'processed' : ''}`}
+                                    />
+                                    <div
+                                        className={`Signup__steps-step ${
+                                            stepNumber === 2 ? 'waiting' : ''
+                                        } ${stepNumber > 2 ? 'processed' : ''}`}
+                                    />
+                                    <div
+                                        className={`Signup__steps-step ${
+                                            stepNumber === 3 ? 'waiting' : ''
+                                        } ${stepNumber > 3 ? 'processed' : ''}`}
+                                    />
+                                    {/* <div
                                             className={`Signup__steps-step ${
                                                 stepNumber === 4
                                                     ? 'waiting'
@@ -264,9 +261,9 @@ class Signup extends Component {
                                                     ? 'processed'
                                                     : ''
                                             }`}
-                                        />
-                                    </div>
-                                )}
+                                        /> */}
+                                </div>
+                            )}
                         </div>
 
                         {step === 'signupOptions' && (
@@ -286,6 +283,82 @@ class Signup extends Component {
                                     handleFreeSignup={this.handleFreeSignup}
                                     logCheckpoint={logCheckpoint}
                                     referrer={referrer || undefined}
+                                    pending_claimed_accounts={
+                                        this.state.pending_claimed_accounts
+                                    }
+                                />
+                            </div>
+                        )}
+                        {step === 'signupInfo' && (
+                            <div>
+                                {referrer === 'steemit' && (
+                                    <object
+                                        data="img/steemit-logo.svg"
+                                        type="image/svg+xml"
+                                        id="app-logo"
+                                        aria-label="logo"
+                                    />
+                                )}
+                                <FormSignupUserInfo
+                                    username={currentUsername}
+                                    email={currentEmail}
+                                    origin={currentReferrer}
+                                />
+                                {/* <h1>
+                                    <FormattedMessage id="save_password" />
+                                </h1>
+                                <p className="text">
+                                    <FormattedMessage id="save_password_text" />
+                                </p>
+                                <SavePassword 
+                                    password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
+                                    handleSavePassword={this.handleSavePassword}/> */}
+                            </div>
+                        )}
+                        {step === 'savePassword' && (
+                            <div>
+                                {referrer === 'steemit' && (
+                                    <object
+                                        data="img/steemit-logo.svg"
+                                        type="image/svg+xml"
+                                        id="app-logo"
+                                        aria-label="logo"
+                                    />
+                                )}
+                                <h1>
+                                    <FormattedMessage id="save_password" />
+                                </h1>
+                                <p className="text">
+                                    <FormattedMessage id="save_password_text" />
+                                </p>
+                                <SavePassword
+                                    password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
+                                    handleSavePassword={this.handleSavePassword}
+                                />
+                            </div>
+                        )}
+                        {step === 'createAccount' && (
+                            <div>
+                                {referrer === 'steemit' && (
+                                    <object
+                                        data="img/steemit-logo.svg"
+                                        type="image/svg+xml"
+                                        id="app-logo"
+                                        aria-label="logo"
+                                    />
+                                )}
+                                <h1>
+                                    <FormattedMessage id="confirmPassword" />
+                                </h1>
+                                <p className="text">
+                                    <FormattedMessage id="confirm_password" />
+                                </p>
+                                <p className="text">
+                                    <FormattedMessage id="master_password" />
+                                </p>
+                                <CreateAccount
+                                    goBack={this.goBack}
+                                    password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
                                 />
                             </div>
                         )}
@@ -436,12 +509,17 @@ class Signup extends Component {
                                 <h3>
                                     <FormattedMessage id="signup_username_right_title" />
                                 </h3>
-                                <p>
+                                <p
+                                    style={{
+                                        fontSize: '18px',
+                                        color: '#ABABAB',
+                                    }}
+                                >
                                     <FormattedMessage id="signup_username_right_text" />
                                 </p>
                             </div>
                         )}
-                        {step === 'username' && (
+                        {step === 'signupInfo' && (
                             <img
                                 src="/img/signup-options.svg"
                                 id="signup-options"
@@ -487,6 +565,15 @@ class Signup extends Component {
                                 type="image/svg+xml"
                                 id="signup-sms"
                                 aria-label="signup-sms"
+                            />
+                        )}
+                        {(step === 'savePassword' ||
+                            step === 'createAccount') && (
+                            <object
+                                data="img/signup-password.svg"
+                                type="image/svg+xml"
+                                id="signup-password"
+                                aria-label="signup-password"
                             />
                         )}
                         {step === 'finish' && (

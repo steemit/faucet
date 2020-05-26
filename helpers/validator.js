@@ -157,10 +157,21 @@ const normalizeEmail = email => {
     return `${username}@${domain}`;
 };
 
+const getPendingClaimedAccounts = callback => {
+    steem.api.getAccounts(['steem'], (err, response) => {
+        if (response && response[0]) {
+            callback(response[0]);
+        } else {
+            callback();
+        }
+    });
+};
+
 module.exports = {
     accountNotExist,
     accountNameIsValid,
     validateEmail,
     validateEmailDomain,
     normalizeEmail,
+    getPendingClaimedAccounts,
 };

@@ -7,12 +7,12 @@ import logStep from '../helpers/stepLogger';
 
 function* guessCountryCodeSaga() {
     try {
-        const countryCode = yield call(
-            apiCall,
-            '/api/guess_country',
-            {},
-            'GET'
-        );
+        const res = yield call(apiCall, '/api/guess_country', {}, 'GET');
+        const countryCode =
+            (res.location &&
+                res.location.country &&
+                res.location.country.iso_code) ||
+            null;
         yield put(userActions.setCountryCode(countryCode));
     } catch (e) {
         // TODO: Handle Error state in the redux store.

@@ -22,13 +22,16 @@ const initialState = Map({
     // TODO: add steps for confirm-email and create-account routes.
     steps: List([
         'signupOptions',
-        'username',
-        'email',
-        'checkYourEmail',
+        'signupInfo',
+        'savePassword',
+        'createAccount',
+        // 'username',
+        // 'email',
+        // 'checkYourEmail',
         // user gets email with link to /confirm-email
-        'phoneNumber',
-        'confirmPhoneNumber',
-        'finish',
+        // 'phoneNumber',
+        // 'confirmPhoneNumber',
+        // 'finish',
         // user gets email with link to /create-account
     ]),
     signupModalVisible: false,

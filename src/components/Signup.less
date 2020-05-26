@@ -50,6 +50,15 @@
       padding: 50px 20px;
       margin-top: 50px;
     }
+    .signup_options_wrap{
+      p{
+        opacity: 0.6;
+        font-family: HelveticaNeue;
+        font-size: 18px;
+        color: #2F2F2F;
+        line-height: 24px;
+      }
+    }
   }
 
   .Signup__icons {
@@ -112,6 +121,128 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    .signup-options__buttons{
+      display: flex;
+      margin-top: 5.5rem;
+      >div{
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction:column;
+        align-items: center;
+        padding: 3.75rem 1.25rem 1.5rem;
+        border: 1px solid rgba(171,171,171,0.30);
+        border-radius: .625rem;
+        &:first-child{
+          margin-right: 2.5rem;
+        }
+        p{
+          margin-bottom: .4rem;
+          padding-bottom: 0;
+          font-size: 0.875rem;
+          color: #ABABAB;
+          line-height: 1.25;
+        }
+        img{
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translate(-50%, -60%);
+        }
+        >div{
+          min-height: 7.5rem;
+        }
+        button{
+          padding: 0 .5rem;
+        }
+      }
+      @media (max-width: 500px) {
+        flex-direction: column;
+        margin-top: 2.5rem;
+        >div{
+          padding: 3rem 1.25rem 1.5rem;
+          &:first-child{
+            margin-right: 0;
+            margin-bottom: 4rem;
+          }
+          >div{
+            min-height: auto;
+          }
+        }
+      }
+    }
+
+    .save-password-wrap{
+      .password-wrap{
+        padding: 1.25rem;
+        margin-bottom: 2.5rem;
+        background: rgba(47,47,47,0.04);
+        border-radius: 10px;
+        word-break: break-all;
+      }
+      .ant-btn{
+        width: 100%;
+        height: 3.125rem;
+        margin-top: 1.25rem;
+        border: 1px solid #1720C9;
+        border-radius: 10px;
+        font-family: HelveticaNeue-Medium;
+        font-size: 1rem;
+        color: #1720C9;
+        &.ant-btn-primary{
+          color: #FFFFFF;
+          font-family: HelveticaNeue-Bold;
+        }
+      }
+
+    }
+    .signup-form{
+      .ant-form-item-control {
+        line-height: 2rem;
+      }
+      .signup-checkbox{
+        display: flex;
+        align-items: center;
+        font-size: 1rem;
+        .ant-checkbox-input{
+          width: 1.125rem;
+          height: 1.125rem;
+        }
+        .ant-checkbox-inner{
+          width: 1.125rem;
+          height: 1.125rem;
+          border: 0;
+          background: rgba(47,47,47,0.04);
+          &:after{
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+          }
+        }
+        .ant-checkbox-checked{
+          .ant-checkbox-inner{
+            background-color: #1720C9;
+          }
+        }
+      }
+    }
+
+    .user-info-wrap{
+      h2{
+        padding-bottom: .5rem;
+        font-family: HelveticaNeue-Medium;
+        font-size: 1.5rem;
+        color: #2F2F2F;
+      }
+      .text{
+        opacity: 0.6;
+        font-family: HelveticaNeue;
+        font-size: 1rem;
+        color: #2F2F2F;
+        line-height: 1.5;
+      }
+    }
 
     .form-actions {
       position: absolute;
@@ -165,17 +296,19 @@
 
     .has-error {
       input {
-        border: 1px solid #f2564b;
+        border: 1px solid rgba(243,89,85,0.60);
       }
       .ant-form-explain {
         text-align: left;
         line-height: 1.3;
+        font-size: .875rem;
+        color: #F35955;
       }
     }
 
     h1 {
       font-size: 28px;
-      color: #333;
+      color: #2F2F2F;
     }
 
     h2 {
@@ -186,6 +319,18 @@
 
       a {
         font-size: 14px;
+      }
+    }
+    p{
+      &.text{
+        margin-bottom: .5rem;
+        padding-bottom: 0;
+        opacity: 0.6;
+        font-family: HelveticaNeue;
+        font-size: 1.125rem;
+        color: #2F2F2F;
+        line-height: 1.5rem;
+        font-weight: normal;
       }
     }
 
@@ -284,4 +429,23 @@
 .signin_redirect {
   text-align: left;
   font-size: 14px;
+}
+
+.welcome-wrap{
+  p{
+    opacity: 0.6;
+    font-family: HelveticaNeue;
+    font-size: 1.125rem;
+    color: #2F2F2F;
+    letter-spacing: 0;
+    line-height: 1.5rem;
+  }
+  .welcome-btn{
+    display: block;
+    background: #1720C9;
+    border-radius: 10px;
+    font-family: HelveticaNeue-Bold;
+    font-size: 1rem;
+    color: #FFFFFF;
+  }
 }

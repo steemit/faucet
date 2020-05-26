@@ -6,8 +6,7 @@
     "complete_signup": "Complete signup",
     "confirm_account": "Confirm your master password",
     "confirm_existence": "We need to know how to contact you",
-    "confirm_password":
-        "Enter your master password from the last step and review and agree to our terms of service and privacy policy.",
+    "confirm_password": "Please enter the password to confirm",
     "master_password": "Master password:",
     "create_account": "Create account",
     "confirmation_code": "Confirmation code",
@@ -21,7 +20,8 @@
         "You've now provided all the information required. We manually review applications to protect against bots and spam. Due to a high volume of sign ups, this process may take 1–2 days. We'll email you as soon as you're approved.",
     "email_verified_complete_approved":
         "You are approved! Please check your email.",
-    "enjoy_steem": "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com",
+    "enjoy_steem":
+        "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com",
     "enter_confirmation_code": "Enter the confirmation code",
     "enter_email": "Enter your email address",
     "enter_phone": "Enter your phone number",
@@ -103,7 +103,7 @@
         "You're few steps aways from getting to the top of the list. Check your email and click the email validation link.",
     "generate_new_password": "Generate a new password",
     "get_started": "Get started",
-    "go_back": "Go back",
+    "go_back": "Return",
     "oops": "Oops!",
     "password": "Password",
     "password_copied": "Password copied to clipboard",
@@ -164,7 +164,23 @@
     "username_know":
         "Start with a username. Your username is how you'll be known on all Steem-based apps.",
     "username_know_steemit":
-        "Start with a username. Your username is how you'll be known on Steemit and other Steem-based apps.",
+        "Select a username. This is your identity on Steemit and all other Steem-based apps.",
     "username_steemit_login": "Do you already have an account? {link}",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+
+    "###################################################": "2020-05-22",
+    "signup_pay_tip1": "You will stay anonymous.",
+    "signup_pay_tip2":
+        "Pay the account creation fee using a third party service.",
+    "signup_pay_tip3": "The third party charges its own small fee.",
+    "signup_free_tip1": "We will cover the fee for creating new accounts.",
+    "signup_free_tip2":
+        "Your email and phone number are needed to check that you're a real person.",
+    "confirmPassword": "Confirm password",
+    "create_account_tip1":
+        "Please wait for around 10 seconds after clicking on \"Create account\"",
+    "create_account_tip2":
+        "Keep the internet connected and do not quit while waiting",
+    "create_account_tip3":
+        "You’ll receive a confirmation email after the account is successfully created."
 }
