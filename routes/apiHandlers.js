@@ -873,7 +873,7 @@ async function handleAnalytics(req) {
     return { success: true };
 }
 
-async function handleRequestEmailCode(ip, recaptcha, email, ref_code) {
+async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
     const recaptchaRequired = services.recaptchaRequiredForIp(ip);
 
     if (recaptchaRequired && !recaptcha) {
@@ -958,7 +958,7 @@ async function handleRequestEmailCode(ip, recaptcha, email, ref_code) {
             last_attempt_verify_email: null,
             email_code: null,
             email_code_attempts: null,
-            ref_code: ref_code,
+            ref_code: refcode,
         });
         record = newEmailRecord;
     }
@@ -1111,7 +1111,7 @@ async function handleRequestSmsNew(req) {
     try {
         await services.sendSMS(
             phoneNumber,
-            `${phoneCode} is your Steem confirmation code`
+            `${record.phone_code} is your Steem confirmation code`
         );
     } catch (cause) {
         if (cause.code === 21614 || cause.code === 21211) {
@@ -1238,8 +1238,8 @@ async function finalizeSignupNew(
     ref_code,
     log
 ) {
-    let phoneRecord = database.findPhoneRecord(ref_code);
-    let emailRecord = database.findEmailRecord(ref_code);
+    const phoneRecord = database.findPhoneRecord(ref_code);
+    const emailRecord = database.findEmailRecord(ref_code);
     // only act if both email and phone is verified
     if (
         !phoneRecord.phone_number_is_verified ||
@@ -1309,4 +1309,5 @@ module.exports = {
     handleRequestSmsNew,
     handleConfirmSmsNew,
     finalizeSignupNew,
+    handleConfirmEmailCode,
 };
