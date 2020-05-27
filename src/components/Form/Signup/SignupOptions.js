@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 import { Button, Modal, Icon } from 'antd';
 import { CHECKPOINTS } from '../../../../constants';
+import updateAnalytics from '../../../../helpers/analytics';
 import './SignupOptions.less';
 
 const SignupOptions = ({
     signupModalVisible,
     hideSignupModal,
-    showSignupModal,
+    // showSignupModal,
     handleFreeSignup,
     referrer,
     logCheckpoint,
@@ -18,10 +19,10 @@ const SignupOptions = ({
     const capitalizeFirstLetter = string =>
         string.charAt(0).toUpperCase() + string.slice(1);
 
-    const actionWithLog = (action, loggerFn, actionName) => () => {
-        loggerFn(actionName);
-        action();
-    };
+    // const actionWithLog = (action, loggerFn, actionName) => () => {
+    //     loggerFn(actionName);
+    //     action();
+    // };
 
     return (
         <div>
@@ -58,22 +59,6 @@ const SignupOptions = ({
                         <FormattedMessage id="signup_options_button_free_caveat" />
                     </span>
                 </Button>
-                <Button
-                    type="default"
-                    htmlType="button"
-                    className="pay"
-                    onClick={actionWithLog(
-                        showSignupModal,
-                        logCheckpoint,
-                        CHECKPOINTS.paid_signup_options_modal_shown
-                    )}
-                >
-                    <FormattedMessage id="signup_options_button_pay" />
-                    <br />
-                    <span className="btn-caveat">
-                        <FormattedMessage id="signup_options_button_pay_caveat" />
-                    </span>
-                </Button>
             </div>
 
             <Modal
@@ -86,10 +71,13 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://steemwallet.app"
                     onClick={() => {
+                        updateAnalytics(1);
                         logCheckpoint(
                             CHECKPOINTS.paid_signup_clicked_steemwalletapp
                         );
                     }}
+                    rel="noopener noreferrer"
+                    target="_blank"
                 >
                     <Button type="primary" ghost htmlType="button">
                         SteemWallet.app
@@ -103,10 +91,13 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://anon.steem.network/"
                     onClick={() => {
+                        updateAnalytics(2);
                         logCheckpoint(
                             CHECKPOINTS.paid_signup_clicked_anonsteem
                         );
                     }}
+                    rel="noopener noreferrer"
+                    target="_blank"
                 >
                     <Button type="primary" ghost htmlType="button">
                         AnonSteem
@@ -120,10 +111,13 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://account.buildteam.io/apps/steem-account"
                     onClick={() => {
+                        updateAnalytics(3);
                         logCheckpoint(
                             CHECKPOINTS.paid_signup_clicked_buildteam
                         );
                     }}
+                    rel="noopener noreferrer"
+                    target="_blank"
                 >
                     <Button type="primary" ghost htmlType="button">
                         BuildTeam
@@ -137,10 +131,13 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://widget.steem.ninja/widget.html"
                     onClick={() => {
+                        updateAnalytics(4);
                         logCheckpoint(
                             CHECKPOINTS.paid_signup_clicked_steemninja
                         );
                     }}
+                    rel="noopener noreferrer"
+                    target="_blank"
                 >
                     <Button type="primary" ghost htmlType="button">
                         Steem.Ninja
@@ -154,8 +151,11 @@ const SignupOptions = ({
                     className="external-link"
                     href="https://actifit.io/signup"
                     onClick={() => {
+                        updateAnalytics(5);
                         logCheckpoint(CHECKPOINTS.paid_signup_clicked_actifit);
                     }}
+                    rel="noopener noreferrer"
+                    target="_blank"
                 >
                     <Button type="primary" ghost htmlType="button">
                         Actifit
@@ -195,7 +195,7 @@ const SignupOptions = ({
 SignupOptions.propTypes = {
     signupModalVisible: PropTypes.bool.isRequired,
     hideSignupModal: PropTypes.func.isRequired,
-    showSignupModal: PropTypes.func.isRequired,
+    // showSignupModal: PropTypes.func.isRequired,
     handleFreeSignup: PropTypes.func.isRequired,
     logCheckpoint: PropTypes.func.isRequired,
     referrer: PropTypes.string,

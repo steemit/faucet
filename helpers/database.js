@@ -10,7 +10,12 @@ const { normalizeEmail } = require('./validator');
 /**
  * Throws if user or ip exceeds number of allowed actions within time period.
  */
-async function actionLimit(ip, user_id = null) {
+async function actionLimit(
+    ip,
+    user_id = null,
+    ipLimit = 32,
+    userActionLimit = 4
+) {
     const created_at = {
         [Op.gte]: moment()
             .subtract(20, 'hours')
@@ -25,7 +30,7 @@ async function actionLimit(ip, user_id = null) {
         promises.push(db.actions.count({ where: { user_id, created_at } }));
     }
     const [ipActions, userActions] = await Promise.all(promises);
-    if (userActions > 4 || ipActions > 32) {
+    if (userActions > userActionLimit || ipActions > ipLimit) {
         throw new ApiError({ type: 'error_api_actionlimit' });
     }
 }
@@ -79,6 +84,25 @@ const updateUsers = async (data, where) => db.users.update(data, where);
 
 const query = async (q, options) => db.sequelize.query(q, options);
 
+const findAnalyticsLog = async where => db.analytics.findAll(where);
+const createAnalyticsLog = async (where, data) =>
+    db.analytics.findOrCreate({ where, defaults: data });
+
+const updateAnalytics = async (where, data, increase = false) => {
+    const result = await createAnalyticsLog(where, data);
+    if (result[1] === false) {
+        // find exist data
+        if (increase === true) {
+            result[0].total += 1;
+            await result[0].save();
+        } else {
+            result[0].total = data.total;
+            await result[0].save();
+        }
+    }
+    return true;
+};
+
 module.exports = {
     Sequelize,
     actionLimit,
@@ -92,4 +116,6 @@ module.exports = {
     phoneIsInUse,
     updateUsers,
     query,
+    findAnalyticsLog,
+    updateAnalytics,
 };
