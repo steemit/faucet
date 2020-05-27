@@ -25,8 +25,9 @@ module.exports = {
             last_attempt_verify_phone_number: {
                 type: Sequelize.DATE,
             },
-            tracking_id: {
+            ref_code: {
                 type: Sequelize.STRING,
+                unique: true,
             },
         })
     ),

@@ -29,8 +29,9 @@ module.exports = {
             last_attempt_verify_email: {
                 type: Sequelize.DATE,
             },
-            tracking_id: {
+            ref_code: {
                 type: Sequelize.STRING,
+                unique: true,
             },
         })
     ),

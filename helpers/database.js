@@ -103,6 +103,40 @@ const updateAnalytics = async (where, data, increase = false) => {
     return true;
 };
 
+const createEmailRecord = async data => db.emailcode.create(data);
+
+const findEmailRecord = async where => db.emailcode.findOne(where);
+
+const createPhoneRecord = async data => db.phonecode.create(data);
+
+const findPhoneRecord = async where => db.phonecode.findOne(where);
+
+const updatePhoneRecord = async (data, where) =>
+    db.phonecode.update(data, where);
+
+const deletePhoneRecord = async where => db.phonecode.destroy(where);
+
+/**
+ * remove user id references
+ * to remove username reserve mechanism
+ */
+async function actionLimitNew(ip, ipLimit = 32) {
+    const created_at = {
+        [Op.gte]: moment()
+            .subtract(20, 'hours')
+            .toDate(),
+    };
+    const promises = [
+        db.actions.count({
+            where: { ip, created_at, action: { [Op.ne]: 'check_username' } },
+        }),
+    ];
+    const ipActions = await Promise.all(promises);
+    if (ipActions > ipLimit) {
+        throw new ApiError({ type: 'error_api_actionlimit' });
+    }
+}
+
 module.exports = {
     Sequelize,
     actionLimit,
@@ -118,4 +152,11 @@ module.exports = {
     query,
     findAnalyticsLog,
     updateAnalytics,
+    createEmailRecord,
+    findEmailRecord,
+    actionLimitNew,
+    createPhoneRecord,
+    findPhoneRecord,
+    updatePhoneRecord,
+    deletePhoneRecord,
 };

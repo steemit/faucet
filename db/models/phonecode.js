@@ -5,7 +5,9 @@ module.exports = (sequelize, DataTypes) => (
         phone_code_attempts: DataTypes.INTEGER,
         phone_code: DataTypes.STRING,
         last_attempt_verify_phone_number: DataTypes.DATE,
-        tracking_id: DataTypes.STRING,
+        ref_code: {
+            type: DataTypes.STRING,
+        }
     }, {
         freezeTableName: true,
         underscored: true,
