@@ -1197,9 +1197,12 @@ async function handleConfirmEmailCode(req) {
 
     //code expires after 30 mins from generated time
     if (record.email_code_generated <= new Date() - minusHalfHour) {
+        record.email_code = null;
+        record.email_code_attempts = 0;
+        record.save();
         throw new ApiError({
             field: 'code',
-            type: 'error_api_code_expired',
+            type: 'error_api_email_code_invalid',
         });
     }
 
@@ -1211,7 +1214,7 @@ async function handleConfirmEmailCode(req) {
         await record.save();
         throw new ApiError({
             field: 'code',
-            type: 'error_api_code_invalid',
+            type: 'error_api_email_code_invalid',
         });
     }
 
