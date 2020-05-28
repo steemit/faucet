@@ -1,3 +1,5 @@
+import { isEmail } from '../helpers/validator';
+
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
@@ -901,12 +903,14 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
             field: 'email',
         });
     }
-    if (!validator.isEmail(email)) {
+    //format check
+    if (!isEmail(email)) {
         throw new ApiError({
             type: 'error_api_email_format',
             field: 'email',
         });
     }
+    //bad domains check
     if (badDomains.includes(email.split('@')[1])) {
         throw new ApiError({
             type: 'error_api_domain_blacklisted',
@@ -922,6 +926,7 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
         metadata: { email },
     });
 
+    //duplicate check
     const emailIsInUse = await database.emailIsInUse(email);
     if (emailIsInUse) {
         throw new ApiError({
@@ -955,9 +960,11 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
             email,
             email_normalized: normalizeEmail(email),
             email_is_verified: false,
-            last_attempt_verify_email: null,
+            last_attempt_verify_email: new Date(1588291200000),
             email_code: null,
-            email_code_attempts: null,
+            email_code_attempts: 0,
+            email_code_sent: 0,
+            email_code_generated: null,
             ref_code: refcode,
         });
         record = newEmailRecord;
@@ -965,10 +972,29 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
 
     if (!record.email_is_verified) {
         const minusOneMinute = Date.now() - 60000;
+        const minusOneDay = Date.now() - 86400000;
 
         const usersLastAttempt = record.last_attempt_verify_email
             ? record.last_attempt_verify_email.getTime()
             : undefined;
+
+        const dailySentTimes = record.email_code_sent
+            ? record.email_code_sent.get
+            : undefined;
+
+        const lastRequestTime = record.email_code_generated
+            ? record.email_code_generated.getTime()
+            : undefined;
+
+        //if an email has requested code over 5 times with 24 hours, throw an error.
+        if (dailySentTimes && lastRequestTime) {
+            if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
+                throw new ApiError({
+                    field: 'email',
+                    type: 'error_api_request_too_much',
+                });
+            }
+        }
 
         // If the user's last attempt was less than or exactly a minute ago, throw an error.
         if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
@@ -983,7 +1009,10 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
         await services.sendEmail(record.email, 'confirm_email', captchaCode);
 
         // Update the user to reflect that the verification email was sent.
+        record.email_code_attempts = 0;
         record.email_code = captchaCode;
+        record.email_code_sent = record.email_code_sent + 1;
+        record.email_code_generated = new Date();
         record.last_attempt_verify_email = new Date();
         await record.save();
     }
@@ -1094,7 +1123,7 @@ async function handleRequestSmsNew(req) {
     if (
         record.last_attempt_verify_phone_number &&
         record.last_attempt_verify_phone_number.getTime() >
-            Date.now() - 2 * 60 * 1000
+            Date.now() - 60 * 1000
     ) {
         throw new ApiError({
             field: 'phoneNumber',
@@ -1130,6 +1159,7 @@ async function handleRequestSmsNew(req) {
 
 async function handleConfirmEmailCode(req) {
     const currentEmail = req.body.email;
+    const minusHalfHour = Date.now() - 1800000;
 
     if (!req.body.code) {
         throw new ApiError({
@@ -1149,11 +1179,15 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    if (!record.email_is_verified) {
-        record.email_is_verified = true;
-        await record.save();
+    //email already verified
+    if (record.email_is_verified) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_email_verified',
+        });
     }
 
+    //incorrect input over 5 times
     if (record.email_code_attempts >= 5) {
         throw new ApiError({
             field: 'code',
@@ -1161,7 +1195,18 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    record.email_code_attempts = (record.email_code_attempts || 0) + 1;
+    //code expires after 30 mins from generated time
+    if (record.email_code_generated <= new Date() - minusHalfHour) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_code_expired',
+        });
+    }
+
+    //try code
+    record.email_code_attempts = record.email_code_attempts + 1;
+    record.last_attempt_verify_email = new Date();
+    //if doesn't match
     if (record.email_code !== req.body.code) {
         await record.save();
         throw new ApiError({
