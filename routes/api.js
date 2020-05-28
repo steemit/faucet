@@ -73,4 +73,7 @@ router.post('/create_account', apiMiddleware(apiHandlers.handleCreateAccount));
 
 router.post('/check_username', apiMiddleware(apiHandlers.handleCheckUsername));
 
+// This api is a temporary api. This will be removed in the future!
+router.get('/analytics', apiMiddleware(apiHandlers.handleAnalytics));
+
 module.exports = router;
