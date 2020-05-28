@@ -25,6 +25,12 @@ module.exports = {
             last_attempt_verify_phone_number: {
                 type: Sequelize.DATE,
             },
+            phone_code_sent: {
+                type: Sequelize.INTEGER,
+            },
+            phone_code_generated: {
+                type: Sequelize.DATE,
+            },
             ref_code: {
                 type: Sequelize.STRING,
                 unique: true,
