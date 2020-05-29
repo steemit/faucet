@@ -903,14 +903,14 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
             field: 'email',
         });
     }
-    //format check
+    // format check
     if (!isEmail(email)) {
         throw new ApiError({
             type: 'error_api_email_format',
             field: 'email',
         });
     }
-    //bad domains check
+    // bad domains check
     if (badDomains.includes(email.split('@')[1])) {
         throw new ApiError({
             type: 'error_api_domain_blacklisted',
@@ -926,7 +926,7 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
         metadata: { email },
     });
 
-    //duplicate check
+    // duplicate check
     const emailIsInUse = await database.emailIsInUse(email);
     if (emailIsInUse) {
         throw new ApiError({
@@ -986,7 +986,7 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
             ? record.email_code_generated.getTime()
             : undefined;
 
-        //if an email has requested code over 5 times with 24 hours, throw an error.
+        // if an email has requested code over 5 times with 24 hours, throw an error.
         if (dailySentTimes && lastRequestTime) {
             if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
                 throw new ApiError({
@@ -1011,9 +1011,9 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
         // Update the user to reflect that the verification email was sent.
         record.email_code_attempts = 0;
         record.email_code = captchaCode;
-        //count every 24 hours
+        // count every 24 hours
         if (record.email_code_generated >= minusOneDay) {
-            record.email_code_sent = record.email_code_sent + 1;
+            record.email_code_sent += 1;
         } else {
             record.email_code_sent = 1;
             record.email_code_generated = new Date();
@@ -1142,7 +1142,7 @@ async function handleRequestSmsNew(req) {
             ? record.phone_code_generated.getTime()
             : undefined;
 
-        //if an email has requested code over 5 times with 24 hours, throw an error.
+        // if an email has requested code over 5 times with 24 hours, throw an error.
         if (dailySentTimes && lastRequestTime) {
             if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
                 throw new ApiError({
@@ -1190,9 +1190,9 @@ async function handleRequestSmsNew(req) {
 
     record.phone_code_attempts = 0;
     record.phone_code = phoneCode;
-    //count every 24 hours
+    // count every 24 hours
     if (record.phone_code_generated >= minusOneDay) {
-        record.phone_code_sent = record.phone_code_sent + 1;
+        record.phone_code_sent += 1;
     } else {
         record.phone_code_sent = 1;
         record.phone_code_generated = new Date();
@@ -1225,7 +1225,7 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    //email already verified
+    // email already verified
     if (record.email_is_verified) {
         throw new ApiError({
             field: 'code',
@@ -1233,7 +1233,7 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    //incorrect input over 5 times
+    // incorrect input over 5 times
     if (record.email_code_attempts >= 5) {
         throw new ApiError({
             field: 'code',
@@ -1241,7 +1241,7 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    //code expires after 30 mins from generated time
+    // code expires after 30 mins from generated time
     if (record.email_code_generated <= minusHalfHour) {
         record.email_code = null;
         record.email_code_attempts = 0;
@@ -1252,10 +1252,10 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    //try code
+    // try code
     record.email_code_attempts = record.email_code_attempts + 1;
     record.last_attempt_verify_email = new Date();
-    //if doesn't match
+    // if doesn't match
     if (record.email_code !== req.body.code) {
         await record.save();
         throw new ApiError({
@@ -1302,7 +1302,7 @@ async function handleConfirmSmsNew(req) {
     }
 
     const minusHalfHour = Date.now() - 1800000;
-    //code expires after 30 mins from generated time
+    // code expires after 30 mins from generated time
     if (record.phone_code_generated <= minusHalfHour) {
         record.phone_code = null;
         record.phone_code_attempts = 0;
@@ -1313,7 +1313,7 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    record.phone_code_attempts = record.phone_code_attempts + 1;
+    record.phone_code_attempts += 1;
     if (record.phone_code !== req.body.code) {
         await record.save();
         throw new ApiError({
