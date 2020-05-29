@@ -1011,8 +1011,13 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
         // Update the user to reflect that the verification email was sent.
         record.email_code_attempts = 0;
         record.email_code = captchaCode;
-        record.email_code_sent = record.email_code_sent + 1;
-        record.email_code_generated = new Date();
+        //count every 24 hours
+        if (record.email_code_generated >= minusOneDay) {
+            record.email_code_sent = record.email_code_sent + 1;
+        } else {
+            record.email_code_sent = 1;
+            record.email_code_generated = new Date();
+        }
         record.last_attempt_verify_email = new Date();
         await record.save();
     }
@@ -1108,27 +1113,52 @@ async function handleRequestSmsNew(req) {
     if (existingRecord) {
         record = existingRecord;
     } else {
-        const phoneCode = generateCode(5);
-        const newPhoneRecord = await database.createEmailRecord({
+        const newPhoneRecord = await database.createPhoneRecord({
             phoneNumber,
             phone_number_is_verified: false,
-            last_attempt_verify_phone_number: new Date(),
-            phone_code: phoneCode,
+            last_attempt_verify_phone_number: new Date(1588291200000),
+            phone_code: null,
             phone_code_attempts: 0,
+            phone_code_sent: 0,
+            phone_code_generated: new Date(),
             ref_code: req.body.ref_code,
         });
         record = newPhoneRecord;
     }
 
-    if (
-        record.last_attempt_verify_phone_number &&
-        record.last_attempt_verify_phone_number.getTime() >
-            Date.now() - 60 * 1000
-    ) {
-        throw new ApiError({
-            field: 'phoneNumber',
-            type: 'error_api_wait',
-        });
+    const minusOneDay = Date.now() - 86400000;
+    if (!record.phone_number_is_verified) {
+        const minusOneMinute = Date.now() - 60000;
+
+        const usersLastAttempt = record.last_attempt_verify_phone_number
+            ? record.last_attempt_verify_phone_number.getTime()
+            : undefined;
+
+        const dailySentTimes = record.phone_code_sent
+            ? record.phone_code_sent
+            : undefined;
+
+        const lastRequestTime = record.phone_code_generated
+            ? record.phone_code_generated.getTime()
+            : undefined;
+
+        //if an email has requested code over 5 times with 24 hours, throw an error.
+        if (dailySentTimes && lastRequestTime) {
+            if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
+                throw new ApiError({
+                    field: 'phone',
+                    type: 'error_api_request_too_much',
+                });
+            }
+        }
+
+        // If the user's last attempt was less than or exactly a minute ago, throw an error.
+        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+            throw new ApiError({
+                field: 'phone',
+                type: 'error_api_wait_one_minute',
+            });
+        }
     }
 
     await database.logAction({
@@ -1137,10 +1167,14 @@ async function handleRequestSmsNew(req) {
         metadata: { phoneNumber },
     });
 
+    const phoneCode = generateCode(5);
+
     try {
         await services.sendSMS(
             phoneNumber,
-            `${record.phone_code} is your Steem confirmation code`
+            `${phoneCode} is your Steem confirmation code, 
+            Please keep your code secure. 
+            The code will expire in 30 minutes.`
         );
     } catch (cause) {
         if (cause.code === 21614 || cause.code === 21211) {
@@ -1153,6 +1187,18 @@ async function handleRequestSmsNew(req) {
             throw cause;
         }
     }
+
+    record.phone_code_attempts = 0;
+    record.phone_code = phoneCode;
+    //count every 24 hours
+    if (record.phone_code_generated >= minusOneDay) {
+        record.phone_code_sent = record.phone_code_sent + 1;
+    } else {
+        record.phone_code_sent = 1;
+        record.phone_code_generated = new Date();
+    }
+    record.last_attempt_verify_phone_number = new Date();
+    await record.save();
 
     return { success: true, phoneNumber, ref: record.ref_code };
 }
@@ -1196,7 +1242,7 @@ async function handleConfirmEmailCode(req) {
     }
 
     //code expires after 30 mins from generated time
-    if (record.email_code_generated <= new Date() - minusHalfHour) {
+    if (record.email_code_generated <= minusHalfHour) {
         record.email_code = null;
         record.email_code_attempts = 0;
         record.save();
@@ -1255,7 +1301,19 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    record.phone_code_attempts = (record.phone_code_attempts || 0) + 1;
+    const minusHalfHour = Date.now() - 1800000;
+    //code expires after 30 mins from generated time
+    if (record.phone_code_generated <= minusHalfHour) {
+        record.phone_code = null;
+        record.phone_code_attempts = 0;
+        record.save();
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_email_code_invalid',
+        });
+    }
+
+    record.phone_code_attempts = record.phone_code_attempts + 1;
     if (record.phone_code !== req.body.code) {
         await record.save();
         throw new ApiError({
