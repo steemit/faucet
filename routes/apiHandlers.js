@@ -1253,7 +1253,7 @@ async function handleConfirmEmailCode(req) {
     }
 
     // try code
-    record.email_code_attempts = record.email_code_attempts + 1;
+    record.email_code_attempts += 1;
     record.last_attempt_verify_email = new Date();
     // if doesn't match
     if (record.email_code !== req.body.code) {
