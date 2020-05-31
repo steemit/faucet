@@ -29,6 +29,12 @@ module.exports = {
             last_attempt_verify_email: {
                 type: Sequelize.DATE,
             },
+            email_code_sent: {
+                type: Sequelize.INTEGER,
+            },
+            email_code_generated: {
+                type: Sequelize.DATE,
+            },
             ref_code: {
                 type: Sequelize.STRING,
                 unique: true,
