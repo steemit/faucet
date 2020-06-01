@@ -126,5 +126,7 @@
     "create_account": "创建账户",
     "create_account_tip1": "点击创建账户后请耐心等待约10秒钟",
     "create_account_tip2": "中途不要离开网页，并保证网络状况良好",
-    "create_account_tip3": "此外，成功创建账户后我们会给您发送一封欢迎邮件"
+    "create_account_tip3": "此外，成功创建账户后我们会给您发送一封欢迎邮件",
+    "email_description": "我们将给你的邮箱发送邮箱验证码",
+    "phone_description": "我们将给你的手机发送手机验证码"
 }

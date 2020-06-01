@@ -288,6 +288,22 @@ class UserInfo extends React.Component {
                             </div>
                         </div>
                     </Form.Item>
+                    {origin === 'steemit' && (
+                        <Form.Item>
+                            <div className="signin_redirect">
+                                <FormattedMessage
+                                    id="username_steemit_login"
+                                    values={{
+                                        link: (
+                                            <a href="https://steemit.com/login.html">
+                                                <FormattedMessage id="sign_in" />
+                                            </a>
+                                        ),
+                                    }}
+                                />
+                            </div>
+                        </Form.Item>
+                    )}
                 </Form>
             </div>
         );
