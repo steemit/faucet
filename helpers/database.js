@@ -58,14 +58,14 @@ const usernameIsBooked = async username => {
         where: {
             username,
             email_is_verified: true,
+            phone_number_is_verified: true,
         },
-        order: [['username_booked_at', 'DESC']],
+        order: [['id', 'DESC']],
     });
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    return (
-        user &&
-        user.username_booked_at.getTime() + oneWeek >= new Date().getTime()
-    );
+    // const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    return user;
+    // &&
+    // user.username_booked_at.getTime() + oneWeek >= new Date().getTime()
 };
 
 const createUser = async data => db.users.create(data);

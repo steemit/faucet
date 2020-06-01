@@ -1,5 +1,3 @@
-import { isEmail } from '../helpers/validator';
-
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
@@ -904,7 +902,7 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
         });
     }
     // format check
-    if (!isEmail(email)) {
+    if (!validator.isEmail(email)) {
         throw new ApiError({
             type: 'error_api_email_format',
             field: 'email',
