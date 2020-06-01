@@ -6444,7 +6444,7 @@ lodash.once@^4.0.0:
 
 lodash.reduce@^4.6.0:
   version "4.6.0"
-  resolved "https://registry.yarnpkg.com/lodash.reduce/-/lodash.reduce-4.6.0.tgz#f1ab6b839299ad48f784abbf476596f03b914d3b"
+  resolved "https://registry.npm.taobao.org/lodash.reduce/download/lodash.reduce-4.6.0.tgz#f1ab6b839299ad48f784abbf476596f03b914d3b"
   integrity sha1-8atrg5KZrUj3hKu/R2WW8DuRTTs=
 
 lodash.restparam@^3.0.0:
@@ -6459,7 +6459,7 @@ lodash.sortby@^4.7.0:
 
 lodash.startswith@^4.2.1:
   version "4.2.1"
-  resolved "https://registry.yarnpkg.com/lodash.startswith/-/lodash.startswith-4.2.1.tgz#c598c4adce188a27e53145731cdc6c0e7177600c"
+  resolved "https://registry.npm.taobao.org/lodash.startswith/download/lodash.startswith-4.2.1.tgz#c598c4adce188a27e53145731cdc6c0e7177600c"
   integrity sha1-xZjErc4YiiflMUVzHNxsDnF3YAw=
 
 lodash.throttle@^4.0.0:
@@ -8654,8 +8654,8 @@ react-lifecycles-compat@^3.0.4:
 
 react-phone-input-2@^2.13.5:
   version "2.13.5"
-  resolved "https://registry.yarnpkg.com/react-phone-input-2/-/react-phone-input-2-2.13.5.tgz#b7f9d56161fd52226ad0eda3d89f3ad31a8d2304"
-  integrity sha512-i9+X2GqENSxM+6xHNULB4l2Q9nAWNMpKnJQ4dXEkbttF9JrQc5m6XNOjjPy70ZrwBBw9Zj1F4mk2GjiH4kNjVQ==
+  resolved "https://registry.npm.taobao.org/react-phone-input-2/download/react-phone-input-2-2.13.5.tgz#b7f9d56161fd52226ad0eda3d89f3ad31a8d2304"
+  integrity sha1-t/nVYWH9UiJq0O2j2J860xqNIwQ=
   dependencies:
     classnames "^2.2.6"
     lodash.debounce "^4.0.8"

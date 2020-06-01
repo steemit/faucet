@@ -23,8 +23,8 @@
     "enjoy_steem":
         "You're almost done! To get your login details for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com",
     "enter_confirmation_code": "Enter the confirmation code",
-    "enter_email": "Enter your email address",
-    "enter_phone": "Enter your phone number",
+    "enter_email": "Enter an email address",
+    "enter_phone": "Enter a phone number",
     "error_api_account_created": "Account already created",
     "error_api_account_creation_progress": "Account creation in progress",
     "error_api_account_longer": "Account name should be longer",
@@ -182,5 +182,8 @@
     "create_account_tip2":
         "Keep the internet connected and do not quit while waiting",
     "create_account_tip3":
-        "You’ll receive a confirmation email after the account is successfully created."
+        "You’ll receive a confirmation email after the account is successfully created.",
+    "email_description":
+        "We will send a verification code to your email address",
+    "phone_description": "We will send a verification code to your phone"
 }
