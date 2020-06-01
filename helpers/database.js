@@ -57,8 +57,6 @@ const usernameIsBooked = async username => {
     const user = await findUser({
         where: {
             username,
-            email_is_verified: true,
-            phone_number_is_verified: true,
         },
         order: [['id', 'DESC']],
     });
