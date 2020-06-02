@@ -1,5 +1,3 @@
-import { isEmail } from '../helpers/validator';
-
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
@@ -14,7 +12,11 @@ const logger = require('../helpers/logger');
 const services = require('../helpers/services');
 const database = require('../helpers/database');
 const { generateTrackingId } = require('../helpers/stepLogger');
-const { accountNameIsValid, normalizeEmail } = require('../helpers/validator');
+const {
+    accountNameIsValid,
+    normalizeEmail,
+    isEmail,
+} = require('../helpers/validator');
 const { ApiError } = require('../helpers/errortypes.js');
 
 /**
