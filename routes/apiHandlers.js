@@ -877,28 +877,7 @@ async function handleAnalytics(req) {
     return { success: true };
 }
 
-async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
-    const recaptchaRequired = services.recaptchaRequiredForIp(ip);
-
-    if (recaptchaRequired && !recaptcha) {
-        throw new ApiError({
-            type: 'error_api_recaptcha_required',
-            field: 'recaptcha',
-        });
-    }
-
-    if (recaptchaRequired) {
-        try {
-            await services.verifyCaptcha(recaptcha, ip);
-        } catch (cause) {
-            throw new ApiError({
-                type: 'error_api_recaptcha_invalid',
-                field: 'recaptcha',
-                cause,
-            });
-        }
-    }
-
+async function handleRequestEmailCode(ip, email, refcode) {
     if (!email) {
         throw new ApiError({
             type: 'error_api_email_required',
