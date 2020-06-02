@@ -6,13 +6,33 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, Icon } from 'antd';
 import apiCall from '../../../utils/api';
 // import Loading from '../../../widgets/Loading';
-import { accountNameIsValid } from '../../../../helpers/validator';
+import {
+    accountNameIsValid,
+    validateEmail,
+    validateEmailDomain,
+} from '../../../../helpers/validator';
 import '../../../styles/phone-number-input.less';
 
 class UserInfo extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            username: null,
+            email: null,
+            email_code: null,
+            email_code_sending: false,
+            email_send_code_txt: this.props.intl.formatMessage({
+                id: 'send_code',
+            }),
+            phone: null,
+            rawPhone: null,
+            prefix: null,
+            phone_code: null,
+            phone_code_sending: false,
+            phone_send_code_txt: this.props.intl.formatMessage({
+                id: 'send_code',
+            }),
+        };
     }
 
     validateAccountNameIntl = (rule, value, callback) => {
@@ -45,16 +65,133 @@ class UserInfo extends React.Component {
         }
     };
 
-    validatePhoneEmpty = (rule, value, callback) => {
-        callback();
+    validateEmailCode = (rule, value, callback) => {
+        if (value) {
+            const { intl, form } = this.props;
+            const email = form.getFieldValue('email');
+            apiCall('/api/check_email_code', { code: value, email })
+                .then(() => {
+                    callback();
+                })
+                .catch(error => {
+                    callback(intl.formatMessage({ id: error.type }));
+                });
+        } else {
+            callback();
+        }
     };
 
-    SendEmailCode = () => {
-        console.log('send email code!');
+    validatePhoneCode = (rule, value, callback) => {
+        if (value) {
+            const { intl, form } = this.props;
+            const phoneNumber = '+' + form.getFieldValue('phone');
+            apiCall('/api/check_phone_code', { code: value, phoneNumber })
+                .then(() => {
+                    callback();
+                })
+                .catch(error => {
+                    callback(intl.formatMessage({ id: error.type }));
+                });
+        } else {
+            callback();
+        }
+    };
+
+    SendEmailCode = email => {
+        if (this.state.email_code_sending) return;
+        const { intl } = this.props;
+        this.setState({
+            email_code_sending: true,
+        });
+        apiCall('/api/request_email_new', {
+            email,
+            xref: this.props.xref,
+        })
+            .then(() => {
+                window.email_code_count_seconds = 60;
+                window.email_code_interval = setInterval(() => {
+                    if (window.email_code_count_seconds == 0) {
+                        clearInterval(window.email_code_interval);
+                        this.setState({
+                            email_send_code_txt: intl.formatMessage({
+                                id: 'send_code',
+                            }),
+                            email_code_sending: false,
+                        });
+                        return;
+                    }
+                    this.setState({
+                        email_send_code_txt: `${window.email_code_count_seconds--} s`,
+                    });
+                }, 1000);
+            })
+            .catch(error => {
+                this.props.form.setFields({
+                    email: {
+                        value: email,
+                        errors: [
+                            new Error(intl.formatMessage({ id: error.type })),
+                        ],
+                    },
+                });
+                window.email_code_count_seconds = 0;
+                clearInterval(window.email_code_interval);
+                this.setState({
+                    email_send_code_txt: intl.formatMessage({
+                        id: 'send_code',
+                    }),
+                    email_code_sending: false,
+                });
+            });
     };
 
     SendPhoneCode = () => {
-        console.log('send phone code!');
+        if (this.state.phone_code_sending) return;
+        const { intl } = this.props;
+        const { phone, rawPhone, prefix } = this.state;
+        this.setState({
+            phone_code_sending: true,
+        });
+        apiCall('/api/request_sms_new', {
+            phoneNumber: rawPhone,
+            prefix,
+        })
+            .then(() => {
+                window.phone_code_count_seconds = 60;
+                window.phone_code_interval = setInterval(() => {
+                    if (window.phone_code_count_seconds == 0) {
+                        clearInterval(window.phone_code_interval);
+                        this.setState({
+                            phone_send_code_txt: intl.formatMessage({
+                                id: 'send_code',
+                            }),
+                            phone_code_sending: false,
+                        });
+                        return;
+                    }
+                    this.setState({
+                        phone_send_code_txt: `${window.phone_code_count_seconds--} s`,
+                    });
+                }, 1000);
+            })
+            .catch(error => {
+                this.props.form.setFields({
+                    phone: {
+                        value: phone,
+                        errors: [
+                            new Error(intl.formatMessage({ id: error.type })),
+                        ],
+                    },
+                });
+                window.phone_code_count_seconds = 0;
+                clearInterval(window.phone_code_interval);
+                this.setState({
+                    phone_send_code_txt: intl.formatMessage({
+                        id: 'send_code',
+                    }),
+                    phone_code_sending: false,
+                });
+            });
     };
 
     validateRecaptcha = (rule, value, callback) => {
@@ -74,9 +211,11 @@ class UserInfo extends React.Component {
                 getFieldError,
                 isFieldValidating,
                 getFieldValue,
+                setFields,
             },
             intl,
             origin,
+            countryCode,
         } = this.props;
         return (
             <div className="user-info-wrap">
@@ -122,17 +261,26 @@ class UserInfo extends React.Component {
                     </p>
                     <Form.Item hasFeedback>
                         {getFieldDecorator('email', {
-                            normalize: this.normalizeUsername,
                             validateFirst: true,
                             rules: [
                                 {
                                     required: true,
                                     message: intl.formatMessage({
-                                        id: 'error_username_required',
+                                        id: 'error_email_required',
                                     }),
                                 },
-                                { validator: this.validateAccountNameIntl },
-                                { validator: this.validateUsername },
+                                {
+                                    validator: validateEmail,
+                                    message: intl.formatMessage({
+                                        id: 'error_api_email_format',
+                                    }),
+                                },
+                                {
+                                    validator: validateEmailDomain,
+                                    message: intl.formatMessage({
+                                        id: 'error_api_domain_blacklisted',
+                                    }),
+                                },
                             ],
                         })(
                             <Input
@@ -140,6 +288,7 @@ class UserInfo extends React.Component {
                                 placeholder={intl.formatMessage({
                                     id: 'email',
                                 })}
+                                disabled={this.email_code_sending}
                                 autoComplete="off"
                                 autoCorrect="off"
                                 autoCapitalize="none"
@@ -155,20 +304,27 @@ class UserInfo extends React.Component {
                                 {
                                     required: true,
                                     message: intl.formatMessage({
-                                        id: 'error_username_required',
+                                        id: 'error_api_code_required',
                                     }),
                                 },
-                                { validator: this.validateAccountNameIntl },
-                                { validator: this.validateUsername },
+                                {
+                                    validator: this.validateEmailCode,
+                                },
                             ],
                         })(
                             <Input
                                 placeholder={intl.formatMessage({
-                                    id: 'username',
+                                    id: 'enter_confirmation_code',
                                 })}
                                 addonAfter={
-                                    <a onClick={this.SendEmailCode}>
-                                        Send code
+                                    <a
+                                        onClick={() =>
+                                            this.SendEmailCode(
+                                                getFieldValue('email')
+                                            )
+                                        }
+                                    >
+                                        {this.state.email_send_code_txt}
                                     </a>
                                 }
                                 autoComplete="off"
@@ -197,11 +353,34 @@ class UserInfo extends React.Component {
                             validateTrigger: '',
                         })(
                             <PhoneInput
-                                country={'us'}
+                                country={
+                                    countryCode === null ? 'us' : countryCode
+                                }
                                 placeholder={intl.formatMessage({
-                                    id: 'username',
+                                    id: 'enter_phone',
                                 })}
-                                onChange={phone => this.setState({ phone })}
+                                disabled={this.phone_code_sending}
+                                onChange={(
+                                    phone,
+                                    data,
+                                    event,
+                                    formattedValue
+                                ) => {
+                                    const prefix = data.dialCode;
+                                    const countryCode = data.countryCode;
+                                    this.setState({
+                                        phone: phone,
+                                        rawPhone: phone.slice(
+                                            data.dialCode.length
+                                        ),
+                                        prefix: `${prefix}_${countryCode}`,
+                                    });
+                                    setFields({
+                                        phone: {
+                                            value: phone,
+                                        },
+                                    });
+                                }}
                             />
                         )}
                     </Form.Item>
@@ -213,21 +392,22 @@ class UserInfo extends React.Component {
                                 {
                                     required: true,
                                     message: intl.formatMessage({
-                                        id: 'error_username_required',
+                                        id: 'error_api_code_required',
                                     }),
                                 },
-                                { validator: this.validateAccountNameIntl },
-                                { validator: this.validateUsername },
+                                {
+                                    validator: this.validatePhoneCode,
+                                },
                             ],
                         })(
                             <Input
                                 className="send-btn"
                                 placeholder={intl.formatMessage({
-                                    id: 'username',
+                                    id: 'enter_confirmation_code',
                                 })}
                                 addonAfter={
-                                    <a onClick={this.SendPhoneCode}>
-                                        Send code
+                                    <a onClick={() => this.SendPhoneCode()}>
+                                        {this.state.phone_send_code_txt}
                                     </a>
                                 }
                                 autoComplete="off"

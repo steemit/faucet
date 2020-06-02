@@ -1084,7 +1084,7 @@ async function handleRequestSmsNew(req) {
 
     const existingRecord = await database.findPhoneRecord({
         where: {
-            phoneNumber,
+            phone_number: phoneNumber,
         },
     });
 
@@ -1092,7 +1092,7 @@ async function handleRequestSmsNew(req) {
         record = existingRecord;
     } else {
         const newPhoneRecord = await database.createPhoneRecord({
-            phoneNumber,
+            phone_number: phoneNumber,
             last_attempt_verify_phone_number: new Date(1588291200000),
             phone_code: null,
             phone_code_attempts: 0,
@@ -1243,7 +1243,7 @@ async function handleConfirmSmsNew(req) {
     }
 
     const record = await database.findPhoneRecord({
-        where: { email: req.body.phoneNumber },
+        where: { phone_number: req.body.phoneNumber },
     });
 
     if (!record) {

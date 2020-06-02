@@ -76,4 +76,24 @@ router.post('/check_username', apiMiddleware(apiHandlers.handleCheckUsername));
 // This api is a temporary api. This will be removed in the future!
 router.get('/analytics', apiMiddleware(apiHandlers.handleAnalytics));
 
+router.post(
+    '/request_email_new',
+    apiMiddleware(req =>
+        apiHandlers.handleRequestEmailCode(
+            req.ip,
+            req.body.email,
+            req.body.xref
+        )
+    )
+);
+router.post('/request_sms_new', apiMiddleware(apiHandlers.handleRequestSmsNew));
+router.post(
+    '/check_email_code',
+    apiMiddleware(apiHandlers.handleConfirmEmailCode)
+);
+router.post(
+    '/check_phone_code',
+    apiMiddleware(apiHandlers.handleConfirmSmsNew)
+);
+
 module.exports = router;

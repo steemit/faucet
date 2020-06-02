@@ -128,5 +128,11 @@
     "create_account_tip2": "中途不要离开网页，并保证网络状况良好",
     "create_account_tip3": "此外，成功创建账户后我们会给您发送一封欢迎邮件",
     "email_description": "我们将给你的邮箱发送邮箱验证码",
-    "phone_description": "我们将给你的手机发送手机验证码"
+    "phone_description": "我们将给你的手机发送手机验证码",
+    "send_code": "发送",
+    "error_phone_invalid": "手机号不正确",
+    "error_api_request_too_much": "API请求过于频繁",
+    "error_api_wait_one_minute": "API请求过于频繁",
+    "error_api_email_code_invalid": "验证码错误",
+    "error_api_unknown_phone_number": "验证码错误"
 }

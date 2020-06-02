@@ -185,5 +185,11 @@
         "You’ll receive a confirmation email after the account is successfully created.",
     "email_description":
         "We will send a verification code to your email address",
-    "phone_description": "We will send a verification code to your phone"
+    "phone_description": "We will send a verification code to your phone",
+    "send_code": "Send code",
+    "error_phone_invalid": "Phone invalid",
+    "error_api_request_too_much": "API request too much",
+    "error_api_wait_one_minute": "API request too much",
+    "error_api_email_code_invalid": "Incorrect verification code",
+    "error_api_unknown_phone_number": "Incorrect verification code"
 }

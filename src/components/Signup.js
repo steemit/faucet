@@ -303,6 +303,7 @@ class Signup extends Component {
                                     username={currentUsername}
                                     email={currentEmail}
                                     origin={currentReferrer}
+                                    countryCode={countryCode}
                                 />
                                 {/* <h1>
                                     <FormattedMessage id="save_password" />
