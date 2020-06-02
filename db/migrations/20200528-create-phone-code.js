@@ -18,10 +18,6 @@ module.exports = {
             phone_code_attempts: {
                 type: Sequelize.INTEGER,
             },
-            phone_number_is_verified: {
-                type: Sequelize.BOOLEAN,
-                defaultValue: false,
-            },
             last_attempt_verify_phone_number: {
                 type: Sequelize.DATE,
             },

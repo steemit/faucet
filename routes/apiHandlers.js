@@ -940,7 +940,6 @@ async function handleRequestEmailCode(ip, email, refcode) {
         const newEmailRecord = await database.createEmailRecord({
             email,
             email_normalized: normalizeEmail(email),
-            email_is_verified: false,
             last_attempt_verify_email: new Date(1588291200000),
             email_code: null,
             email_code_attempts: 0,
@@ -951,57 +950,55 @@ async function handleRequestEmailCode(ip, email, refcode) {
         record = newEmailRecord;
     }
 
-    if (!record.email_is_verified) {
-        const minusOneMinute = Date.now() - 60000;
-        const minusOneDay = Date.now() - 86400000;
+    const minusOneMinute = Date.now() - 60000;
+    const minusOneDay = Date.now() - 86400000;
 
-        const usersLastAttempt = record.last_attempt_verify_email
-            ? record.last_attempt_verify_email.getTime()
-            : undefined;
+    const usersLastAttempt = record.last_attempt_verify_email
+        ? record.last_attempt_verify_email.getTime()
+        : undefined;
 
-        const dailySentTimes = record.email_code_sent
-            ? record.email_code_sent.get
-            : undefined;
+    const dailySentTimes = record.email_code_sent
+        ? record.email_code_sent.get
+        : undefined;
 
-        const lastRequestTime = record.email_code_generated
-            ? record.email_code_generated.getTime()
-            : undefined;
+    const lastRequestTime = record.email_code_generated
+        ? record.email_code_generated.getTime()
+        : undefined;
 
-        // if an email has requested code over 5 times with 24 hours, throw an error.
-        if (dailySentTimes && lastRequestTime) {
-            if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-                throw new ApiError({
-                    field: 'email',
-                    type: 'error_api_request_too_much',
-                });
-            }
-        }
-
-        // If the user's last attempt was less than or exactly a minute ago, throw an error.
-        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+    // if an email has requested code over 5 times with 24 hours, throw an error.
+    if (dailySentTimes && lastRequestTime) {
+        if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
             throw new ApiError({
                 field: 'email',
-                type: 'error_api_wait_one_minute',
+                type: 'error_api_request_too_much',
             });
         }
-
-        // Send the email.
-        const captchaCode = Math.floor(Math.random() * 1000000).toString();
-        await services.sendEmail(record.email, 'confirm_email', captchaCode);
-
-        // Update the user to reflect that the verification email was sent.
-        record.email_code_attempts = 0;
-        record.email_code = captchaCode;
-        // count every 24 hours
-        if (record.email_code_generated >= minusOneDay) {
-            record.email_code_sent += 1;
-        } else {
-            record.email_code_sent = 1;
-            record.email_code_generated = new Date();
-        }
-        record.last_attempt_verify_email = new Date();
-        await record.save();
     }
+
+    // If the user's last attempt was less than or exactly a minute ago, throw an error.
+    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+        throw new ApiError({
+            field: 'email',
+            type: 'error_api_wait_one_minute',
+        });
+    }
+
+    // Send the email.
+    const captchaCode = Math.floor(Math.random() * 1000000).toString();
+    await services.sendEmail(record.email, 'confirm_email', captchaCode);
+
+    // Update the user to reflect that the verification email was sent.
+    record.email_code_attempts = 0;
+    record.email_code = captchaCode;
+    // count every 24 hours
+    if (record.email_code_generated >= minusOneDay) {
+        record.email_code_sent += 1;
+    } else {
+        record.email_code_sent = 1;
+        record.email_code_generated = new Date();
+    }
+    record.last_attempt_verify_email = new Date();
+    await record.save();
 
     return { success: true, email, xref: record.ref_code };
 }
@@ -1096,7 +1093,6 @@ async function handleRequestSmsNew(req) {
     } else {
         const newPhoneRecord = await database.createPhoneRecord({
             phoneNumber,
-            phone_number_is_verified: false,
             last_attempt_verify_phone_number: new Date(1588291200000),
             phone_code: null,
             phone_code_attempts: 0,
@@ -1108,38 +1104,36 @@ async function handleRequestSmsNew(req) {
     }
 
     const minusOneDay = Date.now() - 86400000;
-    if (!record.phone_number_is_verified) {
-        const minusOneMinute = Date.now() - 60000;
+    const minusOneMinute = Date.now() - 60000;
 
-        const usersLastAttempt = record.last_attempt_verify_phone_number
-            ? record.last_attempt_verify_phone_number.getTime()
-            : undefined;
+    const usersLastAttempt = record.last_attempt_verify_phone_number
+        ? record.last_attempt_verify_phone_number.getTime()
+        : undefined;
 
-        const dailySentTimes = record.phone_code_sent
-            ? record.phone_code_sent
-            : undefined;
+    const dailySentTimes = record.phone_code_sent
+        ? record.phone_code_sent
+        : undefined;
 
-        const lastRequestTime = record.phone_code_generated
-            ? record.phone_code_generated.getTime()
-            : undefined;
+    const lastRequestTime = record.phone_code_generated
+        ? record.phone_code_generated.getTime()
+        : undefined;
 
-        // if an email has requested code over 5 times with 24 hours, throw an error.
-        if (dailySentTimes && lastRequestTime) {
-            if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-                throw new ApiError({
-                    field: 'phone',
-                    type: 'error_api_request_too_much',
-                });
-            }
-        }
-
-        // If the user's last attempt was less than or exactly a minute ago, throw an error.
-        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+    // if an email has requested code over 5 times with 24 hours, throw an error.
+    if (dailySentTimes && lastRequestTime) {
+        if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
             throw new ApiError({
                 field: 'phone',
-                type: 'error_api_wait_one_minute',
+                type: 'error_api_request_too_much',
             });
         }
+    }
+
+    // If the user's last attempt was less than or exactly a minute ago, throw an error.
+    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+        throw new ApiError({
+            field: 'phone',
+            type: 'error_api_wait_one_minute',
+        });
     }
 
     await database.logAction({
@@ -1206,14 +1200,6 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    // email already verified
-    if (record.email_is_verified) {
-        throw new ApiError({
-            field: 'code',
-            type: 'error_api_email_verified',
-        });
-    }
-
     // incorrect input over 5 times
     if (record.email_code_attempts >= 5) {
         throw new ApiError({
@@ -1245,9 +1231,6 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    record.email_is_verified = true;
-    await record.save();
-
     return { success: true };
 }
 
@@ -1269,12 +1252,7 @@ async function handleConfirmSmsNew(req) {
             type: 'error_api_unknown_phone_number',
         });
     }
-    if (record.phone_number_is_verified) {
-        throw new ApiError({
-            field: 'code',
-            type: 'error_api_phone_verified',
-        });
-    }
+
     if (record.phone_code_attempts >= 5) {
         throw new ApiError({
             field: 'code',
@@ -1302,9 +1280,6 @@ async function handleConfirmSmsNew(req) {
             type: 'error_api_code_invalid',
         });
     }
-
-    record.phone_number_is_verified = true;
-    await record.save();
 
     return { success: true };
 }
