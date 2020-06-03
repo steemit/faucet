@@ -190,6 +190,9 @@
     "error_phone_invalid": "Phone invalid",
     "error_api_request_too_much": "API request too much",
     "error_api_wait_one_minute": "API request too much",
-    "error_api_email_code_invalid": "Incorrect verification code",
-    "error_api_unknown_phone_number": "Incorrect verification code"
+    "error_api_unknown_phone_number": "Unknown phone number",
+    "error_api_unknown_email": "Unknown email",
+    "error_api_phone_code_invalid": "Invalid phone code",
+    "error_api_email_code_invalid": "Invalid email code",
+    "error_api_user_exist": "User existed"
 }

@@ -3,8 +3,9 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { Form, Input, Button, Icon } from 'antd';
+import { Form, Input, Button, Icon, message } from 'antd';
 import apiCall from '../../../utils/api';
+import getFingerprint from '../../../../helpers/fingerprint';
 // import Loading from '../../../widgets/Loading';
 import {
     accountNameIsValid,
@@ -32,7 +33,17 @@ class UserInfo extends React.Component {
             phone_send_code_txt: this.props.intl.formatMessage({
                 id: 'send_code',
             }),
+            fingerprint: '',
+            query: '',
+            pending_create_user: false,
         };
+    }
+
+    componentDidMount() {
+        this.setState({
+            fingerprint: JSON.stringify(getFingerprint()),
+            query: JSON.stringify(this.context.router.location.query),
+        });
     }
 
     validateAccountNameIntl = (rule, value, callback) => {
@@ -202,6 +213,40 @@ class UserInfo extends React.Component {
         } else {
             callback();
         }
+    };
+
+    handleSubmit = e => {
+        e.preventDefault();
+        if (this.state.pending_create_user) return;
+        this.setState({
+            pending_create_user: true,
+        });
+        const { form, trackingId, intl, handleSubmitUserInfo } = this.props;
+        const { fingerprint, query } = this.state;
+        const data = {
+            recaptcha: form.getFieldValue('recaptcha'),
+            email: form.getFieldValue('email'),
+            emailCode: form.getFieldValue('email_code'),
+            phoneNumber: '+' + form.getFieldValue('phone'),
+            phoneCode: form.getFieldValue('phone_code'),
+            username: form.getFieldValue('username'),
+            fingerprint,
+            query,
+            xref: trackingId,
+        };
+        apiCall('/api/create_user_new', data)
+            .then(result => {
+                this.setState({
+                    pending_create_user: false,
+                });
+                handleSubmitUserInfo();
+            })
+            .catch(error => {
+                this.setState({
+                    pending_create_user: false,
+                });
+                message.error(intl.formatMessage({ id: error.type }));
+            });
     };
 
     render() {
@@ -462,6 +507,7 @@ class UserInfo extends React.Component {
                                     type="primary"
                                     htmlType="submit"
                                     size="large"
+                                    loading={this.state.pending_create_user}
                                 >
                                     <FormattedMessage id="continue" />
                                 </Button>

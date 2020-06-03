@@ -95,5 +95,25 @@ router.post(
     '/check_phone_code',
     apiMiddleware(apiHandlers.handleConfirmSmsNew)
 );
+router.post(
+    '/create_user_new',
+    apiMiddleware(req =>
+        apiHandlers.finalizeSignupNew(
+            req.ip,
+            req.body.recaptcha,
+            req.body.email,
+            req.body.emailCode,
+            req.body.fingerprint ? JSON.parse(req.body.fingerprint) : {},
+            req.body.phoneNumber,
+            req.body.phoneCode,
+            req.body.query ? JSON.parse(req.body.query) : {},
+            req.body.username,
+            req.body.xref,
+            req.protocol,
+            req.get('host'),
+            req.log
+        )
+    )
+);
 
 module.exports = router;

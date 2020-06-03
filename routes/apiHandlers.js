@@ -779,13 +779,13 @@ async function handleCheckUsername(req) {
         });
     }
 
-    const usernameIsBooked = await database.usernameIsBooked(username);
-    if (usernameIsBooked) {
-        throw new ApiError({
-            type: 'error_api_username_reserved',
-            status: 200,
-        });
-    }
+    // const usernameIsBooked = await database.usernameIsBooked(username);
+    // if (usernameIsBooked) {
+    //     throw new ApiError({
+    //         type: 'error_api_username_reserved',
+    //         status: 200,
+    //     });
+    // }
     return { success: true };
 }
 
@@ -1268,7 +1268,7 @@ async function handleConfirmSmsNew(req) {
         record.save();
         throw new ApiError({
             field: 'code',
-            type: 'error_api_email_code_invalid',
+            type: 'error_api_phone_code_invalid',
         });
     }
 
@@ -1277,7 +1277,7 @@ async function handleConfirmSmsNew(req) {
         await record.save();
         throw new ApiError({
             field: 'code',
-            type: 'error_api_code_invalid',
+            type: 'error_api_phone_code_invalid',
         });
     }
 
@@ -1297,22 +1297,97 @@ async function finalizeSignupNew(
     xref,
     protocol,
     host,
-    ref_code,
     log
 ) {
-    const phoneRecord = database.findPhoneRecord(ref_code);
-    const emailRecord = database.findEmailRecord(ref_code);
-    // only act if both email and phone is verified
-    if (
-        !phoneRecord.phone_number_is_verified ||
-        !emailRecord.email_is_verified
-    ) {
-        return false;
+    if (!recaptcha) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_recaptcha_required',
+        });
     }
 
-    const user = await database.createUser({
+    try {
+        await services.verifyCaptcha(recaptcha, ip);
+    } catch (e) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_recaptcha_invalid',
+        });
+    }
+
+    const phoneRecord = await database.findPhoneRecord({
+        where: {
+            phone_number: phoneNumber,
+        },
+    });
+    const emailRecord = await database.findEmailRecord({
+        where: {
+            email,
+        },
+    });
+
+    if (!phoneRecord) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_unknown_phone_number',
+        });
+    }
+
+    if (!emailRecord) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_unknown_email',
+        });
+    }
+
+    if (phoneRecord.phone_code !== phoneCode) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_phone_code_invalid',
+        });
+    }
+
+    if (emailRecord.email_code !== emailCode) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_email_code_invalid',
+        });
+    }
+
+    const usernameExist = await database.countUsers({
+        username,
+    });
+
+    if (usernameExist) {
+        const user = await database.findUser({
+            where: {
+                email,
+                phone_number: phoneNumber,
+                username,
+            },
+        });
+        if (user) {
+            if (user.account_is_created === true) {
+                throw new ApiError({
+                    field: 'code',
+                    type: 'error_api_user_exist',
+                });
+            } else {
+                return { success: true };
+            }
+        } else {
+            throw new ApiError({
+                field: 'code',
+                type: 'error_api_user_exist',
+            });
+        }
+    }
+
+    await database.createUser({
         email,
-        phoneNumber,
+        email_is_verified: true,
+        phone_number: phoneNumber,
+        phone_number_is_verified: true,
         ip,
         account_is_created: false,
         created_at: new Date(),
@@ -1323,38 +1398,7 @@ async function finalizeSignupNew(
         tracking_id: xref || generateTrackingId(),
     });
 
-    // First, create the completed signup request in Gatekeeper.
-    // Allow Gatekeeper to relate it to other data based on the
-    // "faucet session id", in the form of `${email}+faucetsession` (used in frontend)
-    try {
-        const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
-        user.set('gatekeeper_id', signupInGatekeeper.id);
-    } catch (error) {
-        logger.warn({ error }, 'gatekeeper.signup_create failed');
-    }
-
-    // Finally, ask Gatekeeper for its judgement.
-    let result;
-
-    try {
-        result = await services.gatekeeperCheck(user);
-        if (
-            !['manual_review', 'approved', 'rejected'].includes(result.status)
-        ) {
-            throw new Error('Got invalid response from gatekeeper');
-        }
-    } catch (error) {
-        log.warn(error, 'Classification failed, setting to manual_review');
-        result = { status: 'manual_review', note: `ERROR: ${error.message}` };
-    }
-    if (result.status === 'approved') {
-        await services.sendApprovalEmail(user.email, `${protocol}://${host}`);
-    }
-
-    user.status = result.status;
-    user.review_note = result.note;
-    await user.save();
-    return true;
+    return { success: true };
 }
 
 module.exports = {

@@ -31,11 +31,11 @@
     "jsonwebtoken": "8.1.1",
     "maxmind": "2.4.0",
     "moment": "2.20.1",
-    "mysql2": "1.5.1",
+    "mysql2": "1.6.5",
     "needle": "^2.4.0",
     "react-copy-to-clipboard": "^5.0.2",
     "redux-saga": "0.16.0",
-    "sequelize": "5.15.1",
+    "sequelize": "5.2.4",
     "serve-favicon": "2.4.5",
     "twilio": "3.16.0",
     "validator": "9.2.0"

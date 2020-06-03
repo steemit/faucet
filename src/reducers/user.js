@@ -31,7 +31,7 @@ const defaultState = Map({
             : 'steemit',
     token: '',
     completed: false,
-    step: 'signupInfo',
+    step: 'signupOptions',
     trackingId: generateTrackingId(),
 });
 

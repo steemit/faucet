@@ -157,6 +157,12 @@ class Signup extends Component {
         this.props.logCheckpoint(CHECKPOINTS.phone_verified);
     };
 
+    handleSubmitUserInfo = () => {
+        console.log('get_in:', this);
+        this.props.incrementStep();
+        this.props.logCheckpoint(CHECKPOINTS.user_created);
+    };
+
     render() {
         const {
             app: { locale, steps, signupModalVisible },
@@ -304,6 +310,9 @@ class Signup extends Component {
                                     email={currentEmail}
                                     origin={currentReferrer}
                                     countryCode={countryCode}
+                                    handleSubmitUserInfo={
+                                        this.handleSubmitUserInfo
+                                    }
                                 />
                                 {/* <h1>
                                     <FormattedMessage id="save_password" />
