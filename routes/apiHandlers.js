@@ -89,8 +89,8 @@ async function finalizeSignup(user, req) {
     //     );
     // }
 
-    //gatekeeper usages have been removed
-    //when email and phone are verified, faucet can finish the sign up process independently
+    // gatekeeper usages have been removed
+    // when email and phone are verified, faucet can finish the sign up process independently
 
     await services.sendApprovalEmail(
         user.email,

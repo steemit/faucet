@@ -11,7 +11,7 @@ const { Sequelize } = db;
 
 const router = express.Router();
 
-const logger = require('../helpers/logger');
+// const logger = require('../helpers/logger');
 
 const { GOOGLE_CLIENT_ID, GOOGLE_AUTHORIZED_DOMAINS } = process.env;
 if (!GOOGLE_CLIENT_ID) {
@@ -189,7 +189,7 @@ addHandler('/list_signups', adminHandlers.listSignups);
 
 addHandler('/approve_signups', async req => {
     const { ids } = req.body;
-    const adminUsername = req.user.email;
+    // const adminUsername = req.user.email;
     if (!Array.isArray(ids)) {
         throw new Error('Invalid signup ids');
     }
