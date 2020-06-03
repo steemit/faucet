@@ -239,7 +239,7 @@ class UserInfo extends React.Component {
                 this.setState({
                     pending_create_user: false,
                 });
-                handleSubmitUserInfo();
+                handleSubmitUserInfo(data);
             })
             .catch(error => {
                 this.setState({

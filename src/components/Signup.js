@@ -126,7 +126,7 @@ class Signup extends Component {
         this.props.incrementStep();
         this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
     };
-    handleSavePassword = () => {
+    handleSavePassword = password => {
         this.props.incrementStep();
     };
 
@@ -157,9 +157,11 @@ class Signup extends Component {
         this.props.logCheckpoint(CHECKPOINTS.phone_verified);
     };
 
-    handleSubmitUserInfo = () => {
-        console.log('get_in:', this);
+    handleSubmitUserInfo = data => {
         this.props.incrementStep();
+        this.props.setUsername(data.username);
+        this.props.setEmail(data.email);
+        this.props.setPhone(data.phoneNumber);
         this.props.logCheckpoint(CHECKPOINTS.user_created);
     };
 
@@ -342,7 +344,6 @@ class Signup extends Component {
                                     <FormattedMessage id="save_password_text" />
                                 </p>
                                 <SavePassword
-                                    password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
                                     handleSavePassword={this.handleSavePassword}
                                 />
                             </div>
