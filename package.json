@@ -112,5 +112,9 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "jest": {
+    "verbose": true,
+    "testURL": "http://localhost/"
   }
 }
