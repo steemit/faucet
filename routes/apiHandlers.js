@@ -787,6 +787,17 @@ async function handleCheckUsername(req) {
         });
     }
 
+    const usernameExist = await database.countUsers({
+        username,
+    });
+
+    if (usernameExist) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_user_exist',
+        });
+    }
+
     // const usernameIsBooked = await database.usernameIsBooked(username);
     // if (usernameIsBooked) {
     //     throw new ApiError({
@@ -885,7 +896,7 @@ async function handleAnalytics(req) {
     return { success: true };
 }
 
-async function handleRequestEmailCode(ip, email, refcode) {
+async function handleRequestEmailCode(ip, email, log) {
     if (!email) {
         throw new ApiError({
             type: 'error_api_email_required',
@@ -945,17 +956,24 @@ async function handleRequestEmailCode(ip, email, refcode) {
     if (existingRecord) {
         record = existingRecord;
     } else {
-        const newEmailRecord = await database.createEmailRecord({
-            email,
-            email_normalized: normalizeEmail(email),
-            last_attempt_verify_email: new Date(1588291200000),
-            email_code: null,
-            email_code_attempts: 0,
-            email_code_sent: 0,
-            email_code_generated: null,
-            ref_code: refcode,
-        });
-        record = newEmailRecord;
+        try {
+            const newEmailRecord = await database.createEmailRecord({
+                email,
+                email_normalized: normalizeEmail(email),
+                last_attempt_verify_email: new Date(1588291200000),
+                email_code: null,
+                email_code_attempts: 0,
+                email_code_sent: 0,
+                email_code_generated: null,
+            });
+            record = newEmailRecord;
+        } catch (e) {
+            log.error(e, 'insert email code record error');
+            throw new ApiError({
+                type: 'error_api_general',
+                field: 'email',
+            });
+        }
     }
 
     const minusOneMinute = Date.now() - 60000;
@@ -991,9 +1009,7 @@ async function handleRequestEmailCode(ip, email, refcode) {
         });
     }
 
-    // Send the email.
     const captchaCode = Math.floor(Math.random() * 1000000).toString();
-    await services.sendEmail(record.email, 'confirm_email', captchaCode);
 
     // Update the user to reflect that the verification email was sent.
     record.email_code_attempts = 0;
@@ -1007,6 +1023,9 @@ async function handleRequestEmailCode(ip, email, refcode) {
     }
     record.last_attempt_verify_email = new Date();
     await record.save();
+
+    // Send the email.
+    await services.sendEmail(record.email, 'confirm_email', captchaCode);
 
     return { success: true, email, xref: record.ref_code };
 }
@@ -1025,14 +1044,14 @@ async function handleRequestSmsNew(req) {
     if (!req.body.prefix) {
         throw new ApiError({
             type: 'error_api_country_code_required',
-            field: 'prefix',
+            field: 'phoneNumber',
         });
     }
 
     const countryCode = req.body.prefix.split('_')[1];
     if (!countryCode) {
         throw new ApiError({
-            field: 'prefix',
+            field: 'phoneNumber',
             type: 'error_api_prefix_invalid',
         });
     }
@@ -1106,7 +1125,6 @@ async function handleRequestSmsNew(req) {
             phone_code_attempts: 0,
             phone_code_sent: 0,
             phone_code_generated: new Date(),
-            ref_code: req.body.ref_code,
         });
         record = newPhoneRecord;
     }
@@ -1208,8 +1226,8 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    // incorrect input over 5 times
-    if (record.email_code_attempts >= 5) {
+    // incorrect input over 100 times
+    if (record.email_code_attempts >= 100) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_request_too_much',
@@ -1261,7 +1279,7 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    if (record.phone_code_attempts >= 5) {
+    if (record.phone_code_attempts >= 100) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_phone_too_many',
@@ -1300,7 +1318,6 @@ async function finalizeSignupNew(
     fingerprint,
     phoneNumber,
     phoneCode,
-    query,
     username,
     xref
 ) {
@@ -1320,6 +1337,41 @@ async function finalizeSignupNew(
         });
     }
 
+    if (!username) {
+        throw new ApiError({
+            field: 'username',
+            type: 'error_api_username_required',
+        });
+    }
+
+    if (!email) {
+        throw new ApiError({
+            field: 'email',
+            type: 'error_api_email_required',
+        });
+    }
+
+    if (!phoneNumber) {
+        throw new ApiError({
+            field: 'phone',
+            type: 'error_api_phone_required',
+        });
+    }
+
+    if (!emailCode) {
+        throw new ApiError({
+            field: 'email_code',
+            type: 'error_api_code_required',
+        });
+    }
+
+    if (!phoneCode) {
+        throw new ApiError({
+            field: 'phone_code',
+            type: 'error_api_code_required',
+        });
+    }
+
     const phoneRecord = await database.findPhoneRecord({
         where: {
             phone_number: phoneNumber,
@@ -1333,28 +1385,28 @@ async function finalizeSignupNew(
 
     if (!phoneRecord) {
         throw new ApiError({
-            field: 'code',
+            field: 'phone_code',
             type: 'error_api_unknown_phone_number',
         });
     }
 
     if (!emailRecord) {
         throw new ApiError({
-            field: 'code',
+            field: 'email_code',
             type: 'error_api_unknown_email',
         });
     }
 
     if (phoneRecord.phone_code !== phoneCode) {
         throw new ApiError({
-            field: 'code',
+            field: 'phone_code',
             type: 'error_api_phone_code_invalid',
         });
     }
 
     if (emailRecord.email_code !== emailCode) {
         throw new ApiError({
-            field: 'code',
+            field: 'email_code',
             type: 'error_api_email_code_invalid',
         });
     }
@@ -1380,7 +1432,6 @@ async function finalizeSignupNew(
         created_at: new Date(),
         updated_at: null,
         fingerprint,
-        metadata: { query },
         username,
         tracking_id: xref || generateTrackingId(),
     });

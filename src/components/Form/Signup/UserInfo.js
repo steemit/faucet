@@ -22,17 +22,13 @@ class UserInfo extends React.Component {
             email: null,
             email_code: null,
             email_code_sending: false,
-            email_send_code_txt: this.props.intl.formatMessage({
-                id: 'send_code',
-            }),
+            email_send_code_txt: '',
             phone: null,
             rawPhone: null,
             prefix: null,
             phone_code: null,
             phone_code_sending: false,
-            phone_send_code_txt: this.props.intl.formatMessage({
-                id: 'send_code',
-            }),
+            phone_send_code_txt: '',
             fingerprint: '',
             query: '',
             pending_create_user: false,
@@ -42,7 +38,12 @@ class UserInfo extends React.Component {
     componentWillMount() {
         this.setState({
             fingerprint: JSON.stringify(getFingerprint()),
-            query: JSON.stringify(this.context.router.location.query),
+            email_send_code_txt: this.props.intl.formatMessage({
+                id: 'send_code',
+            }),
+            phone_send_code_txt: this.props.intl.formatMessage({
+                id: 'send_code',
+            }),
         });
     }
 
@@ -121,7 +122,6 @@ class UserInfo extends React.Component {
         });
         apiCall('/api/request_email_new', {
             email,
-            xref: this.props.xref,
         })
             .then(() => {
                 window.email_code_count_seconds = 60;
@@ -233,7 +233,7 @@ class UserInfo extends React.Component {
             pending_create_user: true,
         });
         const { form, trackingId, intl, handleSubmitUserInfo } = this.props;
-        const { fingerprint, query } = this.state;
+        const { fingerprint } = this.state;
         const data = {
             recaptcha: form.getFieldValue('recaptcha'),
             email: form.getFieldValue('email'),
@@ -242,7 +242,6 @@ class UserInfo extends React.Component {
             phoneCode: form.getFieldValue('phone_code'),
             username: form.getFieldValue('username'),
             fingerprint,
-            query,
             xref: trackingId,
         };
         apiCall('/api/create_user_new', data)
@@ -547,11 +546,16 @@ UserInfo.propTypes = {
     form: PropTypes.shape({
         setFields: PropTypes.func.isRequired,
     }).isRequired,
-    xref: PropTypes.string.isRequired,
     trackingId: PropTypes.string.isRequired,
-    countryCode: PropTypes.string.isRequired,
+    countryCode: PropTypes.string,
     origin: PropTypes.string.isRequired,
     handleSubmitUserInfo: PropTypes.func.isRequired,
+};
+
+UserInfo.defaultProps = {
+    trackingId: '',
+    countryCode: '',
+    origin: '',
 };
 
 export default Form.create()(injectIntl(UserInfo));
