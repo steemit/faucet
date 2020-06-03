@@ -7,9 +7,6 @@ module.exports = (sequelize, DataTypes) => (
         last_attempt_verify_email: DataTypes.DATE,
         email_code_sent: DataTypes.INTEGER,
         email_code_generated: DataTypes.DATE,
-        ref_code: {
-            type: DataTypes.STRING,
-        }
     }, {
         freezeTableName: true,
         underscored: true,
