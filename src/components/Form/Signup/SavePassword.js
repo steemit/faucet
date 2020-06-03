@@ -21,7 +21,13 @@ class SavePassword extends React.Component {
     }
 
     componentWillMount() {
-        this.generateWif();
+        if (this.props.password === '') {
+            this.generateWif();
+        } else {
+            this.setState({
+                password: this.props.password,
+            });
+        }
     }
 
     generateWif = () => {
@@ -35,7 +41,7 @@ class SavePassword extends React.Component {
     };
 
     render() {
-        const { handleSavePassword } = this.props;
+        const { password, handleSavePassword } = this.props;
         return (
             <div className="save-password-wrap">
                 <div className="password-wrap">{this.state.password}</div>

@@ -22,6 +22,7 @@ class Signup extends Component {
         super();
         this.state = {
             pending_claimed_accounts: 0,
+            password: '',
         };
     }
     static propTypes = {
@@ -78,6 +79,7 @@ class Signup extends Component {
         user: {
             countryCode: null,
         },
+        password: '',
     };
 
     async componentWillMount() {
@@ -127,6 +129,9 @@ class Signup extends Component {
         this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
     };
     handleSavePassword = password => {
+        this.setState({
+            password,
+        });
         this.props.incrementStep();
     };
 
@@ -344,6 +349,7 @@ class Signup extends Component {
                                     <FormattedMessage id="save_password_text" />
                                 </p>
                                 <SavePassword
+                                    password={this.state.password}
                                     handleSavePassword={this.handleSavePassword}
                                 />
                             </div>
