@@ -1294,10 +1294,7 @@ async function finalizeSignupNew(
     phoneCode,
     query,
     username,
-    xref,
-    protocol,
-    host,
-    log
+    xref
 ) {
     if (!recaptcha) {
         throw new ApiError({
@@ -1359,28 +1356,10 @@ async function finalizeSignupNew(
     });
 
     if (usernameExist) {
-        const user = await database.findUser({
-            where: {
-                email,
-                phone_number: phoneNumber,
-                username,
-            },
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_user_exist',
         });
-        if (user) {
-            if (user.account_is_created === true) {
-                throw new ApiError({
-                    field: 'code',
-                    type: 'error_api_user_exist',
-                });
-            } else {
-                return { success: true };
-            }
-        } else {
-            throw new ApiError({
-                field: 'code',
-                type: 'error_api_user_exist',
-            });
-        }
     }
 
     await database.createUser({

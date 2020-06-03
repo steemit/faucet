@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
-import React, { PropTypes } from 'react';
+import React from 'react';
+import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
 import apiCall from '../../../utils/api';
-import steem from '@steemit/steem-js';
 
 class CreateAccount extends React.Component {
     constructor(props) {
@@ -46,7 +46,7 @@ class CreateAccount extends React.Component {
         } = this.props;
         const roles = ['posting', 'active', 'owner', 'memo'];
         const pubKeys = steem.auth.generateKeys(username, password, roles);
-        validateFieldsAndScroll((err, values) => {
+        validateFieldsAndScroll(err => {
             if (!err) {
                 apiCall('/api/create_account_new', {
                     username,
@@ -69,13 +69,7 @@ class CreateAccount extends React.Component {
     };
 
     render() {
-        const {
-            form: { getFieldDecorator, getFieldValue, setFieldsValue },
-            intl,
-            goBack,
-            password,
-        } = this.props;
-        const { passwordInput } = this.state;
+        const { form: { getFieldDecorator }, intl, goBack } = this.props;
         return (
             <div>
                 <Form onSubmit={this.handleSubmit} className="signup-form ">

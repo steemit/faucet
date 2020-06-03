@@ -11,7 +11,6 @@ const SignupOptions = ({
     hideSignupModal,
     // showSignupModal,
     handleFreeSignup,
-    referrer,
     logCheckpoint,
     pending_claimed_accounts,
 }) => {
@@ -246,12 +245,12 @@ SignupOptions.propTypes = {
     // showSignupModal: PropTypes.func.isRequired,
     handleFreeSignup: PropTypes.func.isRequired,
     logCheckpoint: PropTypes.func.isRequired,
-    referrer: PropTypes.string,
+    // referrer: PropTypes.string,
     pending_claimed_accounts: PropTypes.number,
 };
 
 SignupOptions.defaultProps = {
-    referrer: 'steemit',
+    // referrer: 'steemit',
     pending_claimed_accounts: 0,
 };
 

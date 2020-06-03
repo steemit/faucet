@@ -108,10 +108,7 @@ router.post(
             req.body.phoneCode,
             req.body.query ? JSON.parse(req.body.query) : {},
             req.body.username,
-            req.body.xref,
-            req.protocol,
-            req.get('host'),
-            req.log
+            req.body.xref
         )
     )
 );

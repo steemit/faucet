@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { Button, Form, Icon, Popover } from 'antd';
 import LanguageItem from './LanguageItem';
 import locales from '../../helpers/locales.json';
@@ -80,5 +80,11 @@ class Welcome extends Component {
         );
     }
 }
+
+Welcome.propTypes = {
+    username: PropTypes.string.isRequired,
+    locale: PropTypes.string.isRequired,
+    setLocale: PropTypes.func.isRequired,
+};
 
 export default injectIntl(Welcome);

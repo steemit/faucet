@@ -18,13 +18,6 @@ import SiftTracker from './SiftTracker';
 import { getPendingClaimedAccounts } from '../../helpers/validator';
 
 class Signup extends Component {
-    constructor() {
-        super();
-        this.state = {
-            pending_claimed_accounts: 0,
-            password: '',
-        };
-    }
     static propTypes = {
         app: PropTypes.shape({
             locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
@@ -81,6 +74,14 @@ class Signup extends Component {
         },
         password: '',
     };
+
+    constructor() {
+        super();
+        this.state = {
+            pending_claimed_accounts: 0,
+            password: '',
+        };
+    }
 
     async componentWillMount() {
         const {

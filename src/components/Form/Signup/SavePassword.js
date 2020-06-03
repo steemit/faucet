@@ -1,15 +1,8 @@
 /* eslint-disable react/prop-types */
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { message, Button } from 'antd';
-import {
-    PrivateKey,
-    PublicKey,
-    key_utils,
-} from '@steemit/steem-js/lib/auth/ecc';
-import apiCall from '../../../utils/api';
-import Loading from '../../../widgets/Loading';
+import { key_utils } from '@steemit/steem-js/lib/auth/ecc';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 class SavePassword extends React.Component {
@@ -31,7 +24,7 @@ class SavePassword extends React.Component {
     }
 
     generateWif = () => {
-        const newWif = 'P' + key_utils.get_random_key().toWif();
+        const newWif = `P${key_utils.get_random_key().toWif()}`;
         this.setState({ password: newWif });
     };
 
@@ -41,7 +34,7 @@ class SavePassword extends React.Component {
     };
 
     render() {
-        const { password, handleSavePassword } = this.props;
+        const { handleSavePassword } = this.props;
         return (
             <div className="save-password-wrap">
                 <div className="password-wrap">{this.state.password}</div>
