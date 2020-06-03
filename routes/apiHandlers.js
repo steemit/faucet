@@ -61,36 +61,44 @@ async function finalizeSignup(user, req) {
     // First, create the completed signup request in Gatekeeper.
     // Allow Gatekeeper to relate it to other data based on the
     // "faucet session id", in the form of `${email}+faucetsession` (used in frontend)
-    try {
-        const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
-        user.set('gatekeeper_id', signupInGatekeeper.id);
-    } catch (error) {
-        logger.warn({ error }, 'gatekeeper.signup_create failed');
-    }
+    // try {
+    //     const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
+    //     user.set('gatekeeper_id', signupInGatekeeper.id);
+    // } catch (error) {
+    //     logger.warn({ error }, 'gatekeeper.signup_create failed');
+    // }
+    //
+    // // Finally, ask Gatekeeper for its judgement.
+    // let result;
+    //
+    // try {
+    //     result = await services.gatekeeperCheck(user);
+    //     if (
+    //         !['manual_review', 'approved', 'rejected'].includes(result.status)
+    //     ) {
+    //         throw new Error('Got invalid response from gatekeeper');
+    //     }
+    // } catch (error) {
+    //     req.log.warn(error, 'Classification failed, setting to manual_review');
+    //     result = { status: 'manual_review', note: `ERROR: ${error.message}` };
+    // }
+    // if (result.status === 'approved') {
+    //     await services.sendApprovalEmail(
+    //         user.email,
+    //         `${req.protocol}://${req.get('host')}`
+    //     );
+    // }
 
-    // Finally, ask Gatekeeper for its judgement.
-    let result;
+    //gatekeeper usages have been removed
+    //when email and phone are verified, faucet can finish the sign up process independently
 
-    try {
-        result = await services.gatekeeperCheck(user);
-        if (
-            !['manual_review', 'approved', 'rejected'].includes(result.status)
-        ) {
-            throw new Error('Got invalid response from gatekeeper');
-        }
-    } catch (error) {
-        req.log.warn(error, 'Classification failed, setting to manual_review');
-        result = { status: 'manual_review', note: `ERROR: ${error.message}` };
-    }
-    if (result.status === 'approved') {
-        await services.sendApprovalEmail(
-            user.email,
-            `${req.protocol}://${req.get('host')}`
-        );
-    }
+    await services.sendApprovalEmail(
+        user.email,
+        `${req.protocol}://${req.get('host')}`
+    );
 
-    user.status = result.status;
-    user.review_note = result.note;
+    user.status = 'approved';
+    user.review_note = '';
     await user.save();
     return true;
 }
@@ -708,11 +716,11 @@ async function handleCreateAccount(req) {
         { where: { email: decoded.email } }
     );
 
-    try {
-        await services.gatekeeperMarkSignupCreated(user);
-    } catch (error) {
-        logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
-    }
+    // try {
+    //     await services.gatekeeperMarkSignupCreated(user);
+    // } catch (error) {
+    //     logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
+    // }
 
     const params = [
         username,
