@@ -194,5 +194,9 @@
     "error_api_unknown_email": "Unknown email",
     "error_api_phone_code_invalid": "Invalid phone code",
     "error_api_email_code_invalid": "Invalid email code",
-    "error_api_user_exist": "User existed"
+    "error_api_user_exist": "User existed",
+    "welcome_page_title": "Welcome",
+    "welcome_page_message_1":
+        "You’re almost done！To get your login details and Keys for Steemit.com,go and sign in to the Steemit wallet at https://steemitwallet.com .",
+    "welcome_page_go_to_wallet": "Go to wallet"
 }

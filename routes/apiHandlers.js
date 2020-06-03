@@ -1204,7 +1204,7 @@ async function handleConfirmEmailCode(req) {
     if (record.email_code_attempts >= 5) {
         throw new ApiError({
             field: 'code',
-            type: 'error_api_email_too_many',
+            type: 'error_api_request_too_much',
         });
     }
 
@@ -1401,6 +1401,186 @@ async function finalizeSignupNew(
     return { success: true };
 }
 
+async function handleCreateAccountNew(req) {
+    // Do not allow account creations if REACT_DISABLE_ACCOUNT_CREATION is set to true
+    if (process.env.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
+        throw new ApiError({
+            type: 'Account creation temporarily disabled',
+            status: 503,
+        });
+    }
+
+    const { username, public_keys, phoneNumber, email } = req.body; // eslint-disable-line camelcase
+
+    if (!username) {
+        throw new ApiError({ type: 'error_api_username_required' });
+    }
+    try {
+        accountNameIsValid(username);
+    } catch (e) {
+        throw new ApiError({
+            type: e.message,
+        });
+    }
+    if (!public_keys) {
+        // eslint-disable-line camelcase
+        throw new ApiError({ type: 'error_api_public_keys_required' });
+    }
+    if (!email) {
+        throw new ApiError({ type: 'error_api_email_required' });
+    }
+    if (!phoneNumber) {
+        throw new ApiError({ type: 'error_api_phone_required' });
+    }
+    const user = await database.findUser({
+        where: {
+            username,
+            email,
+            phone_number: phoneNumber,
+        },
+    });
+    if (!user) {
+        throw new ApiError({ type: 'error_api_user_exists_not' });
+    }
+    if (user.account_is_created === true) {
+        throw new ApiError({
+            type: 'error_api_user_exist',
+        });
+    }
+    const creationHash = hash.sha256(crypto.randomBytes(32)).toString('hex');
+    await database.updateUsers(
+        {
+            creation_hash: creationHash,
+        },
+        {
+            where: {
+                email,
+                username,
+                phone_number: phoneNumber,
+            },
+        }
+    );
+    const weightThreshold = 1;
+    const accountAuths = [];
+    const publicKeys = JSON.parse(public_keys);
+    const metadata = '{}';
+    const owner = {
+        weight_threshold: weightThreshold,
+        account_auths: accountAuths,
+        key_auths: [[publicKeys.owner, 1]],
+    };
+    const active = {
+        weight_threshold: weightThreshold,
+        account_auths: accountAuths,
+        key_auths: [[publicKeys.active, 1]],
+    };
+    const posting = {
+        weight_threshold: weightThreshold,
+        account_auths: accountAuths,
+        key_auths: [[publicKeys.posting, 1]],
+    };
+    const [activeCreationHash] = await database.query(
+        'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ? and phone_number = ? and username = ?',
+        {
+            replacements: [email, phoneNumber, username],
+            type: database.Sequelize.QueryTypes.SELECT,
+        }
+    );
+
+    if (
+        !activeCreationHash ||
+        activeCreationHash.creation_hash !== creationHash
+    ) {
+        throw new ApiError({ type: 'error_api_account_creation_progress' });
+    }
+
+    try {
+        await services.createAccount({
+            active,
+            memo_key: publicKeys.memo,
+            json_metadata: metadata,
+            owner,
+            posting,
+            new_account_name: username,
+        });
+    } catch (cause) {
+        await database.updateUsers(
+            {
+                creation_hash: null,
+            },
+            {
+                where: {
+                    email,
+                    username,
+                    phone_number: phoneNumber,
+                },
+            }
+        );
+        // steem-js error messages are so long that the log is clipped causing
+        // errors in scalyr parsing
+        cause.message = cause.message.split('\n').slice(0, 2);
+        throw new ApiError({
+            type: 'error_api_create_account',
+            cause,
+            status: 500,
+        });
+    }
+
+    await database.updateUsers(
+        {
+            status: 'created',
+            account_is_created: true,
+        },
+        {
+            where: {
+                email,
+                username,
+                phone_number: phoneNumber,
+            },
+        }
+    );
+
+    // try {
+    //     await services.gatekeeperMarkSignupCreated(user);
+    // } catch (error) {
+    //     logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
+    // }
+
+    const params = [
+        username,
+        {
+            phone: user.phone_number.replace(/[^+0-9]+/g, ''),
+            email: user.email,
+        },
+    ];
+
+    services.conveyorCall('set_user_data', params).catch(error => {
+        // TODO: this should retry more than once
+        req.log.warn(
+            error,
+            'Unable to store user data in conveyor... retrying'
+        );
+        setTimeout(() => {
+            // eslint-disable-next-line
+            services.conveyorCall('set_user_data', params).catch(error => {
+                req.log.error(error, 'Unable to store user data in conveyor');
+            });
+        }, 5 * 1000);
+    });
+
+    // Post to Condenser's account recovery endpoint.
+    services
+        .condenserTransfer(email, username, publicKeys.owner)
+        .catch(error => {
+            req.log.error(error, 'Unable to send recovery info to condenser');
+        });
+
+    // Add user to newsletter subscription list
+    await addNewsletterSubscriber(username, email);
+
+    return { success: true };
+}
+
 module.exports = {
     handleRequestEmail,
     handleRequestSms,
@@ -1416,4 +1596,5 @@ module.exports = {
     handleConfirmSmsNew,
     finalizeSignupNew,
     handleConfirmEmailCode,
+    handleCreateAccountNew,
 };

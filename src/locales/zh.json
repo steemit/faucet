@@ -137,5 +137,9 @@
     "error_api_unknown_email": "未知邮箱地址",
     "error_api_phone_code_invalid": "手机验证码不正确",
     "error_api_email_code_invalid": "邮箱验证码不正确",
-    "error_api_user_exist": "用户已存在"
+    "error_api_user_exist": "用户已存在",
+    "welcome_page_title": "欢迎",
+    "welcome_page_message_1":
+        "You’re almost done！To get your login details and Keys for Steemit.com,go and sign in to the Steemit wallet at https://steemitwallet.com .",
+    "welcome_page_go_to_wallet": "访问钱包"
 }

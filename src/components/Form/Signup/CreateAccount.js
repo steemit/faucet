@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, { PropTypes } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, message, Input, Button, Checkbox } from 'antd';
 import apiCall from '../../../utils/api';
-import Loading from '../../../widgets/Loading';
+import steem from '@steemit/steem-js';
 
 class CreateAccount extends React.Component {
     constructor(props) {
@@ -36,10 +35,33 @@ class CreateAccount extends React.Component {
         e.preventDefault();
         if (this.state.submitting) return;
         this.setState({ submitting: true });
-        const { form: { validateFieldsAndScroll }, onSubmit } = this.props;
+        const {
+            form: { validateFieldsAndScroll },
+            username,
+            email,
+            phoneNumber,
+            password,
+            intl,
+            handleCreateAccount,
+        } = this.props;
+        const roles = ['posting', 'active', 'owner', 'memo'];
+        const pubKeys = steem.auth.generateKeys(username, password, roles);
         validateFieldsAndScroll((err, values) => {
             if (!err) {
-                onSubmit(values);
+                apiCall('/api/create_account_new', {
+                    username,
+                    email,
+                    phoneNumber,
+                    public_keys: JSON.stringify(pubKeys),
+                })
+                    .then(() => {
+                        this.setState({ submitting: false });
+                        handleCreateAccount();
+                    })
+                    .catch(error => {
+                        this.setState({ submitting: false });
+                        message.error(intl.formatMessage({ id: error.type }));
+                    });
             } else {
                 this.setState({ submitting: false });
             }

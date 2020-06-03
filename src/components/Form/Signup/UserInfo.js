@@ -46,6 +46,11 @@ class UserInfo extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        clearInterval(window.email_code_interval);
+        clearInterval(window.phone_code_interval);
+    }
+
     validateAccountNameIntl = (rule, value, callback) => {
         try {
             accountNameIsValid(value);

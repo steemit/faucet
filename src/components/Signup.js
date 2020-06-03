@@ -170,6 +170,10 @@ class Signup extends Component {
         this.props.logCheckpoint(CHECKPOINTS.user_created);
     };
 
+    handleCreateAccount = () => {
+        this.props.incrementStep();
+    };
+
     render() {
         const {
             app: { locale, steps, signupModalVisible },
@@ -313,8 +317,6 @@ class Signup extends Component {
                                     />
                                 )}
                                 <FormSignupUserInfo
-                                    username={currentUsername}
-                                    email={currentEmail}
                                     origin={currentReferrer}
                                     countryCode={countryCode}
                                     handleSubmitUserInfo={
@@ -375,7 +377,13 @@ class Signup extends Component {
                                 </p>
                                 <CreateAccount
                                     goBack={this.goBack}
-                                    password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
+                                    username={username}
+                                    email={email}
+                                    phoneNumber={phoneNumber}
+                                    password={this.state.password}
+                                    handleCreateAccount={
+                                        this.handleCreateAccount
+                                    }
                                 />
                             </div>
                         )}
@@ -505,14 +513,33 @@ class Signup extends Component {
                         {step === 'finish' && (
                             <div className="form-content">
                                 <h1>
-                                    <FormattedMessage id="almost_there" />
+                                    <FormattedMessage id="welcome_page_title" />{' '}
+                                    {username}
                                 </h1>
-                                <p>
-                                    <FormattedMessage id="finish_text_1" />
-                                </p>
-                                <p>
-                                    <FormattedMessage id="finish_text_2" />
-                                </p>
+                                <div
+                                    style={{
+                                        marginTop: '36px',
+                                    }}
+                                >
+                                    <FormattedMessage id="welcome_page_message_1" />
+                                </div>
+                                <div
+                                    style={{
+                                        marginTop: '50px',
+                                    }}
+                                >
+                                    <Button
+                                        style={{ width: '100%' }}
+                                        type="primary"
+                                        size="large"
+                                        onClick={() => {
+                                            window.location =
+                                                'https://steemitwallet.com';
+                                        }}
+                                    >
+                                        <FormattedMessage id="welcome_page_go_to_wallet" />
+                                    </Button>
+                                </div>
                             </div>
                         )}
                     </div>

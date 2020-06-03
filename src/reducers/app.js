@@ -31,7 +31,7 @@ const initialState = Map({
         // user gets email with link to /confirm-email
         // 'phoneNumber',
         // 'confirmPhoneNumber',
-        // 'finish',
+        'finish',
         // user gets email with link to /create-account
     ]),
     signupModalVisible: false,

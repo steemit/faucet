@@ -115,5 +115,9 @@ router.post(
         )
     )
 );
+router.post(
+    '/create_account_new',
+    apiMiddleware(apiHandlers.handleCreateAccountNew)
+);
 
 module.exports = router;
