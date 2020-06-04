@@ -17,6 +17,7 @@ const CHECKPOINTS = {
     creation_started: 'creation_started',
     password_chosen: 'password_chosen',
     account_created: 'account_created',
+    user_created: 'user_created',
 };
 
 const checkpoints = [
@@ -99,6 +100,10 @@ const checkpoints = [
     {
         human: 'Account created',
         symbol: CHECKPOINTS.account_created,
+    },
+    {
+        human: 'User created',
+        symbol: CHECKPOINTS.user_created,
     },
 ];
 

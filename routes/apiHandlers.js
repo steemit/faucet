@@ -1,5 +1,3 @@
-import { isEmail } from '../helpers/validator';
-
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
 const validator = require('validator');
@@ -14,7 +12,11 @@ const logger = require('../helpers/logger');
 const services = require('../helpers/services');
 const database = require('../helpers/database');
 const { generateTrackingId } = require('../helpers/stepLogger');
-const { accountNameIsValid, normalizeEmail } = require('../helpers/validator');
+const {
+    accountNameIsValid,
+    normalizeEmail,
+    isEmail,
+} = require('../helpers/validator');
 const { ApiError } = require('../helpers/errortypes.js');
 
 /**
@@ -59,36 +61,44 @@ async function finalizeSignup(user, req) {
     // First, create the completed signup request in Gatekeeper.
     // Allow Gatekeeper to relate it to other data based on the
     // "faucet session id", in the form of `${email}+faucetsession` (used in frontend)
-    try {
-        const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
-        user.set('gatekeeper_id', signupInGatekeeper.id);
-    } catch (error) {
-        logger.warn({ error }, 'gatekeeper.signup_create failed');
-    }
+    // try {
+    //     const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
+    //     user.set('gatekeeper_id', signupInGatekeeper.id);
+    // } catch (error) {
+    //     logger.warn({ error }, 'gatekeeper.signup_create failed');
+    // }
+    //
+    // // Finally, ask Gatekeeper for its judgement.
+    // let result;
+    //
+    // try {
+    //     result = await services.gatekeeperCheck(user);
+    //     if (
+    //         !['manual_review', 'approved', 'rejected'].includes(result.status)
+    //     ) {
+    //         throw new Error('Got invalid response from gatekeeper');
+    //     }
+    // } catch (error) {
+    //     req.log.warn(error, 'Classification failed, setting to manual_review');
+    //     result = { status: 'manual_review', note: `ERROR: ${error.message}` };
+    // }
+    // if (result.status === 'approved') {
+    //     await services.sendApprovalEmail(
+    //         user.email,
+    //         `${req.protocol}://${req.get('host')}`
+    //     );
+    // }
 
-    // Finally, ask Gatekeeper for its judgement.
-    let result;
+    // gatekeeper usages have been removed
+    // when email and phone are verified, faucet can finish the sign up process independently
 
-    try {
-        result = await services.gatekeeperCheck(user);
-        if (
-            !['manual_review', 'approved', 'rejected'].includes(result.status)
-        ) {
-            throw new Error('Got invalid response from gatekeeper');
-        }
-    } catch (error) {
-        req.log.warn(error, 'Classification failed, setting to manual_review');
-        result = { status: 'manual_review', note: `ERROR: ${error.message}` };
-    }
-    if (result.status === 'approved') {
-        await services.sendApprovalEmail(
-            user.email,
-            `${req.protocol}://${req.get('host')}`
-        );
-    }
+    await services.sendApprovalEmail(
+        user.email,
+        `${req.protocol}://${req.get('host')}`
+    );
 
-    user.status = result.status;
-    user.review_note = result.note;
+    user.status = 'approved';
+    user.review_note = '';
     await user.save();
     return true;
 }
@@ -706,11 +716,11 @@ async function handleCreateAccount(req) {
         { where: { email: decoded.email } }
     );
 
-    try {
-        await services.gatekeeperMarkSignupCreated(user);
-    } catch (error) {
-        logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
-    }
+    // try {
+    //     await services.gatekeeperMarkSignupCreated(user);
+    // } catch (error) {
+    //     logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
+    // }
 
     const params = [
         username,
@@ -777,13 +787,24 @@ async function handleCheckUsername(req) {
         });
     }
 
-    const usernameIsBooked = await database.usernameIsBooked(username);
-    if (usernameIsBooked) {
+    const usernameExist = await database.countUsers({
+        username,
+    });
+
+    if (usernameExist) {
         throw new ApiError({
-            type: 'error_api_username_reserved',
-            status: 200,
+            field: 'code',
+            type: 'error_api_user_exist',
         });
     }
+
+    // const usernameIsBooked = await database.usernameIsBooked(username);
+    // if (usernameIsBooked) {
+    //     throw new ApiError({
+    //         type: 'error_api_username_reserved',
+    //         status: 200,
+    //     });
+    // }
     return { success: true };
 }
 
@@ -875,28 +896,7 @@ async function handleAnalytics(req) {
     return { success: true };
 }
 
-async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
-    const recaptchaRequired = services.recaptchaRequiredForIp(ip);
-
-    if (recaptchaRequired && !recaptcha) {
-        throw new ApiError({
-            type: 'error_api_recaptcha_required',
-            field: 'recaptcha',
-        });
-    }
-
-    if (recaptchaRequired) {
-        try {
-            await services.verifyCaptcha(recaptcha, ip);
-        } catch (cause) {
-            throw new ApiError({
-                type: 'error_api_recaptcha_invalid',
-                field: 'recaptcha',
-                cause,
-            });
-        }
-    }
-
+async function handleRequestEmailCode(ip, email, log) {
     if (!email) {
         throw new ApiError({
             type: 'error_api_email_required',
@@ -956,71 +956,76 @@ async function handleRequestEmailCode(ip, recaptcha, email, refcode) {
     if (existingRecord) {
         record = existingRecord;
     } else {
-        const newEmailRecord = await database.createEmailRecord({
-            email,
-            email_normalized: normalizeEmail(email),
-            email_is_verified: false,
-            last_attempt_verify_email: new Date(1588291200000),
-            email_code: null,
-            email_code_attempts: 0,
-            email_code_sent: 0,
-            email_code_generated: null,
-            ref_code: refcode,
-        });
-        record = newEmailRecord;
-    }
-
-    if (!record.email_is_verified) {
-        const minusOneMinute = Date.now() - 60000;
-        const minusOneDay = Date.now() - 86400000;
-
-        const usersLastAttempt = record.last_attempt_verify_email
-            ? record.last_attempt_verify_email.getTime()
-            : undefined;
-
-        const dailySentTimes = record.email_code_sent
-            ? record.email_code_sent.get
-            : undefined;
-
-        const lastRequestTime = record.email_code_generated
-            ? record.email_code_generated.getTime()
-            : undefined;
-
-        // if an email has requested code over 5 times with 24 hours, throw an error.
-        if (dailySentTimes && lastRequestTime) {
-            if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-                throw new ApiError({
-                    field: 'email',
-                    type: 'error_api_request_too_much',
-                });
-            }
-        }
-
-        // If the user's last attempt was less than or exactly a minute ago, throw an error.
-        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+        try {
+            const newEmailRecord = await database.createEmailRecord({
+                email,
+                email_normalized: normalizeEmail(email),
+                last_attempt_verify_email: new Date(1588291200000),
+                email_code: null,
+                email_code_attempts: 0,
+                email_code_sent: 0,
+                email_code_generated: null,
+            });
+            record = newEmailRecord;
+        } catch (e) {
+            log.error(e, 'insert email code record error');
             throw new ApiError({
+                type: 'error_api_general',
                 field: 'email',
-                type: 'error_api_wait_one_minute',
             });
         }
-
-        // Send the email.
-        const captchaCode = Math.floor(Math.random() * 1000000).toString();
-        await services.sendEmail(record.email, 'confirm_email', captchaCode);
-
-        // Update the user to reflect that the verification email was sent.
-        record.email_code_attempts = 0;
-        record.email_code = captchaCode;
-        // count every 24 hours
-        if (record.email_code_generated >= minusOneDay) {
-            record.email_code_sent += 1;
-        } else {
-            record.email_code_sent = 1;
-            record.email_code_generated = new Date();
-        }
-        record.last_attempt_verify_email = new Date();
-        await record.save();
     }
+
+    const minusOneMinute = Date.now() - 60000;
+    const minusOneDay = Date.now() - 86400000;
+
+    const usersLastAttempt = record.last_attempt_verify_email
+        ? record.last_attempt_verify_email.getTime()
+        : undefined;
+
+    const dailySentTimes = record.email_code_sent
+        ? record.email_code_sent.get
+        : undefined;
+
+    const lastRequestTime = record.email_code_generated
+        ? record.email_code_generated.getTime()
+        : undefined;
+
+    // if an email has requested code over 5 times with 24 hours, throw an error.
+    if (dailySentTimes && lastRequestTime) {
+        if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
+            throw new ApiError({
+                field: 'email',
+                type: 'error_api_request_too_much',
+            });
+        }
+    }
+
+    // If the user's last attempt was less than or exactly a minute ago, throw an error.
+    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+        throw new ApiError({
+            field: 'email',
+            type: 'error_api_wait_one_minute',
+        });
+    }
+
+    const captchaCode = Math.floor(Math.random() * 1000000).toString();
+
+    // Update the user to reflect that the verification email was sent.
+    record.email_code_attempts = 0;
+    record.email_code = captchaCode;
+    // count every 24 hours
+    if (record.email_code_generated >= minusOneDay) {
+        record.email_code_sent += 1;
+    } else {
+        record.email_code_sent = 1;
+        record.email_code_generated = new Date();
+    }
+    record.last_attempt_verify_email = new Date();
+    await record.save();
+
+    // Send the email.
+    await services.sendEmail(record.email, 'confirm_email', captchaCode);
 
     return { success: true, email, xref: record.ref_code };
 }
@@ -1039,14 +1044,14 @@ async function handleRequestSmsNew(req) {
     if (!req.body.prefix) {
         throw new ApiError({
             type: 'error_api_country_code_required',
-            field: 'prefix',
+            field: 'phoneNumber',
         });
     }
 
     const countryCode = req.body.prefix.split('_')[1];
     if (!countryCode) {
         throw new ApiError({
-            field: 'prefix',
+            field: 'phoneNumber',
             type: 'error_api_prefix_invalid',
         });
     }
@@ -1106,7 +1111,7 @@ async function handleRequestSmsNew(req) {
 
     const existingRecord = await database.findPhoneRecord({
         where: {
-            phoneNumber,
+            phone_number: phoneNumber,
         },
     });
 
@@ -1114,51 +1119,47 @@ async function handleRequestSmsNew(req) {
         record = existingRecord;
     } else {
         const newPhoneRecord = await database.createPhoneRecord({
-            phoneNumber,
-            phone_number_is_verified: false,
+            phone_number: phoneNumber,
             last_attempt_verify_phone_number: new Date(1588291200000),
             phone_code: null,
             phone_code_attempts: 0,
             phone_code_sent: 0,
             phone_code_generated: new Date(),
-            ref_code: req.body.ref_code,
         });
         record = newPhoneRecord;
     }
 
     const minusOneDay = Date.now() - 86400000;
-    if (!record.phone_number_is_verified) {
-        const minusOneMinute = Date.now() - 60000;
+    const minusOneMinute = Date.now() - 60000;
 
-        const usersLastAttempt = record.last_attempt_verify_phone_number
-            ? record.last_attempt_verify_phone_number.getTime()
-            : undefined;
+    const usersLastAttempt = record.last_attempt_verify_phone_number
+        ? record.last_attempt_verify_phone_number.getTime()
+        : undefined;
 
-        const dailySentTimes = record.phone_code_sent
-            ? record.phone_code_sent
-            : undefined;
+    const dailySentTimes = record.phone_code_sent
+        ? record.phone_code_sent
+        : undefined;
 
-        const lastRequestTime = record.phone_code_generated
-            ? record.phone_code_generated.getTime()
-            : undefined;
+    const lastRequestTime = record.phone_code_generated
+        ? record.phone_code_generated.getTime()
+        : undefined;
 
-        // if an email has requested code over 5 times with 24 hours, throw an error.
-        if (dailySentTimes && lastRequestTime) {
-            if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-                throw new ApiError({
-                    field: 'phone',
-                    type: 'error_api_request_too_much',
-                });
-            }
-        }
-
-        // If the user's last attempt was less than or exactly a minute ago, throw an error.
-        if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+    // if an email has requested code over 5 times with 24 hours, throw an error.
+    if (dailySentTimes && lastRequestTime) {
+        if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
             throw new ApiError({
                 field: 'phone',
-                type: 'error_api_wait_one_minute',
+                type: 'error_api_request_too_much',
             });
         }
+    }
+
+    // If the user's last attempt was less than or exactly a minute ago, throw an error.
+    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+        throw new ApiError({
+            field: 'phone',
+            type: 'error_api_wait_one_minute',
+        });
     }
 
     await database.logAction({
@@ -1225,19 +1226,11 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    // email already verified
-    if (record.email_is_verified) {
+    // incorrect input over 100 times
+    if (record.email_code_attempts >= 100) {
         throw new ApiError({
             field: 'code',
-            type: 'error_api_email_verified',
-        });
-    }
-
-    // incorrect input over 5 times
-    if (record.email_code_attempts >= 5) {
-        throw new ApiError({
-            field: 'code',
-            type: 'error_api_email_too_many',
+            type: 'error_api_request_too_much',
         });
     }
 
@@ -1264,9 +1257,6 @@ async function handleConfirmEmailCode(req) {
         });
     }
 
-    record.email_is_verified = true;
-    await record.save();
-
     return { success: true };
 }
 
@@ -1279,7 +1269,7 @@ async function handleConfirmSmsNew(req) {
     }
 
     const record = await database.findPhoneRecord({
-        where: { email: req.body.phoneNumber },
+        where: { phone_number: req.body.phoneNumber },
     });
 
     if (!record) {
@@ -1288,13 +1278,8 @@ async function handleConfirmSmsNew(req) {
             type: 'error_api_unknown_phone_number',
         });
     }
-    if (record.phone_number_is_verified) {
-        throw new ApiError({
-            field: 'code',
-            type: 'error_api_phone_verified',
-        });
-    }
-    if (record.phone_code_attempts >= 5) {
+
+    if (record.phone_code_attempts >= 100) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_phone_too_many',
@@ -1309,7 +1294,7 @@ async function handleConfirmSmsNew(req) {
         record.save();
         throw new ApiError({
             field: 'code',
-            type: 'error_api_email_code_invalid',
+            type: 'error_api_phone_code_invalid',
         });
     }
 
@@ -1318,12 +1303,9 @@ async function handleConfirmSmsNew(req) {
         await record.save();
         throw new ApiError({
             field: 'code',
-            type: 'error_api_code_invalid',
+            type: 'error_api_phone_code_invalid',
         });
     }
-
-    record.phone_number_is_verified = true;
-    await record.save();
 
     return { success: true };
 }
@@ -1336,69 +1318,305 @@ async function finalizeSignupNew(
     fingerprint,
     phoneNumber,
     phoneCode,
-    query,
     username,
-    xref,
-    protocol,
-    host,
-    ref_code,
-    log
+    xref
 ) {
-    const phoneRecord = database.findPhoneRecord(ref_code);
-    const emailRecord = database.findEmailRecord(ref_code);
-    // only act if both email and phone is verified
-    if (
-        !phoneRecord.phone_number_is_verified ||
-        !emailRecord.email_is_verified
-    ) {
-        return false;
+    if (!recaptcha) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_recaptcha_required',
+        });
     }
 
-    const user = await database.createUser({
+    try {
+        await services.verifyCaptcha(recaptcha, ip);
+    } catch (e) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_recaptcha_invalid',
+        });
+    }
+
+    if (!username) {
+        throw new ApiError({
+            field: 'username',
+            type: 'error_api_username_required',
+        });
+    }
+
+    if (!email) {
+        throw new ApiError({
+            field: 'email',
+            type: 'error_api_email_required',
+        });
+    }
+
+    if (!phoneNumber) {
+        throw new ApiError({
+            field: 'phone',
+            type: 'error_api_phone_required',
+        });
+    }
+
+    if (!emailCode) {
+        throw new ApiError({
+            field: 'email_code',
+            type: 'error_api_code_required',
+        });
+    }
+
+    if (!phoneCode) {
+        throw new ApiError({
+            field: 'phone_code',
+            type: 'error_api_code_required',
+        });
+    }
+
+    const phoneRecord = await database.findPhoneRecord({
+        where: {
+            phone_number: phoneNumber,
+        },
+    });
+    const emailRecord = await database.findEmailRecord({
+        where: {
+            email,
+        },
+    });
+
+    if (!phoneRecord) {
+        throw new ApiError({
+            field: 'phone_code',
+            type: 'error_api_unknown_phone_number',
+        });
+    }
+
+    if (!emailRecord) {
+        throw new ApiError({
+            field: 'email_code',
+            type: 'error_api_unknown_email',
+        });
+    }
+
+    if (phoneRecord.phone_code !== phoneCode) {
+        throw new ApiError({
+            field: 'phone_code',
+            type: 'error_api_phone_code_invalid',
+        });
+    }
+
+    if (emailRecord.email_code !== emailCode) {
+        throw new ApiError({
+            field: 'email_code',
+            type: 'error_api_email_code_invalid',
+        });
+    }
+
+    const usernameExist = await database.countUsers({
+        username,
+    });
+
+    if (usernameExist) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_user_exist',
+        });
+    }
+
+    await database.createUser({
         email,
-        phoneNumber,
+        email_is_verified: true,
+        phone_number: phoneNumber,
+        phone_number_is_verified: true,
         ip,
         account_is_created: false,
         created_at: new Date(),
         updated_at: null,
         fingerprint,
-        metadata: { query },
         username,
         tracking_id: xref || generateTrackingId(),
     });
 
-    // First, create the completed signup request in Gatekeeper.
-    // Allow Gatekeeper to relate it to other data based on the
-    // "faucet session id", in the form of `${email}+faucetsession` (used in frontend)
-    try {
-        const signupInGatekeeper = await services.gatekeeperSignupCreate(user);
-        user.set('gatekeeper_id', signupInGatekeeper.id);
-    } catch (error) {
-        logger.warn({ error }, 'gatekeeper.signup_create failed');
+    return { success: true };
+}
+
+async function handleCreateAccountNew(req) {
+    // Do not allow account creations if REACT_DISABLE_ACCOUNT_CREATION is set to true
+    if (process.env.REACT_DISABLE_ACCOUNT_CREATION === 'true') {
+        throw new ApiError({
+            type: 'Account creation temporarily disabled',
+            status: 503,
+        });
     }
 
-    // Finally, ask Gatekeeper for its judgement.
-    let result;
+    const { username, public_keys, phoneNumber, email } = req.body; // eslint-disable-line camelcase
 
+    if (!username) {
+        throw new ApiError({ type: 'error_api_username_required' });
+    }
     try {
-        result = await services.gatekeeperCheck(user);
-        if (
-            !['manual_review', 'approved', 'rejected'].includes(result.status)
-        ) {
-            throw new Error('Got invalid response from gatekeeper');
+        accountNameIsValid(username);
+    } catch (e) {
+        throw new ApiError({
+            type: e.message,
+        });
+    }
+    if (!public_keys) {
+        // eslint-disable-line camelcase
+        throw new ApiError({ type: 'error_api_public_keys_required' });
+    }
+    if (!email) {
+        throw new ApiError({ type: 'error_api_email_required' });
+    }
+    if (!phoneNumber) {
+        throw new ApiError({ type: 'error_api_phone_required' });
+    }
+    const user = await database.findUser({
+        where: {
+            username,
+            email,
+            phone_number: phoneNumber,
+        },
+    });
+    if (!user) {
+        throw new ApiError({ type: 'error_api_user_exists_not' });
+    }
+    if (user.account_is_created === true) {
+        throw new ApiError({
+            type: 'error_api_user_exist',
+        });
+    }
+    const creationHash = hash.sha256(crypto.randomBytes(32)).toString('hex');
+    await database.updateUsers(
+        {
+            creation_hash: creationHash,
+        },
+        {
+            where: {
+                email,
+                username,
+                phone_number: phoneNumber,
+            },
         }
-    } catch (error) {
-        log.warn(error, 'Classification failed, setting to manual_review');
-        result = { status: 'manual_review', note: `ERROR: ${error.message}` };
-    }
-    if (result.status === 'approved') {
-        await services.sendApprovalEmail(user.email, `${protocol}://${host}`);
+    );
+    const weightThreshold = 1;
+    const accountAuths = [];
+    const publicKeys = JSON.parse(public_keys);
+    const metadata = '{}';
+    const owner = {
+        weight_threshold: weightThreshold,
+        account_auths: accountAuths,
+        key_auths: [[publicKeys.owner, 1]],
+    };
+    const active = {
+        weight_threshold: weightThreshold,
+        account_auths: accountAuths,
+        key_auths: [[publicKeys.active, 1]],
+    };
+    const posting = {
+        weight_threshold: weightThreshold,
+        account_auths: accountAuths,
+        key_auths: [[publicKeys.posting, 1]],
+    };
+    const [activeCreationHash] = await database.query(
+        'SELECT SQL_NO_CACHE creation_hash FROM users WHERE email = ? and phone_number = ? and username = ?',
+        {
+            replacements: [email, phoneNumber, username],
+            type: database.Sequelize.QueryTypes.SELECT,
+        }
+    );
+
+    if (
+        !activeCreationHash ||
+        activeCreationHash.creation_hash !== creationHash
+    ) {
+        throw new ApiError({ type: 'error_api_account_creation_progress' });
     }
 
-    user.status = result.status;
-    user.review_note = result.note;
-    await user.save();
-    return true;
+    try {
+        await services.createAccount({
+            active,
+            memo_key: publicKeys.memo,
+            json_metadata: metadata,
+            owner,
+            posting,
+            new_account_name: username,
+        });
+    } catch (cause) {
+        await database.updateUsers(
+            {
+                creation_hash: null,
+            },
+            {
+                where: {
+                    email,
+                    username,
+                    phone_number: phoneNumber,
+                },
+            }
+        );
+        // steem-js error messages are so long that the log is clipped causing
+        // errors in scalyr parsing
+        cause.message = cause.message.split('\n').slice(0, 2);
+        throw new ApiError({
+            type: 'error_api_create_account',
+            cause,
+            status: 500,
+        });
+    }
+
+    await database.updateUsers(
+        {
+            status: 'created',
+            account_is_created: true,
+        },
+        {
+            where: {
+                email,
+                username,
+                phone_number: phoneNumber,
+            },
+        }
+    );
+
+    // try {
+    //     await services.gatekeeperMarkSignupCreated(user);
+    // } catch (error) {
+    //     logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
+    // }
+
+    const params = [
+        username,
+        {
+            phone: user.phone_number.replace(/[^+0-9]+/g, ''),
+            email: user.email,
+        },
+    ];
+
+    services.conveyorCall('set_user_data', params).catch(error => {
+        // TODO: this should retry more than once
+        req.log.warn(
+            error,
+            'Unable to store user data in conveyor... retrying'
+        );
+        setTimeout(() => {
+            // eslint-disable-next-line
+            services.conveyorCall('set_user_data', params).catch(error => {
+                req.log.error(error, 'Unable to store user data in conveyor');
+            });
+        }, 5 * 1000);
+    });
+
+    // Post to Condenser's account recovery endpoint.
+    services
+        .condenserTransfer(email, username, publicKeys.owner)
+        .catch(error => {
+            req.log.error(error, 'Unable to send recovery info to condenser');
+        });
+
+    // Add user to newsletter subscription list
+    await addNewsletterSubscriber(username, email);
+
+    return { success: true };
 }
 
 module.exports = {
@@ -1416,4 +1634,5 @@ module.exports = {
     handleConfirmSmsNew,
     finalizeSignupNew,
     handleConfirmEmailCode,
+    handleCreateAccountNew,
 };

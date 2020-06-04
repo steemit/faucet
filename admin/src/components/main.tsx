@@ -29,13 +29,22 @@ interface MainState {
   user?: UserSession
 }
 
-interface AppWindow extends Window {
-  /** Set by react build script env substitution using REACT_APP_SERVER_ADDRESS. */
-  SERVER_ADDRESS: string
-  /** Assigned by Google platform tools on load. */
-  gapi: any
+// interface AppWindow extends Window {
+//   /** Set by react build script env substitution using REACT_APP_SERVER_ADDRESS. */
+//   SERVER_ADDRESS: string
+//   /** Assigned by Google platform tools on load. */
+//   gapi: any
+// }
+export {}
+declare global {
+  interface Window {
+    /** Set by react build script env substitution using REACT_APP_SERVER_ADDRESS. */
+    SERVER_ADDRESS: string
+    /** Assigned by Google platform tools on load. */
+    gapi: any
+  }
 }
-const localWindow = window as AppWindow
+const localWindow = window
 
 /** Main component, handles navigation and user session. */
 class Main extends React.Component<MainProps, MainState> {

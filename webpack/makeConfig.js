@@ -66,6 +66,10 @@ function makeStyleLoaders(options) {
                     'less-loader',
                 ],
             },
+            {
+              test: /\.css$/i,
+              use: ['style-loader', 'css-loader'],
+            }
         ];
     }
 
@@ -77,6 +81,10 @@ function makeStyleLoaders(options) {
                 use: 'css-loader?importLoaders=1!postcss-loader?browsers=last 2 version!less-loader',
             }),
         },
+        {
+          test: /\.css$/i,
+          use: ['style-loader', 'css-loader'],
+        }
     ];
 }
 

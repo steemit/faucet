@@ -22,10 +22,6 @@ module.exports = {
             email_code_attempts: {
                 type: Sequelize.INTEGER,
             },
-            email_is_verified: {
-                type: Sequelize.BOOLEAN,
-                defaultValue: false,
-            },
             last_attempt_verify_email: {
                 type: Sequelize.DATE,
             },
@@ -34,10 +30,6 @@ module.exports = {
             },
             email_code_generated: {
                 type: Sequelize.DATE,
-            },
-            ref_code: {
-                type: Sequelize.STRING,
-                unique: true,
             },
         })
     ),

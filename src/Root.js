@@ -7,6 +7,7 @@ import LocaleWrapper from './containers/LocaleWrapper';
 import SignupSteps from './containers/SignupSteps';
 import CreateAccountSteps from './containers/CreateAccountSteps';
 import ConfirmEmailStep from './containers/ConfirmEmailStep';
+import WelcomeSteps from './containers/WelcomeSteps';
 
 const Root = ({ store }) => (
     <Provider store={store}>
@@ -15,6 +16,7 @@ const Root = ({ store }) => (
                 <IndexRoute component={SignupSteps} />
                 <Route path="create-account" component={CreateAccountSteps} />
                 <Route path="confirm-email" component={ConfirmEmailStep} />
+                <Route path="welcome" component={WelcomeSteps} />
             </Route>
         </Router>
     </Provider>

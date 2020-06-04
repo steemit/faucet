@@ -11,8 +11,8 @@ const SignupOptions = ({
     hideSignupModal,
     // showSignupModal,
     handleFreeSignup,
-    referrer,
     logCheckpoint,
+    pending_claimed_accounts,
 }) => {
     const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
 
@@ -25,40 +25,87 @@ const SignupOptions = ({
     // };
 
     return (
-        <div>
+        <div className="signup_options_wrap">
             <h1>
                 <FormattedMessage id="signup_options" />
             </h1>
-            <p>
+            {/* <p>
                 {referrer && (
                     <FormattedMessage
                         id="signup_options_referrer"
                         values={{ referrer: capitalizeFirstLetter(referrer) }}
                     />
                 )}
+            </p> */}
+            <p>
+                <FormattedMessage
+                    id="signup_options_referrer"
+                    values={{ referrer: capitalizeFirstLetter('steemit') }}
+                />
             </p>
             <p>
                 <FormattedMessage id="signup_options_body_1" />
             </p>
-            <p>
-                <FormattedMessage id="signup_options_body_2" />
-            </p>
-            <p>
+            {/* <p>
                 <FormattedMessage id="signup_options_body_3" />
-            </p>
+            </p> */}
 
             <div className="signup-options__buttons">
-                <Button
-                    type="primary"
-                    htmlType="button"
-                    onClick={handleFreeSignup}
-                >
-                    <FormattedMessage id="signup_options_button_free" />
-                    <br />
-                    <span className="btn-caveat">
-                        <FormattedMessage id="signup_options_button_free_caveat" />
-                    </span>
-                </Button>
+                <div>
+                    <img src="img/pay.png" alt="" />
+                    <div>
+                        <p>
+                            <FormattedMessage id="signup_pay_tip1" />
+                        </p>
+                        <p>
+                            <FormattedMessage id="signup_pay_tip2" />
+                        </p>
+                        <p>
+                            <FormattedMessage id="signup_pay_tip3" />
+                        </p>
+                    </div>
+
+                    <Button
+                        // type="primary"
+                        htmlType="button"
+                        // onClick={handleFreeSignup}
+                        disabled
+                    >
+                        <FormattedMessage id="signup_options_button_pay" />
+                        {/* <br />
+                        <span className="btn-caveat">
+                            <FormattedMessage id="signup_options_button_free_caveat" />
+                        </span> */}
+                    </Button>
+                </div>
+                <div>
+                    <img src="img/free.png" alt="" />
+                    <div>
+                        <p>
+                            <FormattedMessage id="signup_free_tip1" />
+                        </p>
+                        <p>
+                            <FormattedMessage id="signup_free_tip2" />
+                        </p>
+                    </div>
+                    <Button
+                        type={`${pending_claimed_accounts >= 100 && 'primary'}`}
+                        htmlType="button"
+                        onClick={handleFreeSignup}
+                        disabled={pending_claimed_accounts < 100}
+                    >
+                        <FormattedMessage id="signup_options_button_free" />
+                        {pending_claimed_accounts < 100 && (
+                            <span>
+                                <br />
+                                <span className="btn-caveat">
+                                    Insufficient Places
+                                    {/* <FormattedMessage id="signup_options_button_free_caveat" /> */}
+                                </span>
+                            </span>
+                        )}
+                    </Button>
+                </div>
             </div>
 
             <Modal
@@ -198,11 +245,13 @@ SignupOptions.propTypes = {
     // showSignupModal: PropTypes.func.isRequired,
     handleFreeSignup: PropTypes.func.isRequired,
     logCheckpoint: PropTypes.func.isRequired,
-    referrer: PropTypes.string,
+    // referrer: PropTypes.string,
+    pending_claimed_accounts: PropTypes.number,
 };
 
 SignupOptions.defaultProps = {
-    referrer: 'steemit',
+    // referrer: 'steemit',
+    pending_claimed_accounts: 0,
 };
 
 export default SignupOptions;

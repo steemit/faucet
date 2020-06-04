@@ -40,10 +40,7 @@ export default function reducer(state = defaultState, action = {}) {
         case GUESS_COUNTRY_CODE:
             return state;
         case SET_COUNTRY_CODE:
-            return state.set(
-                'countryCode',
-                action.payload.countryCode.location
-            );
+            return state.set('countryCode', action.payload.countryCode);
         case INCREMENT_STEP:
             return state;
         case DECREMENT_STEP:
