@@ -3,7 +3,7 @@
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": false,
     "dialectOptions": {
-      "ssl": true
+      "ssl": "Amazon RDS"
     }
   },
   "staging": {
