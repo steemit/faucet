@@ -1026,7 +1026,7 @@ async function handleRequestEmailCode(ip, email, log) {
     await record.save();
 
     // Send the email.
-    await services.sendEmail(record.email, 'confirm_email', captchaCode);
+    await services.sendEmail(record.email, 'email_code', { code: captchaCode });
 
     return { success: true, email, xref: record.ref_code };
 }
