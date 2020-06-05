@@ -1017,6 +1017,7 @@ async function handleRequestEmailCode(ip, email, log) {
     // count every 24 hours
     if (record.email_code_generated >= minusOneDay) {
         record.email_code_sent += 1;
+        record.email_code_generated = new Date();
     } else {
         record.email_code_sent = 1;
         record.email_code_generated = new Date();
@@ -1194,6 +1195,7 @@ async function handleRequestSmsNew(req) {
     // count every 24 hours
     if (record.phone_code_generated >= minusOneDay) {
         record.phone_code_sent += 1;
+        record.phone_code_generated = new Date();
     } else {
         record.phone_code_sent = 1;
         record.phone_code_generated = new Date();
@@ -1247,7 +1249,6 @@ async function handleConfirmEmailCode(req) {
 
     // try code
     record.email_code_attempts += 1;
-    record.last_attempt_verify_email = new Date();
     // if doesn't match
     if (record.email_code !== req.body.code) {
         await record.save();

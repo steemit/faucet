@@ -168,7 +168,7 @@ const getPendingClaimedAccounts = callback => {
 };
 
 const isEmail = email => {
-    const reg = /^\w+@[a-zA-Z0-9]{2,10}(?:\.[a-z]{2,4}){1,3}$/;
+    const reg = /^\w+([0-9.]{0,10})+[a-zA-Z0-9]{0,10}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
     return reg.test(email);
 };
 
