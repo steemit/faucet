@@ -168,7 +168,7 @@ const getPendingClaimedAccounts = callback => {
 };
 
 const isEmail = email => {
-    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const re = /^\w+([0-9.]{0,20})+[a-zA-Z0-9]{0,20}@[a-zA-Z0-9]{2,20}(?:.[a-z]{2,20}){1,3}$/;
     return re.test(String(email).toLowerCase());
 };
 
