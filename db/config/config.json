@@ -13,14 +13,20 @@
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": false,
     "dialectOptions": {
-      "ssl": true
+      "encrypt": true,
+      "ssl" : {
+        "rejectUnauthorized": false
+      }
     }
   },
   "production": {
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": false,
     "dialectOptions": {
-      "ssl": true
+      "encrypt": true,
+      "ssl" : {
+        "rejectUnauthorized": false
+      }
     }
   }
 }
