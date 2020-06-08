@@ -3,7 +3,6 @@
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": "0",
     "dialectOptions": {
-      "encrypt": true,
       "ssl" : {
         "rejectUnauthorized": false
       }
@@ -13,7 +12,6 @@
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": "0",
     "dialectOptions": {
-      "encrypt": true,
       "ssl" : {
         "rejectUnauthorized": false
       }
@@ -23,7 +21,6 @@
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": "0",
     "dialectOptions": {
-      "encrypt": true,
       "ssl" : {
         "rejectUnauthorized": false
       }
@@ -31,7 +28,6 @@
   },
   "local": {
     "use_env_variable": "DATABASE_URL",
-    "operatorsAliases": "0",
-    "dialectOptions": false
+    "operatorsAliases": "0"
   }
 }
