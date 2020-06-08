@@ -22,5 +22,10 @@
         "subject": "Your account is under review",
         "text":
             "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
+    },
+    "email_code": {
+        "from": "Steemit <noreply@steemit.com>",
+        "subject": "Your Steemit Email Code",
+        "text": "Your email code is: {code}"
     }
 }
