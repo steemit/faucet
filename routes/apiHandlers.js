@@ -1331,10 +1331,11 @@ async function finalizeSignupNew(
 
     try {
         await services.verifyCaptcha(recaptcha, ip);
-    } catch (e) {
+    } catch (cause) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_recaptcha_invalid',
+            cause,
         });
     }
 
