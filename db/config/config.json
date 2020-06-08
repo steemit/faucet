@@ -1,7 +1,7 @@
 {
   "development": {
     "use_env_variable": "DATABASE_URL",
-    "operatorsAliases": false,
+    "operatorsAliases": "0",
     "dialectOptions": {
       "encrypt": true,
       "ssl" : {
@@ -11,7 +11,7 @@
   },
   "staging": {
     "use_env_variable": "DATABASE_URL",
-    "operatorsAliases": false,
+    "operatorsAliases": "0",
     "dialectOptions": {
       "encrypt": true,
       "ssl" : {
@@ -21,12 +21,17 @@
   },
   "production": {
     "use_env_variable": "DATABASE_URL",
-    "operatorsAliases": false,
+    "operatorsAliases": "0",
     "dialectOptions": {
       "encrypt": true,
       "ssl" : {
         "rejectUnauthorized": false
       }
     }
+  },
+  "local": {
+    "use_env_variable": "DATABASE_URL",
+    "operatorsAliases": "0",
+    "dialectOptions": false
   }
 }
