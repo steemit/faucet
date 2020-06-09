@@ -42,7 +42,6 @@ async function emailIsInUse(email) {
         where: {
             email_normalized: normalized,
             email_is_verified: true,
-            account_is_created: true,
         },
     });
     return userCount > 0;
@@ -76,7 +75,6 @@ async function phoneIsInUse(phone_number) {
         where: {
             phone_number,
             phone_number_is_verified: true,
-            account_is_created: true,
         },
     });
     return userCount > 0;

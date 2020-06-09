@@ -1331,10 +1331,11 @@ async function finalizeSignupNew(
 
     try {
         await services.verifyCaptcha(recaptcha, ip);
-    } catch (e) {
+    } catch (cause) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_recaptcha_invalid',
+            cause,
         });
     }
 
@@ -1370,6 +1371,22 @@ async function finalizeSignupNew(
         throw new ApiError({
             field: 'phone_code',
             type: 'error_api_code_required',
+        });
+    }
+
+    const phoneExists = await database.phoneIsInUse(phoneNumber);
+    if (phoneExists) {
+        throw new ApiError({
+            field: 'phoneNumber',
+            type: 'error_api_phone_used',
+        });
+    }
+
+    const emailIsInUse = await database.emailIsInUse(email);
+    if (emailIsInUse) {
+        throw new ApiError({
+            type: 'error_api_email_used',
+            field: 'email',
         });
     }
 
@@ -1425,6 +1442,7 @@ async function finalizeSignupNew(
 
     await database.createUser({
         email,
+        email_normalized: normalizeEmail(email),
         email_is_verified: true,
         phone_number: phoneNumber,
         phone_number_is_verified: true,
