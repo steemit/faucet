@@ -116,12 +116,13 @@ class UserInfo extends React.Component {
 
     SendEmailCode = email => {
         if (this.state.email_code_sending) return;
-        const { intl } = this.props;
+        const { intl, locale } = this.props;
         this.setState({
             email_code_sending: true,
         });
         apiCall('/api/request_email_new', {
             email,
+            locale,
         })
             .then(() => {
                 window.email_code_count_seconds = 60;
@@ -166,7 +167,7 @@ class UserInfo extends React.Component {
 
     SendPhoneCode = () => {
         if (this.state.phone_code_sending) return;
-        const { intl } = this.props;
+        const { intl, locale } = this.props;
         const { phone, rawPhone, prefix } = this.state;
         this.setState({
             phone_code_sending: true,
@@ -174,6 +175,7 @@ class UserInfo extends React.Component {
         apiCall('/api/request_sms_new', {
             phoneNumber: rawPhone,
             prefix,
+            locale,
         })
             .then(() => {
                 window.phone_code_count_seconds = 60;
@@ -232,8 +234,7 @@ class UserInfo extends React.Component {
         this.setState({
             pending_create_user: true,
         });
-        const { form, trackingId, intl, handleSubmitUserInfo } = this.props;
-        const { fingerprint } = this.state;
+        const { form, intl, handleSubmitUserInfo } = this.props;
         const data = {
             recaptcha: form.getFieldValue('recaptcha'),
             email: form.getFieldValue('email'),
@@ -241,14 +242,13 @@ class UserInfo extends React.Component {
             phoneNumber: `+${form.getFieldValue('phone')}`,
             phoneCode: form.getFieldValue('phone_code'),
             username: form.getFieldValue('username'),
-            fingerprint,
-            xref: trackingId,
         };
         apiCall('/api/create_user_new', data)
-            .then(() => {
+            .then(result => {
                 this.setState({
                     pending_create_user: false,
                 });
+                data.token = result.token;
                 handleSubmitUserInfo(data);
             })
             .catch(error => {
@@ -405,7 +405,9 @@ class UserInfo extends React.Component {
                         })(
                             <PhoneInput
                                 country={
-                                    countryCode === null ? 'us' : countryCode
+                                    countryCode === null
+                                        ? 'us'
+                                        : countryCode.toLowerCase()
                                 }
                                 placeholder={intl.formatMessage({
                                     id: 'enter_phone',
@@ -543,19 +545,19 @@ class UserInfo extends React.Component {
 
 UserInfo.propTypes = {
     intl: intlShape.isRequired,
+    locale: PropTypes.string,
     form: PropTypes.shape({
         setFields: PropTypes.func.isRequired,
     }).isRequired,
-    trackingId: PropTypes.string.isRequired,
     countryCode: PropTypes.string,
     origin: PropTypes.string.isRequired,
     handleSubmitUserInfo: PropTypes.func.isRequired,
 };
 
 UserInfo.defaultProps = {
-    trackingId: '',
     countryCode: '',
     origin: '',
+    locale: '',
 };
 
 export default Form.create()(injectIntl(UserInfo));

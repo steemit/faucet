@@ -52,33 +52,6 @@ const SignupOptions = ({
 
             <div className="signup-options__buttons">
                 <div>
-                    <img src="img/pay.png" alt="" />
-                    <div>
-                        <p>
-                            <FormattedMessage id="signup_pay_tip1" />
-                        </p>
-                        <p>
-                            <FormattedMessage id="signup_pay_tip2" />
-                        </p>
-                        <p>
-                            <FormattedMessage id="signup_pay_tip3" />
-                        </p>
-                    </div>
-
-                    <Button
-                        // type="primary"
-                        htmlType="button"
-                        // onClick={handleFreeSignup}
-                        disabled
-                    >
-                        <FormattedMessage id="signup_options_button_pay" />
-                        {/* <br />
-                        <span className="btn-caveat">
-                            <FormattedMessage id="signup_options_button_free_caveat" />
-                        </span> */}
-                    </Button>
-                </div>
-                <div>
                     <img src="img/free.png" alt="" />
                     <div>
                         <p>

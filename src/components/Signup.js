@@ -168,6 +168,7 @@ class Signup extends Component {
         this.props.setUsername(data.username);
         this.props.setEmail(data.email);
         this.props.setPhone(data.phoneNumber);
+        this.props.setToken(data.token);
         this.props.logCheckpoint(CHECKPOINTS.user_created);
     };
 
@@ -320,6 +321,7 @@ class Signup extends Component {
                                 <FormSignupUserInfo
                                     origin={currentReferrer}
                                     countryCode={countryCode}
+                                    locale={locale}
                                     handleSubmitUserInfo={
                                         this.handleSubmitUserInfo
                                     }
@@ -381,7 +383,9 @@ class Signup extends Component {
                                     username={username}
                                     email={email}
                                     phoneNumber={phoneNumber}
+                                    token={token}
                                     password={this.state.password}
+                                    locale={locale}
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
