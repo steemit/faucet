@@ -232,8 +232,7 @@ class UserInfo extends React.Component {
         this.setState({
             pending_create_user: true,
         });
-        const { form, trackingId, intl, handleSubmitUserInfo } = this.props;
-        const { fingerprint } = this.state;
+        const { form, intl, handleSubmitUserInfo } = this.props;
         const data = {
             recaptcha: form.getFieldValue('recaptcha'),
             email: form.getFieldValue('email'),
@@ -241,14 +240,13 @@ class UserInfo extends React.Component {
             phoneNumber: `+${form.getFieldValue('phone')}`,
             phoneCode: form.getFieldValue('phone_code'),
             username: form.getFieldValue('username'),
-            fingerprint,
-            xref: trackingId,
         };
         apiCall('/api/create_user_new', data)
-            .then(() => {
+            .then(result => {
                 this.setState({
                     pending_create_user: false,
                 });
+                data.token = result.token;
                 handleSubmitUserInfo(data);
             })
             .catch(error => {
@@ -405,7 +403,9 @@ class UserInfo extends React.Component {
                         })(
                             <PhoneInput
                                 country={
-                                    countryCode === null ? 'us' : countryCode
+                                    countryCode === null
+                                        ? 'us'
+                                        : countryCode.toLowerCase()
                                 }
                                 placeholder={intl.formatMessage({
                                     id: 'enter_phone',
@@ -546,14 +546,12 @@ UserInfo.propTypes = {
     form: PropTypes.shape({
         setFields: PropTypes.func.isRequired,
     }).isRequired,
-    trackingId: PropTypes.string.isRequired,
     countryCode: PropTypes.string,
     origin: PropTypes.string.isRequired,
     handleSubmitUserInfo: PropTypes.func.isRequired,
 };
 
 UserInfo.defaultProps = {
-    trackingId: '',
     countryCode: '',
     origin: '',
 };

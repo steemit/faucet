@@ -4,11 +4,20 @@ import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
 import apiCall from '../../../utils/api';
+import getFingerprint from '../../../../helpers/fingerprint';
 
 class CreateAccount extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            fingerprint: '',
+        };
+    }
+
+    componentWillMount() {
+        this.setState({
+            fingerprint: JSON.stringify(getFingerprint()),
+        });
     }
 
     passwordEquals = (rule, value, callback) => {
@@ -38,21 +47,22 @@ class CreateAccount extends React.Component {
         const {
             form: { validateFieldsAndScroll },
             username,
-            email,
-            phoneNumber,
+            token,
             password,
             intl,
             handleCreateAccount,
+            trackingId,
         } = this.props;
+        const { fingerprint } = this.state;
         const roles = ['posting', 'active', 'owner', 'memo'];
         const pubKeys = steem.auth.generateKeys(username, password, roles);
         validateFieldsAndScroll(err => {
             if (!err) {
                 apiCall('/api/create_account_new', {
-                    username,
-                    email,
-                    phoneNumber,
+                    token,
                     public_keys: JSON.stringify(pubKeys),
+                    fingerprint,
+                    xref: trackingId,
                 })
                     .then(() => {
                         this.setState({ submitting: false });

@@ -129,7 +129,7 @@
     "create_account_tip3": "此外，成功创建账户后我们会给您发送一封欢迎邮件",
     "email_description": "我们将给你的邮箱发送邮箱验证码",
     "phone_description": "我们将给你的手机发送手机验证码",
-    "send_code": "发送",
+    "send_code": "发送验证码",
     "error_phone_invalid": "手机号不正确",
     "error_api_request_too_much": "API请求过于频繁",
     "error_api_wait_one_minute": "API请求过于频繁",
@@ -140,6 +140,7 @@
     "error_api_user_exist": "用户已存在",
     "welcome_page_title": "欢迎",
     "welcome_page_message_1":
-        "You’re almost done！To get your login details and Keys for Steemit.com,go and sign in to the Steemit wallet at https://steemitwallet.com .",
-    "welcome_page_go_to_wallet": "访问钱包"
+        "即将完成！请前往 http://steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。",
+    "welcome_page_go_to_wallet": "访问钱包",
+    "error_api_insert_user_into_db_failed": "用户数据写入失败"
 }

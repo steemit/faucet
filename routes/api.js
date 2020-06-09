@@ -99,11 +99,9 @@ router.post(
             req.body.recaptcha,
             req.body.email,
             req.body.emailCode,
-            req.body.fingerprint ? JSON.parse(req.body.fingerprint) : {},
             req.body.phoneNumber,
             req.body.phoneCode,
-            req.body.username,
-            req.body.xref
+            req.body.username
         )
     )
 );
