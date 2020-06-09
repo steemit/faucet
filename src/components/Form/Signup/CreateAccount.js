@@ -52,6 +52,7 @@ class CreateAccount extends React.Component {
             intl,
             handleCreateAccount,
             trackingId,
+            locale,
         } = this.props;
         const { fingerprint } = this.state;
         const roles = ['posting', 'active', 'owner', 'memo'];
@@ -63,6 +64,7 @@ class CreateAccount extends React.Component {
                     public_keys: JSON.stringify(pubKeys),
                     fingerprint,
                     xref: trackingId,
+                    locale,
                 })
                     .then(() => {
                         this.setState({ submitting: false });

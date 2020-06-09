@@ -116,12 +116,13 @@ class UserInfo extends React.Component {
 
     SendEmailCode = email => {
         if (this.state.email_code_sending) return;
-        const { intl } = this.props;
+        const { intl, locale } = this.props;
         this.setState({
             email_code_sending: true,
         });
         apiCall('/api/request_email_new', {
             email,
+            locale,
         })
             .then(() => {
                 window.email_code_count_seconds = 60;
@@ -166,7 +167,7 @@ class UserInfo extends React.Component {
 
     SendPhoneCode = () => {
         if (this.state.phone_code_sending) return;
-        const { intl } = this.props;
+        const { intl, locale } = this.props;
         const { phone, rawPhone, prefix } = this.state;
         this.setState({
             phone_code_sending: true,
@@ -174,6 +175,7 @@ class UserInfo extends React.Component {
         apiCall('/api/request_sms_new', {
             phoneNumber: rawPhone,
             prefix,
+            locale,
         })
             .then(() => {
                 window.phone_code_count_seconds = 60;
@@ -543,6 +545,7 @@ class UserInfo extends React.Component {
 
 UserInfo.propTypes = {
     intl: intlShape.isRequired,
+    locale: PropTypes.string,
     form: PropTypes.shape({
         setFields: PropTypes.func.isRequired,
     }).isRequired,
@@ -554,6 +557,7 @@ UserInfo.propTypes = {
 UserInfo.defaultProps = {
     countryCode: '',
     origin: '',
+    locale: '',
 };
 
 export default Form.create()(injectIntl(UserInfo));

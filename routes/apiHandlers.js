@@ -896,7 +896,7 @@ async function handleAnalytics(req) {
     return { success: true };
 }
 
-async function handleRequestEmailCode(ip, email, log) {
+async function handleRequestEmailCode(ip, email, log, locale) {
     if (!email) {
         throw new ApiError({
             type: 'error_api_email_required',
@@ -1026,7 +1026,15 @@ async function handleRequestEmailCode(ip, email, log) {
     await record.save();
 
     // Send the email.
-    await services.sendEmail(record.email, 'email_code', { code: captchaCode });
+    if (locale === 'zh') {
+        await services.sendEmail(record.email, 'email_code_zh', {
+            code: captchaCode,
+        });
+    } else {
+        await services.sendEmail(record.email, 'email_code', {
+            code: captchaCode,
+        });
+    }
 
     return { success: true, email, xref: record.ref_code };
 }
@@ -1172,12 +1180,13 @@ async function handleRequestSmsNew(req) {
     const phoneCode = generateCode(5);
 
     try {
-        await services.sendSMS(
-            phoneNumber,
-            `${phoneCode} is your Steem confirmation code, 
-            Please keep your code secure. 
-            The code will expire in 30 minutes.`
-        );
+        let msg;
+        if (req.body.locale === 'zh') {
+            msg = `【Steemit】免费注册-手机验证码：${phoneCode}。请不要将验证码告知他人。该手机验证码将于30分钟后失效`;
+        } else {
+            msg = `[Steemit] Sign up for free - your verification code via SMS: ${phoneCode}. Please do not disclose your code to others. The code will expire in 30 minutes.`;
+        }
+        await services.sendSMS(phoneNumber, msg);
     } catch (cause) {
         if (cause.code === 21614 || cause.code === 21211) {
             throw new ApiError({
@@ -1474,7 +1483,7 @@ async function handleCreateAccountNew(req) {
         });
     }
 
-    const { public_keys, token, fingerprint, xref } = req.body; // eslint-disable-line camelcase
+    const { public_keys, token, fingerprint, xref, locale } = req.body; // eslint-disable-line camelcase
 
     if (!public_keys) {
         // eslint-disable-line camelcase
@@ -1621,6 +1630,25 @@ async function handleCreateAccountNew(req) {
         .catch(error => {
             req.log.error(error, 'Unable to send recovery info to condenser');
         });
+
+    // Send success email
+    try {
+        if (locale === 'zh') {
+            await services.sendEmail(decoded.email, 'register_success_zh', {
+                username: decoded.username,
+                email: decoded.email,
+                phoneNumber: decoded.phoneNumber,
+            });
+        } else {
+            await services.sendEmail(decoded.email, 'register_success', {
+                username: decoded.username,
+                email: decoded.email,
+                phoneNumber: decoded.phoneNumber,
+            });
+        }
+    } catch (error) {
+        req.log.warn(error, 'Send success register mail failed');
+    }
 
     // Add user to newsletter subscription list
     await addNewsletterSubscriber(decoded.username, decoded.email);

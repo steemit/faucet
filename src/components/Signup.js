@@ -321,6 +321,7 @@ class Signup extends Component {
                                 <FormSignupUserInfo
                                     origin={currentReferrer}
                                     countryCode={countryCode}
+                                    locale={locale}
                                     handleSubmitUserInfo={
                                         this.handleSubmitUserInfo
                                     }
@@ -384,6 +385,7 @@ class Signup extends Component {
                                     phoneNumber={phoneNumber}
                                     token={token}
                                     password={this.state.password}
+                                    locale={locale}
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
