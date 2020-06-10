@@ -1,8 +1,7 @@
-// import {useIntl } from 'react-intl';
-const reactintl = require('react-intl');
 const steem = require('@steemit/steem-js');
 const validator = require('validator');
 const badDomains = require('../bad-domains');
+
 const accountNotExist = (rule, value, callback) => {
     steem.api.getAccounts([value], (err, result) => {
         if (result[0]) {
@@ -114,6 +113,11 @@ const accountNameIsValid = name => {
     return true;
 };
 
+const isEmail = email => {
+    const reg = /^[\w]{1,20}([0-9.]{0,10})+[a-zA-Z0-9]{0,20}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
+    return reg.test(email);
+};
+
 /**
  * if email is not valid, throw a error
  */
@@ -189,11 +193,6 @@ const getPendingClaimedAccounts = callback => {
             callback();
         }
     });
-};
-
-const isEmail = email => {
-    const reg = /^[\w]{1,20}([0-9.]{0,10})+[a-zA-Z0-9]{0,20}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
-    return reg.test(email);
 };
 
 module.exports = {

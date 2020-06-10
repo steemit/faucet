@@ -9,7 +9,6 @@ import getFingerprint from '../../../../helpers/fingerprint';
 // import Loading from '../../../widgets/Loading';
 import {
     accountNameIsValid,
-    validateEmail,
     validateEmailDomain,
     emailValid,
 } from '../../../../helpers/validator';
