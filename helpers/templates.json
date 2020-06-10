@@ -26,6 +26,25 @@
     "email_code": {
         "from": "Steemit <noreply@steemit.com>",
         "subject": "Your Steemit Email Code",
-        "text": "Your email code is: {code}"
+        "text":
+            "Dear user:\n\n[Steemit] Sign up for free - your verification code via email: {code}.\n\nFor safety reasons, this verification code will expire in 30 minutes. Please do not disclose your code to others."
+    },
+    "email_code_zh": {
+        "from": "Steemit <noreply@steemit.com>",
+        "subject": "你的【Steemit】邮箱验证码",
+        "text":
+            "您好：\n【Steemit】免费注册-邮箱验证码: {code}。\n\n出于安全原因，该邮箱验证码将于30分钟后失效。请勿将验证码透露给他人。"
+    },
+    "register_success": {
+        "from": "Steemit <noreply@steemit.com>",
+        "subject": "Welcome to Steemit",
+        "text":
+            "Hi,\n\nGood news! You have successfully created the account.\n\nUsername: {username}\nE-mail: {email}\nPhone number: {phoneNumber}\n\nTo get your login details  and Keys for Steemit.com, go and sign in to the Steemit wallet at <a href=\"http://steemitwallet.com\">http://steemitwallet.com</a>\n\nCheers,\nYour friends at Steemit\n\n"
+    },
+    "register_success_zh": {
+        "from": "Steemit <noreply@steemit.com>",
+        "subject": "欢迎来到【Steemit】",
+        "text":
+            "您好，\n\n\n好消息！您的账户已创建成功。\n\n用户名：{username}\n邮箱：{email}\n手机：{phoneNumber}\n\n\n请前往 <a href=\"http://steemitwallet.com\">http://steemitwallet.com</a> 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。\n\n\n非常感谢。\n您在 Steemit 的伙伴\n"
     }
 }

@@ -32,6 +32,12 @@ const INVALID_ACCOUNTNAME_REASONS = {
         'error_validation_account_segment_min',
 };
 
+const INVALID_EMAIL_REASONS = {
+    error_email_required: 'error_email_required',
+    error_api_email_format: 'error_api_email_format',
+    error_api_email_length: 'error_api_email_length',
+};
+
 /**
  * If the name is invalid, throws an error with a message set to one of INVALID_ACCOUNTNAME_REASONS.
  * See
@@ -107,6 +113,26 @@ const accountNameIsValid = name => {
     return true;
 };
 
+const isEmail = email => {
+    const reg = /^[\w]{1,20}([0-9.]{0,10})+[a-zA-Z0-9]{0,20}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
+    return reg.test(email);
+};
+
+/**
+ * if email is not valid, throw a error
+ */
+const emailValid = email => {
+    if (!email) {
+        throw new Error(INVALID_EMAIL_REASONS.error_username_required);
+    }
+    if (!validator.isEmail(email)) {
+        throw new Error(INVALID_EMAIL_REASONS.error_api_email_format);
+    }
+    if (!isEmail(email)) {
+        throw new Error(INVALID_EMAIL_REASONS.error_api_email_length);
+    }
+    return true;
+};
 /**
  * Used in src/components/Form/Signup/Email.js
  * */
@@ -114,6 +140,8 @@ const validateEmail = (rule, value, callback) => {
     if (value) {
         if (!validator.isEmail(value)) {
             callback('Please input a valid email address');
+        } else if (!isEmail(value)) {
+            callback('email is too long valid xx.xx@xx.xx each xx 20 max');
         } else {
             callback();
         }
@@ -167,11 +195,6 @@ const getPendingClaimedAccounts = callback => {
     });
 };
 
-const isEmail = email => {
-    const reg = /^\w+([0-9.]{0,10})+[a-zA-Z0-9]{0,10}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
-    return reg.test(email);
-};
-
 module.exports = {
     accountNotExist,
     accountNameIsValid,
@@ -180,4 +203,5 @@ module.exports = {
     normalizeEmail,
     getPendingClaimedAccounts,
     isEmail,
+    emailValid,
 };

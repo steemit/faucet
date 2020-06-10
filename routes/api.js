@@ -79,7 +79,12 @@ router.get('/analytics', apiMiddleware(apiHandlers.handleAnalytics));
 router.post(
     '/request_email_new',
     apiMiddleware(req =>
-        apiHandlers.handleRequestEmailCode(req.ip, req.body.email, req.log)
+        apiHandlers.handleRequestEmailCode(
+            req.ip,
+            req.body.email,
+            req.log,
+            req.body.locale
+        )
     )
 );
 router.post('/request_sms_new', apiMiddleware(apiHandlers.handleRequestSmsNew));
@@ -99,11 +104,9 @@ router.post(
             req.body.recaptcha,
             req.body.email,
             req.body.emailCode,
-            req.body.fingerprint ? JSON.parse(req.body.fingerprint) : {},
             req.body.phoneNumber,
             req.body.phoneCode,
-            req.body.username,
-            req.body.xref
+            req.body.username
         )
     )
 );
