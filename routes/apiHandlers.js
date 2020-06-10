@@ -918,7 +918,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         });
     }
 
-    await database.actionLimitNew(ip, 'request_email_code');
+    // await database.actionLimitNew(ip, 'request_email_code');
 
     await database.logAction({
         action: 'request_email_code',
@@ -1114,7 +1114,7 @@ async function handleRequestSmsNew(req) {
         });
     }
 
-    await database.actionLimitNew(req.ip, 'try_number');
+    // await database.actionLimitNew(req.ip, 'try_number');
 
     let record = null;
 
