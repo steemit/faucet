@@ -128,7 +128,7 @@ async function actionLimitNew(ip, action, ipLimit = 32) {
     };
     const promises = [
         db.actions.count({
-            where: { ip, created_at, action: { [Op.ne]: action } },
+            where: { ip, created_at, action: { [Op.eq]: action } },
         }),
     ];
     const ipActions = await Promise.all(promises);
