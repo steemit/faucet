@@ -11,6 +11,7 @@ import {
     accountNameIsValid,
     validateEmail,
     validateEmailDomain,
+    emailValid,
 } from '../../../../helpers/validator';
 import '../../../styles/phone-number-input.less';
 
@@ -55,6 +56,14 @@ class UserInfo extends React.Component {
     validateAccountNameIntl = (rule, value, callback) => {
         try {
             accountNameIsValid(value);
+        } catch (e) {
+            callback(this.props.intl.formatMessage({ id: e.message }));
+        }
+        callback();
+    };
+    validateEmail = (rule, value, callback) => {
+        try {
+            emailValid(value);
         } catch (e) {
             callback(this.props.intl.formatMessage({ id: e.message }));
         }
@@ -318,12 +327,7 @@ class UserInfo extends React.Component {
                                         id: 'error_email_required',
                                     }),
                                 },
-                                {
-                                    validator: validateEmail,
-                                    message: intl.formatMessage({
-                                        id: 'error_api_email_format',
-                                    }),
-                                },
+                                { validator: this.validateEmail },
                                 {
                                     validator: validateEmailDomain,
                                     message: intl.formatMessage({

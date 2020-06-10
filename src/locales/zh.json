@@ -29,6 +29,7 @@
         "此域名已被加入黑名单，请提供其他E-mail地址",
     "error_api_email_exists_not": "Email不存在",
     "error_api_email_format": "请提供一个有效的Email",
+    "error_api_email_length": "邮箱太长，xx.xx@xx.xx 每个xx 20 字符max",
     "error_api_email_required": "Email是必填的",
     "error_api_email_used": "Email已经被使用",
     "error_api_email_verified": "Email已被验证",

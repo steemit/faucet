@@ -40,6 +40,8 @@
         "Ce domaine est sur liste noire, veuillez fournir un autre email",
     "error_api_email_exists_not": "L'email n'existe pas",
     "error_api_email_format": "Veuillez saisir un email valide",
+    "error_api_email_length":
+        "l'e-mail est trop long valide xx.xx@xx.xx chaque xx 20 max",
     "error_api_email_required": "L'email est obligatoire",
     "error_api_email_used": "Email déjà utilisé",
     "error_api_email_verified": "Email déjà vérifié",

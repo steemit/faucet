@@ -38,6 +38,8 @@
         "This domain name is blacklisted. Please provide another email address",
     "error_api_email_exists_not": "Email address doesn't exist",
     "error_api_email_format": "Please provide a valid email address",
+    "error_api_email_length":
+        "email is too long valid xx.xx@xx.xx each xx 20 max",
     "error_api_email_required": "Email address required",
     "error_api_email_used": "Email address already in use",
     "error_api_email_verified": "Email address already verified",

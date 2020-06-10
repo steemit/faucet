@@ -1,7 +1,8 @@
+// import {useIntl } from 'react-intl';
+const reactintl = require('react-intl');
 const steem = require('@steemit/steem-js');
 const validator = require('validator');
 const badDomains = require('../bad-domains');
-
 const accountNotExist = (rule, value, callback) => {
     steem.api.getAccounts([value], (err, result) => {
         if (result[0]) {
@@ -30,6 +31,12 @@ const INVALID_ACCOUNTNAME_REASONS = {
         'error_validation_account_segment_end',
     error_validation_account_segment_min:
         'error_validation_account_segment_min',
+};
+
+const INVALID_EMAIL_REASONS = {
+    error_email_required: 'error_email_required',
+    error_api_email_format: 'error_api_email_format',
+    error_api_email_length: 'error_api_email_length',
 };
 
 /**
@@ -108,12 +115,29 @@ const accountNameIsValid = name => {
 };
 
 /**
+ * if email is not valid, throw a error
+ */
+const emailValid = email => {
+    if (!email) {
+        throw new Error(INVALID_EMAIL_REASONS.error_username_required);
+    }
+    if (!validator.isEmail(email)) {
+        throw new Error(INVALID_EMAIL_REASONS.error_api_email_format);
+    }
+    if (!isEmail(email)) {
+        throw new Error(INVALID_EMAIL_REASONS.error_api_email_length);
+    }
+    return true;
+};
+/**
  * Used in src/components/Form/Signup/Email.js
  * */
 const validateEmail = (rule, value, callback) => {
     if (value) {
         if (!validator.isEmail(value)) {
             callback('Please input a valid email address');
+        } else if (!isEmail(value)) {
+            callback('email is too long valid xx.xx@xx.xx each xx 20 max');
         } else {
             callback();
         }
@@ -168,7 +192,7 @@ const getPendingClaimedAccounts = callback => {
 };
 
 const isEmail = email => {
-    const reg = /^\w+([0-9.]{0,10})+[a-zA-Z0-9]{0,10}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
+    const reg = /^[\w]{1,20}([0-9.]{0,10})+[a-zA-Z0-9]{0,20}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
     return reg.test(email);
 };
 
@@ -180,4 +204,5 @@ module.exports = {
     normalizeEmail,
     getPendingClaimedAccounts,
     isEmail,
+    emailValid,
 };
