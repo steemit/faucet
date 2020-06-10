@@ -32,6 +32,9 @@ class UserInfo extends React.Component {
             fingerprint: '',
             query: '',
             pending_create_user: false,
+            valid_username: false,
+            valid_email: false,
+            valid_phone_number: false,
         };
     }
 
@@ -55,7 +58,9 @@ class UserInfo extends React.Component {
     validateAccountNameIntl = (rule, value, callback) => {
         try {
             accountNameIsValid(value);
+            this.setState({ valid_username: true });
         } catch (e) {
+            this.setState({ valid_username: false });
             callback(this.props.intl.formatMessage({ id: e.message }));
         }
         callback();
@@ -63,7 +68,9 @@ class UserInfo extends React.Component {
     validateEmail = (rule, value, callback) => {
         try {
             emailValid(value);
+            this.setState({ valid_email: true });
         } catch (e) {
+            this.setState({ valid_email: false });
             callback(this.props.intl.formatMessage({ id: e.message }));
         }
         callback();
@@ -78,10 +85,14 @@ class UserInfo extends React.Component {
             window.usernameTimeout = setTimeout(() => {
                 apiCall('/api/check_username', { username: value })
                     .then(() => {
-                        this.setState({ username: value });
+                        this.setState({
+                            username: value,
+                            valid_username: true,
+                        });
                         callback();
                     })
                     .catch(error => {
+                        this.setState({ valid_username: false });
                         callback(intl.formatMessage({ id: error.type }));
                     });
             }, 500);
@@ -123,8 +134,22 @@ class UserInfo extends React.Component {
     };
 
     SendEmailCode = email => {
-        if (this.state.email_code_sending) return;
         const { intl, locale } = this.props;
+        // check username first
+        if (!this.state.valid_username) {
+            this.props.form.setFields({
+                username: {
+                    value: '',
+                    errors: [
+                        new Error(
+                            intl.formatMessage({ id: 'error_username_invalid' })
+                        ),
+                    ],
+                },
+            });
+            return;
+        }
+        if (this.state.email_code_sending) return;
         this.setState({
             email_code_sending: true,
         });
@@ -174,8 +199,37 @@ class UserInfo extends React.Component {
     };
 
     SendPhoneCode = () => {
-        if (this.state.phone_code_sending) return;
         const { intl, locale } = this.props;
+        // check username first
+        if (!this.state.valid_username) {
+            this.props.form.setFields({
+                username: {
+                    value: '',
+                    errors: [
+                        new Error(
+                            intl.formatMessage({ id: 'error_username_invalid' })
+                        ),
+                    ],
+                },
+            });
+            return;
+        }
+        // check email second
+        if (!this.state.valid_email) {
+            this.props.form.setFields({
+                email: {
+                    value: '',
+                    errors: [
+                        new Error(
+                            intl.formatMessage({ id: 'error_email_invalid' })
+                        ),
+                    ],
+                },
+            });
+            return;
+        }
+
+        if (this.state.phone_code_sending) return;
         const { phone, rawPhone, prefix } = this.state;
         this.setState({
             phone_code_sending: true,
