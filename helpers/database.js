@@ -120,7 +120,7 @@ const deletePhoneRecord = async where => db.phonecode.destroy(where);
  * remove user id references
  * to remove username reserve mechanism
  */
-async function actionLimitNew(ip, ipLimit = 32) {
+async function actionLimitNew(ip, action, ipLimit = 32) {
     const created_at = {
         [Op.gte]: moment()
             .subtract(20, 'hours')
@@ -128,7 +128,7 @@ async function actionLimitNew(ip, ipLimit = 32) {
     };
     const promises = [
         db.actions.count({
-            where: { ip, created_at, action: { [Op.ne]: 'check_username' } },
+            where: { ip, created_at, action: { [Op.ne]: action } },
         }),
     ];
     const ipActions = await Promise.all(promises);

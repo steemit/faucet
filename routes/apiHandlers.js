@@ -918,7 +918,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         });
     }
 
-    await database.actionLimitNew(ip);
+    await database.actionLimitNew(ip, 'request_email_code');
 
     await database.logAction({
         action: 'request_email_code',
