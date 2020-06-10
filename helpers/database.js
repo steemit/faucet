@@ -120,7 +120,7 @@ const deletePhoneRecord = async where => db.phonecode.destroy(where);
  * remove user id references
  * to remove username reserve mechanism
  */
-async function actionLimitNew(ip, action, ipLimit = 32) {
+async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
     const created_at = {
         [Op.gte]: moment()
             .subtract(20, 'hours')

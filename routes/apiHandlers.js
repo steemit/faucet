@@ -1114,7 +1114,7 @@ async function handleRequestSmsNew(req) {
         });
     }
 
-    await database.actionLimitNew(req.ip);
+    await database.actionLimitNew(req.ip, 'try_number');
 
     let record = null;
 
