@@ -116,6 +116,8 @@ const updatePhoneRecord = async (data, where) =>
 
 const deletePhoneRecord = async where => db.phonecode.destroy(where);
 
+const deleteEmailRecord = async where => db.emailcode.destroy(where);
+
 /**
  * remove user id references
  * to remove username reserve mechanism
@@ -159,4 +161,5 @@ module.exports = {
     findPhoneRecord,
     updatePhoneRecord,
     deletePhoneRecord,
+    deleteEmailRecord,
 };

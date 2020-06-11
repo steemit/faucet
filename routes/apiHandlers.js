@@ -1656,6 +1656,9 @@ async function handleCreateAccountNew(req) {
     // Add user to newsletter subscription list
     await addNewsletterSubscriber(decoded.username, decoded.email);
 
+    await database.deleteEmailRecord(user.email);
+    await database.deletePhoneRecord(user.phone_number);
+
     return { success: true };
 }
 
