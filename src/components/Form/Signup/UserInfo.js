@@ -47,6 +47,28 @@ class UserInfo extends React.Component {
         });
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.props.locale !== nextProps.locale) {
+            setTimeout(() => {
+                const newState = {};
+                const { email_code_sending, phone_code_sending } = this.state;
+                if (!email_code_sending) {
+                    newState.email_send_code_txt = this.props.intl.formatMessage({
+                        id: 'send_code',
+                    });
+                }
+                if (!phone_code_sending) {
+                    newState.phone_send_code_txt = this.props.intl.formatMessage({
+                        id: 'send_code',
+                    });
+                }
+                if (Object.keys(newState).length > 0) {
+                    this.setState(newState);
+                }
+            });
+        }
+    }
+
     componentWillUnmount() {
         clearInterval(window.email_code_interval);
         clearInterval(window.phone_code_interval);
