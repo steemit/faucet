@@ -965,6 +965,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
                 email_code_attempts: 0,
                 email_code_sent: 0,
                 email_code_generated: null,
+                email_code_first_sent: null,
             });
             record = newEmailRecord;
         } catch (e) {
@@ -987,8 +988,8 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         ? record.email_code_sent.get
         : undefined;
 
-    const lastRequestTime = record.email_code_generated
-        ? record.email_code_generated.getTime()
+    const lastRequestTime = record.email_code_first_sent
+        ? record.email_code_first_sent.getTime()
         : undefined;
 
     // if an email has requested code over 5 times with 24 hours, throw an error.
@@ -1013,20 +1014,6 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         100000 + Math.round(Math.random() * 899999)
     ).toString();
 
-    // Update the user to reflect that the verification email was sent.
-    record.email_code_attempts = 0;
-    record.email_code = captchaCode;
-    // count every 24 hours
-    if (record.email_code_generated >= minusOneDay) {
-        record.email_code_sent += 1;
-        record.email_code_generated = new Date();
-    } else {
-        record.email_code_sent = 1;
-        record.email_code_generated = new Date();
-    }
-    record.last_attempt_verify_email = new Date();
-    await record.save();
-
     // Send the email.
     if (locale === 'zh') {
         await services.sendEmail(record.email, 'email_code_zh', {
@@ -1037,6 +1024,20 @@ async function handleRequestEmailCode(ip, email, log, locale) {
             code: captchaCode,
         });
     }
+
+    // Update the user to reflect that the verification email was sent.
+    record.email_code_attempts = 0;
+    record.email_code = captchaCode;
+    // count every 24 hours
+    if (record.email_code_generated >= minusOneDay) {
+        record.email_code_sent += 1;
+    } else {
+        record.email_code_sent = 1;
+        record.email_code_first_sent = new Date();
+    }
+    record.email_code_generated = new Date();
+    record.last_attempt_verify_email = new Date();
+    await record.save();
 
     return { success: true, email, xref: record.ref_code };
 }
@@ -1151,8 +1152,8 @@ async function handleRequestSmsNew(req) {
         ? record.phone_code_sent
         : undefined;
 
-    const lastRequestTime = record.phone_code_generated
-        ? record.phone_code_generated.getTime()
+    const lastRequestTime = record.phone_code_first_sent
+        ? record.phone_code_first_sent.getTime()
         : undefined;
 
     // if an email has requested code over 5 times with 24 hours, throw an error.
@@ -1206,11 +1207,11 @@ async function handleRequestSmsNew(req) {
     // count every 24 hours
     if (record.phone_code_generated >= minusOneDay) {
         record.phone_code_sent += 1;
-        record.phone_code_generated = new Date();
     } else {
         record.phone_code_sent = 1;
-        record.phone_code_generated = new Date();
+        record.phone_code_first_sent = new Date();
     }
+    record.phone_code_generated = new Date();
     record.last_attempt_verify_phone_number = new Date();
     await record.save();
 
