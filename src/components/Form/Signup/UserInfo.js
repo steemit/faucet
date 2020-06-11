@@ -6,6 +6,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, Icon, message } from 'antd';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
+import reloadRecaptcha from '../../../../helpers/recaptcha';
 // import Loading from '../../../widgets/Loading';
 import {
     accountNameIsValid,
@@ -47,9 +48,44 @@ class UserInfo extends React.Component {
         });
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.props.locale !== nextProps.locale) {
+            setTimeout(() => {
+                reloadRecaptcha();
+                const newState = {};
+                const { email_code_sending, phone_code_sending } = this.state;
+                if (!email_code_sending) {
+                    newState.email_send_code_txt = this.props.intl.formatMessage({
+                        id: 'send_code',
+                    });
+                }
+                if (!phone_code_sending) {
+                    newState.phone_send_code_txt = this.props.intl.formatMessage({
+                        id: 'send_code',
+                    });
+                }
+                if (Object.keys(newState).length > 0) {
+                    this.setState(newState);
+                }
+            });
+        }
+    }
+
     componentWillUnmount() {
         clearInterval(window.email_code_interval);
         clearInterval(window.phone_code_interval);
+        for (
+            let i = document.getElementsByTagName('script').length - 1;
+            i >= 0;
+            i -= 1
+        ) {
+            const scriptNode = document.getElementsByTagName('script')[i];
+            if (scriptNode.src.includes('recaptcha')) {
+                scriptNode.parentNode.removeChild(scriptNode);
+            }
+        }
+        delete window.grecaptcha;
+        delete window.onloadcallback;
     }
 
     validateAccountNameIntl = (rule, value, callback) => {
