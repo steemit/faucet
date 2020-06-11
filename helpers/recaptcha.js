@@ -24,6 +24,7 @@ const reloadRecaptcha = () => {
     newScriptNode.src = url;
     newScriptNode.async = 1;
     window.onloadcallback = () => {
+        if (!window.grecaptcha) return;
         window.grecaptcha.reset();
     };
 

@@ -17,7 +17,6 @@ import {
 } from '../reducers/user';
 import { logCheckpoint } from '../reducers/tracking';
 import Signup from '../components/Signup';
-import reloadRecaptcha from '../../helpers/recaptcha';
 
 const mapStateToProps = (state, ownProps) => ({
     queryParams: ownProps.location.query,
@@ -36,7 +35,6 @@ const mapDispatchToProps = dispatch => ({
                 lang: 'en',
             };
         }
-        reloadRecaptcha();
         dispatch(setLocale(locale));
     },
     guessCountryCode: () => {
