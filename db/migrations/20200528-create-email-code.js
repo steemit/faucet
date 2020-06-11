@@ -31,9 +31,6 @@ module.exports = {
             email_code_generated: {
                 type: Sequelize.DATE,
             },
-            email_code_first_sent: {
-                type: Sequelize.DATE,
-            },
         })
     ),
     down: queryInterface => queryInterface.dropTable('emailcode'),
