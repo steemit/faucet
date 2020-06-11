@@ -17,6 +17,7 @@ import {
 } from '../reducers/user';
 import { logCheckpoint } from '../reducers/tracking';
 import Signup from '../components/Signup';
+import reloadRecaptcha from '../../helpers/recaptcha';
 
 const mapStateToProps = (state, ownProps) => ({
     queryParams: ownProps.location.query,
@@ -26,6 +27,16 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
     setLocale: locale => {
+        if (locale === 'zh') {
+            window.recaptchaOptions = {
+                lang: 'zh-CN',
+            };
+        } else {
+            window.recaptchaOptions = {
+                lang: 'en',
+            };
+        }
+        reloadRecaptcha();
         dispatch(setLocale(locale));
     },
     guessCountryCode: () => {
