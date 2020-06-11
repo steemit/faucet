@@ -918,7 +918,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         });
     }
 
-    await database.actionLimitNew(ip);
+    // await database.actionLimitNew(ip, 'request_email_code');
 
     await database.logAction({
         action: 'request_email_code',
@@ -1009,7 +1009,9 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         });
     }
 
-    const captchaCode = Math.floor(Math.random() * 1000000).toString();
+    const captchaCode = (
+        100000 + Math.round(Math.random() * 899999)
+    ).toString();
 
     // Update the user to reflect that the verification email was sent.
     record.email_code_attempts = 0;
@@ -1114,7 +1116,7 @@ async function handleRequestSmsNew(req) {
         });
     }
 
-    await database.actionLimitNew(req.ip);
+    // await database.actionLimitNew(req.ip, 'try_number');
 
     let record = null;
 
