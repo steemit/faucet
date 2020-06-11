@@ -27,9 +27,6 @@ module.exports = {
             phone_code_generated: {
                 type: Sequelize.DATE,
             },
-            phone_code_first_sent: {
-                type: Sequelize.DATE,
-            }
         })
     ),
     down: queryInterface => queryInterface.dropTable('phonecode'),
