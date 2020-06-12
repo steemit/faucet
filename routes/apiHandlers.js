@@ -1183,14 +1183,20 @@ async function handleRequestSmsNew(req) {
     const phoneCode = generateCode(6);
 
     try {
-        let msg;
-        if (req.body.locale === 'zh') {
-            msg = `【Steemit】免费注册-手机验证码：${phoneCode}。请不要将验证码告知他人。该手机验证码将于30分钟后失效`;
-        } else {
-            msg = `[Steemit] Sign up for free - your verification code via SMS: ${phoneCode}. Please do not disclose your code to others. The code will expire in 30 minutes.`;
-        }
-        const response = await services.sendSMS(phoneNumber, msg);
-        logger.info({ response }, 'sms_response_info');
+        // let msg;
+        // if (req.body.locale === 'zh') {
+        //     msg = `【Steemit】免费注册-手机验证码：${phoneCode}。请不要将验证码告知他人。该手机验证码将于30分钟后失效`;
+        // } else {
+        //     msg = `[Steemit] Sign up for free - your verification code via SMS: ${phoneCode}. Please do not disclose your code to others. The code will expire in 30 minutes.`;
+        // }
+        // const response = await services.sendSMS(phoneNumber, msg);
+        // logger.info({ response }, 'sms_response_info');
+        await services.sendSMS(
+            phoneNumber,
+            `${phoneCode} is your Steem confirmation code, 
+            Please keep your code secure. 
+            The code will expire in 30 minutes.`
+        );
     } catch (cause) {
         logger.warn({ cause }, 'sms_send_error');
         if (cause.code === 21614 || cause.code === 21211) {
