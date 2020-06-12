@@ -1028,6 +1028,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
     // Update the user to reflect that the verification email was sent.
     record.email_code_attempts = 0;
     record.email_code = captchaCode;
+    record.email_code_generated = new Date();
     // count every 24 hours
     if (record.email_code_generated >= minusOneDay) {
         record.email_code_sent += 1;
@@ -1035,7 +1036,9 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         record.email_code_sent = 1;
         record.email_code_first_sent = new Date();
     }
-    record.email_code_generated = new Date();
+    if (!record.email_code_first_sent) {
+        record.email_code_first_sent = new Date();
+    }
     record.last_attempt_verify_email = new Date();
     await record.save();
 
@@ -1137,6 +1140,7 @@ async function handleRequestSmsNew(req) {
             phone_code_attempts: 0,
             phone_code_sent: 0,
             phone_code_generated: new Date(),
+            phone_code_first_sent: null,
         });
         record = newPhoneRecord;
     }
@@ -1210,6 +1214,7 @@ async function handleRequestSmsNew(req) {
 
     record.phone_code_attempts = 0;
     record.phone_code = phoneCode;
+    record.phone_code_generated = new Date();
     // count every 24 hours
     if (record.phone_code_generated >= minusOneDay) {
         record.phone_code_sent += 1;
@@ -1217,7 +1222,9 @@ async function handleRequestSmsNew(req) {
         record.phone_code_sent = 1;
         record.phone_code_first_sent = new Date();
     }
-    record.phone_code_generated = new Date();
+    if (!record.phone_code_first_sent) {
+        record.phone_code_first_sent = new Date();
+    }
     record.last_attempt_verify_phone_number = new Date();
     await record.save();
 
