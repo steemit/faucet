@@ -1180,7 +1180,7 @@ async function handleRequestSmsNew(req) {
         metadata: { phoneNumber },
     });
 
-    const phoneCode = generateCode(5);
+    const phoneCode = generateCode(6);
 
     try {
         let msg;
