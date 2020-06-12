@@ -10,7 +10,6 @@ class SavePassword extends React.Component {
         super(props);
         this.state = {
             password: '',
-            isClickedCopyBtn: false,
         };
     }
 
@@ -31,9 +30,6 @@ class SavePassword extends React.Component {
 
     copySuccess = () => {
         const { intl } = this.props;
-        this.setState({
-            isClickedCopyBtn: true,
-        });
         message.success(intl.formatMessage({ id: 'password_copied' }));
     };
 
@@ -56,7 +52,6 @@ class SavePassword extends React.Component {
                 <Button
                     type="primary"
                     onClick={() => handleSavePassword(this.state.password)}
-                    disabled={!this.state.isClickedCopyBtn}
                 >
                     <FormattedMessage id="continue" />
                 </Button>
