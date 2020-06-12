@@ -54,6 +54,7 @@
     "error_api_recaptcha_invalid": "Recaptcha invalid",
     "error_api_recaptcha_required": "Recaptcha required",
     "error_api_sent_email_failed": "Failed to send confirmation email",
+    "error_api_sent_phone_code_failed": "Failed to send phone auto code",
     "error_api_token_invalid": "Invalid token",
     "error_api_token_invalid_type": "Invalid token type",
     "error_api_token_required": "Token required",

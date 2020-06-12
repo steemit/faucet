@@ -1189,8 +1189,10 @@ async function handleRequestSmsNew(req) {
         } else {
             msg = `[Steemit] Sign up for free - your verification code via SMS: ${phoneCode}. Please do not disclose your code to others. The code will expire in 30 minutes.`;
         }
-        await services.sendSMS(phoneNumber, msg);
+        const response = await services.sendSMS(phoneNumber, msg);
+        logger.info({ response }, 'sms_response_info');
     } catch (cause) {
+        logger.warn({ cause }, 'sms_send_error');
         if (cause.code === 21614 || cause.code === 21211) {
             throw new ApiError({
                 cause,
@@ -1198,7 +1200,11 @@ async function handleRequestSmsNew(req) {
                 type: 'error_phone_format',
             });
         } else {
-            throw cause;
+            throw new ApiError({
+                cause,
+                field: 'phoneNumber',
+                type: 'error_api_sent_phone_code_failed',
+            });
         }
     }
 
