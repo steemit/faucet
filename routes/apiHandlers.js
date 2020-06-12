@@ -985,7 +985,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         : undefined;
 
     const dailySentTimes = record.email_code_sent
-        ? record.email_code_sent.get
+        ? record.email_code_sent
         : undefined;
 
     const lastRequestTime = record.email_code_first_sent
