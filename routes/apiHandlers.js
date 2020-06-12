@@ -1250,7 +1250,7 @@ async function handleConfirmEmailCode(req) {
     if (record.email_code_attempts >= 100) {
         throw new ApiError({
             field: 'code',
-            type: 'error_api_request_too_much',
+            type: 'error_api_phone_too_many',
         });
     }
 
