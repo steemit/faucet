@@ -33,7 +33,7 @@ class UserInfo extends React.Component {
             fingerprint: '',
             query: '',
             pending_create_user: false,
-            btn_disabled: true,
+            // btn_disabled: true,
         };
     }
 
@@ -72,34 +72,34 @@ class UserInfo extends React.Component {
         }
     }
 
-    componentDidUpdate() {
-        const { form } = this.props;
-        const data = {
-            recaptcha: form.getFieldValue('recaptcha'),
-            email: form.getFieldValue('email'),
-            emailCode: form.getFieldValue('email_code'),
-            phoneNumber: `+${form.getFieldValue('phone')}`,
-            phoneCode: form.getFieldValue('phone_code'),
-            username: form.getFieldValue('username'),
-        };
-        let isAllInput = true;
-        Object.values(data).forEach(v => {
-            if (!v) {
-                isAllInput = false;
-            }
-        });
-        if (isAllInput) {
-            if (this.state.btn_disabled) {
-                form.validateFields((error) => {
-                    if (!error) {
-                        this.setState({
-                            btn_disabled: false,
-                        });
-                    }
-                });
-            }
-        }
-    }
+    // componentDidUpdate() {
+    //     const { form } = this.props;
+    //     const data = {
+    //         recaptcha: form.getFieldValue('recaptcha'),
+    //         email: form.getFieldValue('email'),
+    //         emailCode: form.getFieldValue('email_code'),
+    //         phoneNumber: `+${form.getFieldValue('phone')}`,
+    //         phoneCode: form.getFieldValue('phone_code'),
+    //         username: form.getFieldValue('username'),
+    //     };
+    //     let isAllInput = true;
+    //     Object.values(data).forEach(v => {
+    //         if (!v) {
+    //             isAllInput = false;
+    //         }
+    //     });
+    //     if (isAllInput) {
+    //         if (this.state.btn_disabled) {
+    //             form.validateFields((error) => {
+    //                 if (!error) {
+    //                     this.setState({
+    //                         btn_disabled: false,
+    //                     });
+    //                 }
+    //             });
+    //         }
+    //     }
+    // }
 
     componentWillUnmount() {
         clearInterval(window.email_code_interval);
@@ -583,7 +583,7 @@ class UserInfo extends React.Component {
                                     htmlType="submit"
                                     size="large"
                                     loading={this.state.pending_create_user}
-                                    disabled={this.state.btn_disabled}
+                                    /* disabled={this.state.btn_disabled} */
                                 >
                                     <FormattedMessage id="continue" />
                                 </Button>

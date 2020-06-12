@@ -1664,12 +1664,19 @@ async function handleCreateAccountNew(req) {
     } catch (error) {
         req.log.warn(error, 'Send success register mail failed');
     }
+    try {
+        // Add user to newsletter subscription list
+        await addNewsletterSubscriber(decoded.username, decoded.email);
+    } catch (err) {
+        req.log.warn(err, 'addNewsletterSubscriber error');
+    }
 
-    // Add user to newsletter subscription list
-    await addNewsletterSubscriber(decoded.username, decoded.email);
-
-    await database.deleteEmailRecord(user.email);
-    await database.deletePhoneRecord(user.phone_number);
+    try {
+        await database.deleteEmailRecord(user.email);
+        await database.deletePhoneRecord(user.phone_number);
+    } catch (err) {
+        req.log.warn(err, 'remove email or phone code record error');
+    }
 
     return { success: true };
 }
