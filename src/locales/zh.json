@@ -43,6 +43,7 @@
     "error_api_recaptcha_invalid": "无效的人机验证",
     "error_api_recaptcha_required": "人机验证是必填的",
     "error_api_sent_email_failed": "无法发送确认邮件",
+    "error_api_sent_phone_code_failed": "无法发送手机验证码",
     "error_api_token_invalid": "无效的token",
     "error_api_token_invalid_type": "无效的token类型",
     "error_api_token_required": "Token是必须的",
