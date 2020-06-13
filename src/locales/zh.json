@@ -148,5 +148,6 @@
     "welcome_page_message_1":
         "即将完成！请前往 http://steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。",
     "welcome_page_go_to_wallet": "访问钱包",
-    "error_api_insert_user_into_db_failed": "用户数据写入失败"
+    "error_api_insert_user_into_db_failed": "用户数据写入失败",
+    "insufficient_places": "免费注册额度不足"
 }

@@ -202,5 +202,6 @@
     "welcome_page_message_1":
         "You’re almost done！To get your login details and Keys for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com .",
     "welcome_page_go_to_wallet": "Go to wallet",
-    "error_api_insert_user_into_db_failed": "User data inserts failed"
+    "error_api_insert_user_into_db_failed": "User data inserts failed",
+    "insufficient_places": "Insufficient Places"
 }

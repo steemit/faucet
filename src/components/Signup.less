@@ -50,15 +50,6 @@
       padding: 50px 20px;
       margin-top: 50px;
     }
-    .signup_options_wrap{
-      p{
-        opacity: 0.6;
-        font-family: HelveticaNeue;
-        font-size: 18px;
-        color: #2F2F2F;
-        line-height: 24px;
-      }
-    }
   }
 
   .Signup__icons {
@@ -129,13 +120,10 @@
         flex: 1;
         display: flex;
         flex-direction:column;
-        align-items: center;
+        align-items: stretch;
         padding: 3.75rem 1.25rem 1.5rem;
         border: 1px solid rgba(171,171,171,0.30);
         border-radius: .625rem;
-        &:first-child{
-          margin-right: 2.5rem;
-        }
         p{
           margin-bottom: .4rem;
           padding-bottom: 0;
@@ -150,10 +138,13 @@
           transform: translate(-50%, -60%);
         }
         >div{
-          min-height: 7.5rem;
+          min-height: 3.75rem;
+          margin-bottom: 2.5rem;
         }
         button{
+          width: 13rem;
           padding: 0 .5rem;
+          margin: 0 auto;
         }
       }
       @media (max-width: 500px) {

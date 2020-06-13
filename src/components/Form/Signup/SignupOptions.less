@@ -14,6 +14,48 @@
     border-color: @primary-color;
     box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
   }
+  .wrapper {
+    margin-right: 0;
+    padding-right: 50px !important;
+    padding-left: 50px !important;
+
+    .get-in-register__button {
+      background-color: @disabled-bg;
+      border-color: @normal-color;
+    }
+  }
+}
+
+.signup-options__buttons:hover {
+  .wrapper {
+    border: 1px solid rgba(23,32,201,0.60) !important;
+    box-shadow: 0 10px 30px 0 rgba(47,47,47,0.19) !important;
+    border-radius: 10px !important;
+
+    div > p {
+      color: #1720C9 !important;
+    }
+
+    .get-in-register__button {
+      color: #FFFFFF;
+      font-family: HelveticaNeue-Bold;
+      background-color: @primary-color;
+      border-color: @primary-color;
+      box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+    }
+  }
+}
+
+.signup_options_wrap {
+  p {
+    opacity: 0.6;
+    font-family: HelveticaNeue;
+    font-size: 18px;
+    color: #2F2F2F;
+    letter-spacing: 0;
+    line-height: 24px;
+    font-weight: 400;
+  }
 }
 
 // Signup Options modal
