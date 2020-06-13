@@ -233,6 +233,39 @@
         color: #2F2F2F;
         line-height: 1.5;
       }
+      .signup-form {
+        .ant-input {
+          border: 2px solid #fff;
+          background: rgba(47,47,47,0.04);
+          border-radius: 10px;
+        }
+        .ant-input-affix-wrapper .ant-input:focus {
+          background-color: #fff;
+          border: 2px solid rgba(23,32,201,0.40);
+          border-radius: 10px;
+          box-shadow: none;
+        }
+        .has-feedback.has-success {
+          .ant-input {
+            border-radius: 10px;
+            background: rgba(23,32,201,0.06);
+            border: 2px solid #fff;
+          }
+          .ant-input:focus {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            border-radius: 10px;
+            box-shadow: none;
+          }
+        }
+        .has-feedback.has-error {
+          .ant-input {
+            background: #FFFFFF;
+            border: 2px solid rgba(243,89,85,0.60);
+            border-radius: 10px;
+          }
+        }
+      }
     }
 
     .form-actions {
@@ -257,6 +290,7 @@
 
     .ant-input {
       color: rgba(51, 51, 51, 0.5);
+      border-radius: 10px;
     }
 
     .ant-form-item {
