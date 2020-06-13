@@ -464,7 +464,7 @@ class UserInfo extends React.Component {
                         {getFieldDecorator('phone', {
                             rules: [
                                 {
-                                    validator: this.validatePhoneEmpty,
+                                    required: true,
                                     message: intl.formatMessage({
                                         id: 'error_api_phone_required',
                                     }),
