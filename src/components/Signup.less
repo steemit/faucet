@@ -234,6 +234,10 @@
         line-height: 1.5;
       }
       .signup-form {
+        .ant-form-explain {
+          margin-top: 6px;
+          margin-bottom: 0px;
+        }
         .ant-input {
           border: 2px solid #fff;
           background: rgba(47,47,47,0.04);
@@ -407,6 +411,24 @@
             .form-control {
               background: #FFFFFF;
               border: 2px solid rgba(243,89,85,0.60);
+            }
+          }
+        }
+        .recaptcha-wrapper {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          .submit-button {
+            width: 100%;
+            text-align: center;
+            padding-left: 10px;
+          }
+          @media (max-width: @screen-xs) {
+            display: block;
+            .submit-button {
+              margin-top: 26px;
+              padding: 0;
             }
           }
         }

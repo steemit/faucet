@@ -14,6 +14,7 @@ import {
     validateEmailDomain,
     emailValid,
 } from '../../../../helpers/validator';
+import Placeholder from '../../Placeholder';
 
 class UserInfo extends React.Component {
     constructor(props) {
@@ -376,6 +377,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
+                    <Placeholder height="14px" />
                     <h2>
                         <FormattedMessage id="enter_email" />
                     </h2>
@@ -451,6 +453,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
+                    <Placeholder height="14px" />
                     <h2>
                         <FormattedMessage id="enter_phone" />
                     </h2>
@@ -531,16 +534,10 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
+                    <Placeholder height="14px" />
                     <Form.Item>
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                            }}
-                        >
-                            <div style={{}}>
+                        <div className="recaptcha-wrapper">
+                            <div className="recaptcha">
                                 {getFieldDecorator('recaptcha', {
                                     rules: [
                                         {
@@ -566,12 +563,7 @@ class UserInfo extends React.Component {
                                     />
                                 )}
                             </div>
-                            <div
-                                style={{
-                                    width: '230px',
-                                    textAlign: 'center',
-                                }}
-                            >
+                            <div className="submit-button">
                                 <Button
                                     type="primary"
                                     htmlType="submit"
@@ -591,7 +583,9 @@ class UserInfo extends React.Component {
                                     id="username_steemit_login"
                                     values={{
                                         link: (
-                                            <a href="https://steemit.com/login.html">
+                                            <a href="https://steemit.com/login.html" style={{
+                                                textDecoration: 'underline',
+                                            }}>
                                                 <FormattedMessage id="sign_in" />
                                             </a>
                                         ),
