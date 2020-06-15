@@ -20,6 +20,14 @@ class CreateAccount extends React.Component {
         });
     }
 
+    getBtnStatus = () => {
+        const { form, password } = this.props;
+        const tos = form.getFieldValue('agree_tos');
+        const pp = form.getFieldValue('agree_pp');
+        const isEqual = form.getFieldValue('password') === password;
+        return !(isEqual && tos && pp);
+    }
+
     passwordEquals = (rule, value, callback) => {
         const { init, password, intl } = this.props;
         if (init) {
@@ -175,12 +183,14 @@ class CreateAccount extends React.Component {
                     </Form.Item>
                     <Form.Item style={{ marginTop: '3rem' }}>
                         <Button
+                            className="create-account"
                             style={{
                                 fontSize: '16px',
                             }}
                             type="primary"
                             htmlType="submit"
                             loading={this.state.submitting}
+                            disabled={this.getBtnStatus()}
                         >
                             <FormattedMessage id={'create_account'} />
                         </Button>

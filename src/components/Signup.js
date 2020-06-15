@@ -536,6 +536,7 @@ class Signup extends Component {
                                     }}
                                 >
                                     <Button
+                                        className="custom-btn"
                                         style={{ width: '100%' }}
                                         type="primary"
                                         size="large"
