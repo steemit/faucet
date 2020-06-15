@@ -14,7 +14,6 @@ import {
     validateEmailDomain,
     emailValid,
 } from '../../../../helpers/validator';
-import '../../../styles/phone-number-input.less';
 
 class UserInfo extends React.Component {
     constructor(props) {
