@@ -1235,6 +1235,13 @@ async function handleConfirmEmailCode(req) {
     const currentEmail = req.body.email;
     const minusHalfHour = Date.now() - 1800000;
 
+    if (!currentEmail) {
+        throw new ApiError({
+            type: 'error_api_email_required',
+            field: 'email',
+        });
+    }
+
     if (!req.body.code) {
         throw new ApiError({
             field: 'code',
@@ -1291,6 +1298,13 @@ async function handleConfirmSmsNew(req) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_code_required',
+        });
+    }
+
+    if (!req.body.phoneNumber) {
+        throw new ApiError({
+            type: 'error_api_phone_required',
+            field: 'phoneNumber',
         });
     }
 

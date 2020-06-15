@@ -350,7 +350,7 @@ class Signup extends Component {
                                 <h1>
                                     <FormattedMessage id="save_password" />
                                 </h1>
-                                <p className="text">
+                                <p className="text" style={{marginBottom: '16px'}}>
                                     <FormattedMessage id="save_password_text" />
                                 </p>
                                 <SavePassword
@@ -375,7 +375,9 @@ class Signup extends Component {
                                 <p className="text">
                                     <FormattedMessage id="confirm_password" />
                                 </p>
-                                <p className="text">
+                                <p className="text" style={{
+                                    marginBottom: '0.875rem',
+                                }}>
                                     <FormattedMessage id="master_password" />
                                 </p>
                                 <CreateAccount
@@ -523,7 +525,7 @@ class Signup extends Component {
                                 </h1>
                                 <div
                                     style={{
-                                        marginTop: '36px',
+                                        marginTop: '3.2px',
                                     }}
                                 >
                                     <FormattedMessage id="welcome_page_message_1" />

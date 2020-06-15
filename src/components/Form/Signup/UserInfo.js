@@ -4,6 +4,7 @@ import 'react-phone-input-2/lib/bootstrap.css';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, Icon, message } from 'antd';
+import SendCode from './SendCode';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import reloadRecaptcha from '../../../../helpers/recaptcha';
@@ -13,7 +14,7 @@ import {
     validateEmailDomain,
     emailValid,
 } from '../../../../helpers/validator';
-import '../../../styles/phone-number-input.less';
+import Placeholder from '../../Placeholder';
 
 class UserInfo extends React.Component {
     constructor(props) {
@@ -376,6 +377,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
+                    <Placeholder height="14px" />
                     <h2>
                         <FormattedMessage id="enter_email" />
                     </h2>
@@ -435,17 +437,15 @@ class UserInfo extends React.Component {
                                     id: 'enter_confirmation_code',
                                 })}
                                 addonAfter={
-                                    <a
-                                        role="button"
-                                        tabIndex="0"
+                                    <SendCode
+                                        sending={this.state.email_code_sending}
+                                        btnText={this.state.email_send_code_txt}
                                         onClick={() =>
                                             this.SendEmailCode(
                                                 getFieldValue('email')
                                             )
                                         }
-                                    >
-                                        {this.state.email_send_code_txt}
-                                    </a>
+                                    />
                                 }
                                 autoComplete="off"
                                 autoCorrect="off"
@@ -454,6 +454,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
+                    <Placeholder height="14px" />
                     <h2>
                         <FormattedMessage id="enter_phone" />
                     </h2>
@@ -464,7 +465,7 @@ class UserInfo extends React.Component {
                         {getFieldDecorator('phone', {
                             rules: [
                                 {
-                                    validator: this.validatePhoneEmpty,
+                                    required: true,
                                     message: intl.formatMessage({
                                         id: 'error_api_phone_required',
                                     }),
@@ -522,13 +523,11 @@ class UserInfo extends React.Component {
                                     id: 'enter_confirmation_code',
                                 })}
                                 addonAfter={
-                                    <a
-                                        role="button"
-                                        tabIndex="0"
+                                    <SendCode
+                                        sending={this.state.phone_code_sending}
+                                        btnText={this.state.phone_send_code_txt}
                                         onClick={() => this.SendPhoneCode()}
-                                    >
-                                        {this.state.phone_send_code_txt}
-                                    </a>
+                                    />
                                 }
                                 autoComplete="off"
                                 autoCorrect="off"
@@ -537,16 +536,10 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
+                    <Placeholder height="14px" />
                     <Form.Item>
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                            }}
-                        >
-                            <div style={{}}>
+                        <div className="recaptcha-wrapper">
+                            <div className="recaptcha">
                                 {getFieldDecorator('recaptcha', {
                                     rules: [
                                         {
@@ -572,13 +565,9 @@ class UserInfo extends React.Component {
                                     />
                                 )}
                             </div>
-                            <div
-                                style={{
-                                    width: '230px',
-                                    textAlign: 'center',
-                                }}
-                            >
+                            <div className="submit-button">
                                 <Button
+                                    className="custom-btn"
                                     type="primary"
                                     htmlType="submit"
                                     size="large"
@@ -597,7 +586,9 @@ class UserInfo extends React.Component {
                                     id="username_steemit_login"
                                     values={{
                                         link: (
-                                            <a href="https://steemit.com/login.html">
+                                            <a href="https://steemit.com/login.html" style={{
+                                                textDecoration: 'underline',
+                                            }}>
                                                 <FormattedMessage id="sign_in" />
                                             </a>
                                         ),

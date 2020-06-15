@@ -16,7 +16,7 @@ class SavePassword extends React.Component {
 
     componentWillMount() {
         if (this.props.password === '') {
-            this.generateWif();
+            this.generateWif(true);
         } else {
             this.setState({
                 password: this.props.password,
@@ -24,9 +24,18 @@ class SavePassword extends React.Component {
         }
     }
 
-    generateWif = () => {
+    generateWif = (isFirstTrigger) => {
         const newWif = `P${key_utils.get_random_key().toWif()}`;
-        this.setState({ password: newWif });
+        if (isFirstTrigger) {
+            this.setState({
+                password: newWif,
+            });
+        } else {
+            this.setState({
+                password: newWif,
+                isClickedCopyBtn: false,
+            });
+        }
     };
 
     copySuccess = () => {
@@ -50,7 +59,7 @@ class SavePassword extends React.Component {
                         <FormattedMessage id="copy_password" />
                     </Button>
                 </CopyToClipboard>
-                <Button onClick={this.generateWif}>
+                <Button onClick={() => this.generateWif(false)}>
                     <FormattedMessage id="generate_new_password" />
                 </Button>
                 <Button
