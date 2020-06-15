@@ -265,6 +265,101 @@
             border-radius: 10px;
           }
         }
+        .ant-input-group-wrapper {
+          .ant-input {
+            border-right: 0;
+            background: rgba(47,47,47,0.04);
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+          }
+          .ant-input + span {
+            border-left: 0;
+            border-right: 2px solid #fff;
+            background: rgba(47,47,47,0.04);
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+          }
+          .ant-input:focus {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            border-right: 0;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            box-shadow: none;
+          }
+          .ant-input:focus + span {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            border-left: 0;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            box-shadow: none;
+          }
+        }
+        .has-success {
+          .ant-input-group-wrapper {
+            .ant-input {
+              border-right: 0;
+              background: rgba(23,32,201,0.06);
+              border-top-right-radius: 0;
+              border-bottom-right-radius: 0;
+            }
+            .ant-input + span {
+              border-left: 0;
+              background: rgba(23,32,201,0.06);
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+            }
+            .ant-input:focus, .ant-input:focus + span {
+              background-color: #fff;
+            }
+          }
+        }
+        .has-error {
+          .ant-input-group-wrapper {
+            .ant-input {
+              background: #fff;
+              border-top-right-radius: 0;
+              border-bottom-right-radius: 0;
+              border: 2px solid rgba(243,89,85,0.60);
+              border-right: 0;
+            }
+            .ant-input + span {
+              border: 2px solid rgba(243,89,85,0.60);
+              border-left: 0;
+              background: #fff;
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+            }
+          }
+        }
+        .send-code {
+          border-radius: 0;
+          border: 0;
+          border-left: 1px solid #e7e7e7;
+          font-family: HelveticaNeue;
+          font-size: 16px;
+          color: #ABABAB;
+          letter-spacing: 0;
+          line-height: 18px;
+          font-weight: 400;
+          height: 20px;
+          width: 9.375rem;
+          background-color: transparent;
+        }
+        .has-send.send-code {
+          color: #1720C9;
+        }
+        .ant-input-group-addon {
+          background-color: rgba(47,47,47,0.04);
+          border-top: 2px solid #fff;
+          border-right: 2px solid #fff;
+          border-bottom: 2px solid #fff;
+          border-right: 0;
+          border-top-right-radius: 10px;
+          border-bottom-right-radius: 10px;
+          padding: 0.75rem;
+        }
       }
     }
 

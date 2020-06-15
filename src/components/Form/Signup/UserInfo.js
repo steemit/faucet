@@ -4,6 +4,7 @@ import 'react-phone-input-2/lib/bootstrap.css';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, Icon, message } from 'antd';
+import SendCode from './SendCode';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import reloadRecaptcha from '../../../../helpers/recaptcha';
@@ -435,17 +436,14 @@ class UserInfo extends React.Component {
                                     id: 'enter_confirmation_code',
                                 })}
                                 addonAfter={
-                                    <a
-                                        role="button"
-                                        tabIndex="0"
+                                    <SendCode
+                                        btnText={this.state.email_send_code_txt}
                                         onClick={() =>
                                             this.SendEmailCode(
                                                 getFieldValue('email')
                                             )
                                         }
-                                    >
-                                        {this.state.email_send_code_txt}
-                                    </a>
+                                    />
                                 }
                                 autoComplete="off"
                                 autoCorrect="off"
@@ -522,13 +520,10 @@ class UserInfo extends React.Component {
                                     id: 'enter_confirmation_code',
                                 })}
                                 addonAfter={
-                                    <a
-                                        role="button"
-                                        tabIndex="0"
+                                    <SendCode
+                                        btnText={this.state.phone_send_code_txt}
                                         onClick={() => this.SendPhoneCode()}
-                                    >
-                                        {this.state.phone_send_code_txt}
-                                    </a>
+                                    />
                                 }
                                 autoComplete="off"
                                 autoCorrect="off"
