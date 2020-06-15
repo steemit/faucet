@@ -166,10 +166,13 @@
     .save-password-wrap{
       .password-wrap{
         padding: 1.25rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.25rem;
         background: rgba(47,47,47,0.04);
         border-radius: 10px;
         word-break: break-all;
+        color: #ABABAB;
+        font-size: 16px;
+        line-height: 1.5rem;
       }
       .ant-btn{
         width: 100%;
@@ -180,12 +183,17 @@
         font-family: HelveticaNeue-Medium;
         font-size: 1rem;
         color: #1720C9;
-        &.ant-btn-primary{
+        &.ant-btn-primary {
           color: #FFFFFF;
           font-family: HelveticaNeue-Bold;
         }
       }
-
+      .ant-btn:hover:not(:last-child) {
+        opacity: 0.3;
+      }
+      .ant-btn-primary:active {
+        opacity: 0.5;
+      }
     }
     .signup-form{
       .ant-form-item-control {
@@ -198,6 +206,7 @@
         .ant-checkbox-input{
           width: 1.125rem;
           height: 1.125rem;
+          border-radius: 4px;
         }
         .ant-checkbox-inner{
           width: 1.125rem;
@@ -215,6 +224,40 @@
           .ant-checkbox-inner{
             background-color: #1720C9;
           }
+        }
+        .doc-link {
+          text-decoration: underline;
+          padding-left: 10px;
+        }
+      }
+      .input-password-textarea {
+        background: rgba(47,47,47,0.04);
+        font-size: 1rem;
+        resize: none;
+        border: 2px solid #fff;
+        background: rgba(47,47,47,0.04);
+        border-radius: 10px;
+      }
+      .input-password-textarea:focus {
+        background-color: #fff;
+        border: 2px solid rgba(23,32,201,0.40);
+        border-radius: 10px;
+        box-shadow: none;
+      }
+      .has-success {
+        .input-password-textarea {
+          background: rgba(23,32,201,0.06);
+          border: 2px solid #fff;
+        }
+        .input-password-textarea:focus {
+          background-color: #fff;
+          border: 2px solid rgba(23,32,201,0.40);
+        }
+      }
+      .has-error {
+        .input-password-textarea {
+          background: #FFFFFF;
+          border: 2px solid rgba(243,89,85,0.60);
         }
       }
     }
@@ -353,6 +396,11 @@
         }
         .has-send.send-code {
           color: #1720C9;
+        }
+        .sending.send-code {
+          opacity: 0.6;
+          color: #ABABAB;
+          letter-spacing: 0;
         }
         .ant-input-group-addon {
           background-color: rgba(47,47,47,0.04);
@@ -534,7 +582,20 @@
       color: @primary-color;
       background: none;
       font-size: 16px;
+      font-weight: 500;
       border: none;
+      &:hover {
+        color: @primary-color;
+      }
+    }
+
+    a.back {
+      color: @primary-color;
+      background: none;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      line-height: 1rem;
       &:hover {
         color: @primary-color;
       }
@@ -587,6 +648,10 @@
         box-shadow: none !important;
       }
     }
+  }
+
+  .custom-btn:active {
+    opacity: 0.5;
   }
 }
 

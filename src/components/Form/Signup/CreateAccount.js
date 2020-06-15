@@ -99,10 +99,7 @@ class CreateAccount extends React.Component {
                             initialValue: '',
                         })(
                             <Input.TextArea
-                                style={{
-                                    background: 'rgba(47,47,47,0.04)',
-                                    fontSize: '1rem',
-                                }}
+                                className="input-password-textarea"
                                 placeholder={intl.formatMessage({
                                     id: 'master_password',
                                 })}
@@ -130,6 +127,7 @@ class CreateAccount extends React.Component {
                                     values={{
                                         document: (
                                             <a
+                                                className="doc-link"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 href="https://steemit.com/tos.html"
@@ -162,6 +160,7 @@ class CreateAccount extends React.Component {
                                     values={{
                                         document: (
                                             <a
+                                                className="doc-link"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 href="https://steemit.com/privacy.html"
@@ -176,6 +175,9 @@ class CreateAccount extends React.Component {
                     </Form.Item>
                     <Form.Item style={{ marginTop: '3rem' }}>
                         <Button
+                            style={{
+                                fontSize: '16px',
+                            }}
                             type="primary"
                             htmlType="submit"
                             loading={this.state.submitting}
@@ -185,13 +187,15 @@ class CreateAccount extends React.Component {
                     </Form.Item>
                     {goBack && (
                         <Form.Item>
-                            <Button
-                                htmlType="button"
+                            <a
+                                role="button"
+                                tabIndex={0}
                                 className="back"
-                                onClick={() => goBack()}
-                            >
-                                <FormattedMessage id="go_back" />
-                            </Button>
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    goBack();
+                                }}
+                            ><FormattedMessage id="go_back" /></a>
                         </Form.Item>
                     )}
                 </Form>

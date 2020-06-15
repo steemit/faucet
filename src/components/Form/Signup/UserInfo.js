@@ -438,6 +438,7 @@ class UserInfo extends React.Component {
                                 })}
                                 addonAfter={
                                     <SendCode
+                                        sending={this.state.email_code_sending}
                                         btnText={this.state.email_send_code_txt}
                                         onClick={() =>
                                             this.SendEmailCode(
@@ -523,6 +524,7 @@ class UserInfo extends React.Component {
                                 })}
                                 addonAfter={
                                     <SendCode
+                                        sending={this.state.phone_code_sending}
                                         btnText={this.state.phone_send_code_txt}
                                         onClick={() => this.SendPhoneCode()}
                                     />
@@ -565,6 +567,7 @@ class UserInfo extends React.Component {
                             </div>
                             <div className="submit-button">
                                 <Button
+                                    className="custom-btn"
                                     type="primary"
                                     htmlType="submit"
                                     size="large"

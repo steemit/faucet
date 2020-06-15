@@ -12,20 +12,30 @@ class SendCode extends React.Component {
 
     getClassName = () => {
         const { clickTimes } = this.state;
+        const { sending } = this.props;
         const dynamicList = {
             hasSend: 'has-send',
+            sending: 'sending',
         }
-        const className = ['send-code'];
+        let className = ['send-code'];
         // has-send class
-        const isExistHasSend = className.indexOf(dynamicList.hasSend);
-        if (clickTimes > 0) {
-            if (isExistHasSend === -1) {
-                className.push(dynamicList.hasSend);
-            }
-        } else if (isExistHasSend !== -1) {
-            className.slice(isExistHasSend, 1);
-        }
+        className = this.addOrRemoveClass(dynamicList.hasSend, className, clickTimes > 0);
+        // sending class
+        className = this.addOrRemoveClass(dynamicList.sending, className, sending);
+        // return
         return className.join(' ');
+    }
+
+    addOrRemoveClass = (needle, stack, condition) => {
+        const isExist = stack.indexOf(needle);
+        if (condition) {
+            if (isExist === -1) {
+                stack.push(needle);
+            }
+        } else if (isExist !== -1) {
+            stack.slice(isExist, 1);
+        }
+        return stack;
     }
 
     render() {
@@ -50,6 +60,7 @@ class SendCode extends React.Component {
 SendCode.propTypes = {
     onClick: PropTypes.func.isRequired,
     btnText: PropTypes.string.isRequired,
+    sending: PropTypes.bool.isRequired,
 };
 
 SendCode.defaultProps = {
