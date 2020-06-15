@@ -119,6 +119,10 @@ class UserInfo extends React.Component {
         delete window.onloadcallback;
     }
 
+    getPhoneMasks = () => ({
+        cn: '... .... ....',
+    });
+
     validateAccountNameIntl = (rule, value, callback) => {
         try {
             accountNameIsValid(value);
@@ -481,6 +485,7 @@ class UserInfo extends React.Component {
                                 placeholder={intl.formatMessage({
                                     id: 'enter_phone',
                                 })}
+                                masks={this.getPhoneMasks()}
                                 disabled={this.phone_code_sending}
                                 onChange={(phone, data) => {
                                     const prefix = data.dialCode;
