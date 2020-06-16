@@ -39,7 +39,6 @@ class UserInfo extends React.Component {
             check_email_code: false,
             check_phone_code: false,
         };
-        this.btnStatusLock = false;
     }
 
     componentWillMount() {
