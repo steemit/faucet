@@ -542,7 +542,7 @@ class Signup extends Component {
                                         size="large"
                                         onClick={() => {
                                             window.location =
-                                                'https://steemitwallet.com';
+                                                `https://steemitwallet.com/@${username}/permissions`;
                                         }}
                                     >
                                         <FormattedMessage id="welcome_page_go_to_wallet" />
