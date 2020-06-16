@@ -11,9 +11,9 @@ import reloadRecaptcha from '../../../../helpers/recaptcha';
 // import Loading from '../../../widgets/Loading';
 import {
     accountNameIsValid,
-    validateEmailDomain,
     emailValid,
 } from '../../../../helpers/validator';
+import badDomains from '../../../../bad-domains';
 import Placeholder from '../../Placeholder';
 
 class UserInfo extends React.Component {
@@ -34,8 +34,12 @@ class UserInfo extends React.Component {
             fingerprint: '',
             query: '',
             pending_create_user: false,
-            // btn_disabled: true,
+            check_username: false,
+            check_email: false,
+            check_email_code: false,
+            check_phone_code: false,
         };
+        this.btnStatusLock = false;
     }
 
     componentWillMount() {
@@ -73,35 +77,6 @@ class UserInfo extends React.Component {
         }
     }
 
-    // componentDidUpdate() {
-    //     const { form } = this.props;
-    //     const data = {
-    //         recaptcha: form.getFieldValue('recaptcha'),
-    //         email: form.getFieldValue('email'),
-    //         emailCode: form.getFieldValue('email_code'),
-    //         phoneNumber: `+${form.getFieldValue('phone')}`,
-    //         phoneCode: form.getFieldValue('phone_code'),
-    //         username: form.getFieldValue('username'),
-    //     };
-    //     let isAllInput = true;
-    //     Object.values(data).forEach(v => {
-    //         if (!v) {
-    //             isAllInput = false;
-    //         }
-    //     });
-    //     if (isAllInput) {
-    //         if (this.state.btn_disabled) {
-    //             form.validateFields((error) => {
-    //                 if (!error) {
-    //                     this.setState({
-    //                         btn_disabled: false,
-    //                     });
-    //                 }
-    //             });
-    //         }
-    //     }
-    // }
-
     componentWillUnmount() {
         clearInterval(window.email_code_interval);
         clearInterval(window.phone_code_interval);
@@ -119,6 +94,18 @@ class UserInfo extends React.Component {
         delete window.onloadcallback;
     }
 
+    getBtnStatus = () => {
+        const {
+            check_username,
+            check_email,
+            check_email_code,
+            check_phone_code,
+        } = this.state;
+        const phone = this.props.form.getFieldValue('phone');
+        const recaptcha = this.props.form.getFieldValue('recaptcha');
+        return !(check_username && check_email && check_email_code && !!phone && check_phone_code && !!recaptcha);
+    }
+
     getPhoneMasks = () => ({
         cn: '... .... ....',
     });
@@ -126,19 +113,63 @@ class UserInfo extends React.Component {
     validateAccountNameIntl = (rule, value, callback) => {
         try {
             accountNameIsValid(value);
+            this.setState({
+                check_username: true,
+            });
         } catch (e) {
+            this.setState({
+                check_username: false,
+            });
             callback(this.props.intl.formatMessage({ id: e.message }));
         }
         callback();
     };
     validateEmail = (rule, value, callback) => {
+        if (!value) {
+            this.setState({
+                check_email: false,
+            });
+            return;
+        }
         try {
             emailValid(value);
+            this.setState({
+                check_email: true,
+            });
         } catch (e) {
+            this.setState({
+                check_email: false,
+            });
             callback(this.props.intl.formatMessage({ id: e.message }));
         }
         callback();
     };
+
+    validateEmailDomain = (rule, value, callback) => {
+        if (value) {
+            const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
+            if (domain && badDomains.includes(domain)) {
+                this.setState({
+                    check_email: false,
+                });
+                callback(
+                    'This domain name is blacklisted, please provide another email'
+                );
+            } else {
+                if (domain) {
+                    this.setState({
+                        check_email: true,
+                    });
+                }
+                callback();
+            }
+        } else {
+            this.setState({
+                check_email: false,
+            });
+            callback();
+        }
+    }
 
     validateUsername = (rule, value, callback) => {
         if (value) {
@@ -149,14 +180,20 @@ class UserInfo extends React.Component {
             window.usernameTimeout = setTimeout(() => {
                 apiCall('/api/check_username', { username: value })
                     .then(() => {
-                        this.setState({ username: value });
+                        this.setState({ username: value, check_username: true });
                         callback();
                     })
                     .catch(error => {
+                        this.setState({
+                            check_username: false,
+                        });
                         callback(intl.formatMessage({ id: error.type }));
                     });
             }, 500);
         } else {
+            this.setState({
+                check_username: false,
+            });
             callback();
         }
     };
@@ -167,12 +204,21 @@ class UserInfo extends React.Component {
             const email = form.getFieldValue('email');
             apiCall('/api/check_email_code', { code: value, email })
                 .then(() => {
+                    this.setState({
+                        check_email_code: true,
+                    });
                     callback();
                 })
                 .catch(error => {
+                    this.setState({
+                        check_email_code: false,
+                    })
                     callback(intl.formatMessage({ id: error.type }));
                 });
         } else {
+            this.setState({
+                check_email_code: false,
+            });
             callback();
         }
     };
@@ -183,12 +229,21 @@ class UserInfo extends React.Component {
             const phoneNumber = `+${form.getFieldValue('phone')}`;
             apiCall('/api/check_phone_code', { code: value, phoneNumber })
                 .then(() => {
+                    this.setState({
+                        check_phone_code: true,
+                    });
                     callback();
                 })
                 .catch(error => {
+                    this.setState({
+                        check_phone_code: false,
+                    });
                     callback(intl.formatMessage({ id: error.type }));
                 });
         } else {
+            this.setState({
+                check_phone_code: false,
+            });
             callback();
         }
     };
@@ -297,16 +352,6 @@ class UserInfo extends React.Component {
             });
     };
 
-    validateRecaptcha = (rule, value, callback) => {
-        const { intl } = this.props;
-        if (window.grecaptcha.getResponse() === '') {
-            window.grecaptcha.execute();
-            callback(intl.formatMessage({ id: 'error_recaptcha_required' }));
-        } else {
-            callback();
-        }
-    };
-
     handleSubmit = e => {
         e.preventDefault();
         if (this.state.pending_create_user) return;
@@ -398,13 +443,13 @@ class UserInfo extends React.Component {
                                         id: 'error_email_required',
                                     }),
                                 },
-                                { validator: this.validateEmail },
                                 {
-                                    validator: validateEmailDomain,
+                                    validator: this.validateEmailDomain,
                                     message: intl.formatMessage({
                                         id: 'error_api_domain_blacklisted',
                                     }),
                                 },
+                                { validator: this.validateEmail },
                             ],
                         })(
                             <Input
@@ -547,13 +592,7 @@ class UserInfo extends React.Component {
                             <div className="recaptcha">
                                 {getFieldDecorator('recaptcha', {
                                     rules: [
-                                        {
-                                            validator: this.validateRecaptcha,
-                                            message: intl.formatMessage({
-                                                id:
-                                                    'error_api_recaptcha_required',
-                                            }),
-                                        },
+                                        {},
                                     ],
                                     validateTrigger: '',
                                 })(
@@ -577,7 +616,7 @@ class UserInfo extends React.Component {
                                     htmlType="submit"
                                     size="large"
                                     loading={this.state.pending_create_user}
-                                    /* disabled={this.state.btn_disabled} */
+                                    disabled={this.getBtnStatus()}
                                 >
                                     <FormattedMessage id="continue" />
                                 </Button>
@@ -613,6 +652,7 @@ UserInfo.propTypes = {
     locale: PropTypes.string,
     form: PropTypes.shape({
         setFields: PropTypes.func.isRequired,
+        getFieldValue: PropTypes.func.isRequired,
     }).isRequired,
     countryCode: PropTypes.string,
     origin: PropTypes.string.isRequired,
