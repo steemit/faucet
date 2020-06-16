@@ -51,6 +51,9 @@ class UserInfo extends React.Component {
                 id: 'send_code',
             }),
         });
+        setTimeout(() => {
+            reloadRecaptcha();
+        });
     }
 
     componentWillReceiveProps(nextProps) {
@@ -77,8 +80,10 @@ class UserInfo extends React.Component {
     }
 
     componentWillUnmount() {
+        // remove interval
         clearInterval(window.email_code_interval);
         clearInterval(window.phone_code_interval);
+        // remove google recaptcha
         for (
             let i = document.getElementsByTagName('script').length - 1;
             i >= 0;
