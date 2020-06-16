@@ -63,6 +63,7 @@ class SavePassword extends React.Component {
                     <FormattedMessage id="generate_new_password" />
                 </Button>
                 <Button
+                    className="custom-btn"
                     type="primary"
                     onClick={() => handleSavePassword(this.state.password)}
                     disabled={!this.state.isClickedCopyBtn}

@@ -70,7 +70,7 @@ class SignupOptions extends React.Component {
                             </p>
                         </div>
                         <Button
-                            className={`${pending_claimed_accounts >= 100 && 'get-in-register__button'}`}
+                            className={`${pending_claimed_accounts >= 100 && 'get-in-register__button'} custom-btn`}
                             htmlType="button"
                             onClick={handleFreeSignup}
                             disabled={pending_claimed_accounts < 100}

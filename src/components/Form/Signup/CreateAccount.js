@@ -183,7 +183,7 @@ class CreateAccount extends React.Component {
                     </Form.Item>
                     <Form.Item style={{ marginTop: '3rem' }}>
                         <Button
-                            className="create-account"
+                            className="create-account custom-btn"
                             style={{
                                 fontSize: '16px',
                             }}
