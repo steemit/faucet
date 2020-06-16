@@ -1036,7 +1036,10 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         record.email_code_sent = 1;
         record.email_code_first_sent = new Date();
     }
-    if (!record.email_code_first_sent) {
+    if (
+        !record.email_code_first_sent ||
+        record.email_code_first_sent < minusOneDay
+    ) {
         record.email_code_first_sent = new Date();
     }
     record.last_attempt_verify_email = new Date();
@@ -1222,7 +1225,10 @@ async function handleRequestSmsNew(req) {
         record.phone_code_sent = 1;
         record.phone_code_first_sent = new Date();
     }
-    if (!record.phone_code_first_sent) {
+    if (
+        !record.phone_code_first_sent ||
+        record.phone_code_first_sent < minusOneDay
+    ) {
         record.phone_code_first_sent = new Date();
     }
     record.last_attempt_verify_phone_number = new Date();
