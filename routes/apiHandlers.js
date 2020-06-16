@@ -1041,6 +1041,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         record.email_code_first_sent < minusOneDay
     ) {
         record.email_code_first_sent = new Date();
+        record.email_code_sent = 1;
     }
     record.last_attempt_verify_email = new Date();
     await record.save();
@@ -1230,6 +1231,7 @@ async function handleRequestSmsNew(req) {
         record.phone_code_first_sent < minusOneDay
     ) {
         record.phone_code_first_sent = new Date();
+        record.phone_code_sent = 1;
     }
     record.last_attempt_verify_phone_number = new Date();
     await record.save();
