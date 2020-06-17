@@ -80,6 +80,7 @@ class Signup extends Component {
         this.state = {
             pending_claimed_accounts: 0,
             password: '',
+            language_item_visible: false,
         };
     }
 
@@ -226,11 +227,24 @@ class Signup extends Component {
                                         key={key}
                                         locale={key}
                                         setLocale={setLocale}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            this.setState({
+                                                language_item_visible: false,
+                                            });
+                                        }}
                                     />
                                 ))}
                             </ul>
                         }
                         trigger="click"
+                        visible={this.state.language_item_visible}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            this.setState({
+                                language_item_visible: true,
+                            });
+                        }}
                     >
                         <Button>
                             {locales[locale]}
