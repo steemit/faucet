@@ -12,7 +12,7 @@ const accountNotExist = (rule, value, callback) => {
     });
 };
 
-const CLAIM_ACCOUNT = 'steemdev';
+const CLAIM_ACCOUNT = 'steem';
 
 const INVALID_ACCOUNTNAME_REASONS = {
     error_username_required: 'error_username_required',
