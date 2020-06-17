@@ -183,7 +183,7 @@ class CreateAccount extends React.Component {
                     </Form.Item>
                     <Form.Item style={{ marginTop: '3rem' }}>
                         <Button
-                            className="create-account"
+                            className="create-account custom-btn"
                             style={{
                                 fontSize: '16px',
                             }}
@@ -209,13 +209,7 @@ class CreateAccount extends React.Component {
                         </Form.Item>
                     )}
                 </Form>
-                <div
-                    style={{
-                        opacity: '0.6',
-                        fontSize: '.875rem',
-                        color: '#ABABAB',
-                    }}
-                >
+                <div className="create-account-info">
                     <p style={{ paddingBottom: '0.2rem' }}>
                         <FormattedMessage id="create_account_tip1" />
                     </p>

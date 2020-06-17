@@ -105,14 +105,14 @@ class UserInfo extends React.Component {
             check_email,
             check_email_code,
             check_phone_code,
+            rawPhone,
         } = this.state;
-        const phone = this.props.form.getFieldValue('phone');
         const recaptcha = this.props.form.getFieldValue('recaptcha');
         return !(
             check_username &&
             check_email &&
             check_email_code &&
-            !!phone &&
+            !!rawPhone &&
             check_phone_code &&
             !!recaptcha
         );
@@ -236,6 +236,17 @@ class UserInfo extends React.Component {
             });
             callback();
         }
+    };
+
+    validatePhoneRequired = (rule, value, callback) => {
+        const { intl } = this.props;
+        setTimeout(() => {
+            if (this.state.rawPhone) {
+                callback();
+            } else {
+                callback(intl.formatMessage({ id: 'error_api_phone_required' }));
+            }
+        });
     };
 
     validatePhoneCode = (rule, value, callback) => {
@@ -410,7 +421,7 @@ class UserInfo extends React.Component {
 
     render() {
         const {
-            form: { getFieldDecorator, getFieldValue, setFields },
+            form: { getFieldDecorator, getFieldValue },
             intl,
             origin,
             countryCode,
@@ -492,7 +503,6 @@ class UserInfo extends React.Component {
                     </Form.Item>
                     <Form.Item>
                         {getFieldDecorator('email_code', {
-                            normalize: this.normalizeUsername,
                             validateFirst: true,
                             rules: [
                                 {
@@ -512,6 +522,7 @@ class UserInfo extends React.Component {
                                 })}
                                 addonAfter={
                                     <SendCode
+                                        checked={this.state.check_email}
                                         sending={this.state.email_code_sending}
                                         btnText={this.state.email_send_code_txt}
                                         onClick={() =>
@@ -537,9 +548,10 @@ class UserInfo extends React.Component {
                     </p>
                     <Form.Item hasFeedback>
                         {getFieldDecorator('phone', {
+                            validateFirst: true,
                             rules: [
                                 {
-                                    required: true,
+                                    validator: this.validatePhoneRequired,
                                     message: intl.formatMessage({
                                         id: 'error_api_phone_required',
                                     }),
@@ -566,11 +578,6 @@ class UserInfo extends React.Component {
                                             data.dialCode.length
                                         ),
                                         prefix: `${prefix}_${tmpCountryCode}`,
-                                    });
-                                    setFields({
-                                        phone: {
-                                            value: phone,
-                                        },
                                     });
                                 }}
                             />
@@ -599,6 +606,7 @@ class UserInfo extends React.Component {
                                 })}
                                 addonAfter={
                                     <SendCode
+                                        checked={!!this.state.rawPhone}
                                         sending={this.state.phone_code_sending}
                                         btnText={this.state.phone_send_code_txt}
                                         onClick={() => this.SendPhoneCode()}
