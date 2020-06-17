@@ -12,6 +12,8 @@ const accountNotExist = (rule, value, callback) => {
     });
 };
 
+const CLAIM_ACCOUNT = 'steemdev';
+
 const INVALID_ACCOUNTNAME_REASONS = {
     error_username_required: 'error_username_required',
     error_validation_account_min: 'error_validation_account_min',
@@ -186,7 +188,7 @@ const normalizeEmail = email => {
 };
 
 const getPendingClaimedAccounts = callback => {
-    steem.api.getAccounts(['steem'], (err, response) => {
+    steem.api.getAccounts([CLAIM_ACCOUNT], (err, response) => {
         if (response && response[0]) {
             callback(response[0]);
         } else {
