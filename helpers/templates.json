@@ -39,12 +39,12 @@
         "from": "Steemit <noreply@steemit.com>",
         "subject": "Welcome to Steemit",
         "text":
-            "Hi,\n\nGood news! You have successfully created the account.\n\nUsername: {username}\nE-mail: {email}\nPhone number: {phoneNumber}\n\nTo get your login details  and Keys for Steemit.com, go and sign in to the Steemit wallet at \nsteemitwallet.com\n\nCheers,\nYour friends at Steemit\n\n"
+            "Hi,\n\nGood news! You have successfully created the account.\n\nUsername: {username}\nE-mail: {email}\nPhone number: {phoneNumber}\n\nTo get your login details  and Keys for Steemit.com, go and sign in to the Steemit wallet at \nhttp://steemitwallet.com\n\nCheers,\nYour friends at Steemit\n\n"
     },
     "register_success_zh": {
         "from": "Steemit <noreply@steemit.com>",
         "subject": "欢迎来到【Steemit】",
         "text":
-            "您好，\n\n\n好消息！您的账户已创建成功。\n\n用户名：{username}\n邮箱：{email}\n手机：{phoneNumber}\n\n\n请前往 steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。\n\n\n非常感谢。\n您在 Steemit 的伙伴\n"
+            "您好，\n\n\n好消息！您的账户已创建成功。\n\n用户名：{username}\n邮箱：{email}\n手机：{phoneNumber}\n\n\n请前往 http://steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。\n\n\n非常感谢。\n您在 Steemit 的伙伴\n"
     }
 }
