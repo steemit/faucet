@@ -5,23 +5,20 @@ import { Button } from 'antd';
 class SendCode extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            clickTimes: 0,
-        };
+        this.state = {};
     }
 
     getClassName = () => {
-        const { clickTimes } = this.state;
-        const { sending } = this.props;
+        const { sending, checked } = this.props;
         const dynamicList = {
-            hasSend: 'has-send',
             sending: 'sending',
+            checked: 'checked',
         }
         let className = ['send-code'];
-        // has-send class
-        className = this.addOrRemoveClass(dynamicList.hasSend, className, clickTimes > 0);
         // sending class
         className = this.addOrRemoveClass(dynamicList.sending, className, sending);
+        // checked class
+        className = this.addOrRemoveClass(dynamicList.checked, className, checked);
         // return
         return className.join(' ');
     }
@@ -46,12 +43,7 @@ class SendCode extends React.Component {
         return (
             <Button
                 className={this.getClassName()}
-                onClick={(e) => {
-                    this.setState({
-                        clickTimes: this.state.clickTimes + 1,
-                    });
-                    onClick(e);
-                }}
+                onClick={onClick}
             >{btnText}</Button>
         );
     }
@@ -61,6 +53,7 @@ SendCode.propTypes = {
     onClick: PropTypes.func.isRequired,
     btnText: PropTypes.string.isRequired,
     sending: PropTypes.bool.isRequired,
+    checked: PropTypes.bool.isRequired,
 };
 
 SendCode.defaultProps = {
