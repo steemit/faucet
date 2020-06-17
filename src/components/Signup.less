@@ -394,10 +394,10 @@
           width: 9.375rem;
           background-color: transparent;
         }
-        .has-send.send-code {
+        .send-code.checked {
           color: #1720C9;
         }
-        .sending.send-code {
+        .send-code.sending {
           opacity: 0.6;
           color: #ABABAB;
           letter-spacing: 0;
@@ -504,8 +504,37 @@
     }
 
     .ant-input {
-      color: rgba(51, 51, 51, 0.5);
+      color: #ABABAB;
       border-radius: 10px;
+    }
+
+    .ant-input::placeholder {
+      opacity: 0.6;
+      color: #ABABAB;
+    }
+
+    .ant-input-prefix {
+      i {
+        opacity: 0.6;
+        color: #ABABAB;
+      }
+    }
+
+    .has-success, .has-error {
+      .ant-input-prefix {
+        i {
+          opacity: 1;
+        }
+      }
+    }
+
+    .create-account-info {
+      p {
+        color: #ABABAB;
+        opacity: 0.6;
+        font-weight: inherit;
+        font-size: 0.875rem;
+      }
     }
 
     .ant-form-item {
@@ -655,6 +684,7 @@
   }
   .custom-btn {
     border: 0 !important;
+    border-radius: 10px;
   }
 }
 
