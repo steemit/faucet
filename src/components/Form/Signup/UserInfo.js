@@ -9,10 +9,7 @@ import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import reloadRecaptcha from '../../../../helpers/recaptcha';
 // import Loading from '../../../widgets/Loading';
-import {
-    accountNameIsValid,
-    emailValid,
-} from '../../../../helpers/validator';
+import { accountNameIsValid, emailValid } from '../../../../helpers/validator';
 import badDomains from '../../../../bad-domains';
 import Placeholder from '../../Placeholder';
 
@@ -63,14 +60,18 @@ class UserInfo extends React.Component {
                 const newState = {};
                 const { email_code_sending, phone_code_sending } = this.state;
                 if (!email_code_sending) {
-                    newState.email_send_code_txt = this.props.intl.formatMessage({
-                        id: 'send_code',
-                    });
+                    newState.email_send_code_txt = this.props.intl.formatMessage(
+                        {
+                            id: 'send_code',
+                        }
+                    );
                 }
                 if (!phone_code_sending) {
-                    newState.phone_send_code_txt = this.props.intl.formatMessage({
-                        id: 'send_code',
-                    });
+                    newState.phone_send_code_txt = this.props.intl.formatMessage(
+                        {
+                            id: 'send_code',
+                        }
+                    );
                 }
                 if (Object.keys(newState).length > 0) {
                     this.setState(newState);
@@ -107,8 +108,15 @@ class UserInfo extends React.Component {
             rawPhone,
         } = this.state;
         const recaptcha = this.props.form.getFieldValue('recaptcha');
-        return !(check_username && check_email && check_email_code && !!rawPhone && check_phone_code && !!recaptcha);
-    }
+        return !(
+            check_username &&
+            check_email &&
+            check_email_code &&
+            !!rawPhone &&
+            check_phone_code &&
+            !!recaptcha
+        );
+    };
 
     getPhoneMasks = () => ({
         cn: '... .... ....',
@@ -173,7 +181,7 @@ class UserInfo extends React.Component {
             });
             callback();
         }
-    }
+    };
 
     validateUsername = (rule, value, callback) => {
         if (value) {
@@ -184,7 +192,10 @@ class UserInfo extends React.Component {
             window.usernameTimeout = setTimeout(() => {
                 apiCall('/api/check_username', { username: value })
                     .then(() => {
-                        this.setState({ username: value, check_username: true });
+                        this.setState({
+                            username: value,
+                            check_username: true,
+                        });
                         callback();
                     })
                     .catch(error => {
@@ -216,7 +227,7 @@ class UserInfo extends React.Component {
                 .catch(error => {
                     this.setState({
                         check_email_code: false,
-                    })
+                    });
                     callback(intl.formatMessage({ id: error.type }));
                 });
         } else {
@@ -274,6 +285,11 @@ class UserInfo extends React.Component {
             locale,
         })
             .then(() => {
+                this.props.form.setFields({
+                    email: {
+                        value: email,
+                    },
+                });
                 window.email_code_count_seconds = 60;
                 window.email_code_interval = setInterval(() => {
                     if (window.email_code_count_seconds === 0) {
@@ -327,6 +343,11 @@ class UserInfo extends React.Component {
             locale,
         })
             .then(() => {
+                this.props.form.setFields({
+                    phone: {
+                        value: phone,
+                    },
+                });
                 window.phone_code_count_seconds = 60;
                 window.phone_code_interval = setInterval(() => {
                     if (window.phone_code_count_seconds === 0) {
@@ -603,9 +624,7 @@ class UserInfo extends React.Component {
                         <div className="recaptcha-wrapper">
                             <div className="recaptcha">
                                 {getFieldDecorator('recaptcha', {
-                                    rules: [
-                                        {},
-                                    ],
+                                    rules: [{}],
                                     validateTrigger: '',
                                 })(
                                     <ReCAPTCHA
@@ -642,9 +661,12 @@ class UserInfo extends React.Component {
                                     id="username_steemit_login"
                                     values={{
                                         link: (
-                                            <a href="https://steemit.com/login.html" style={{
-                                                textDecoration: 'underline',
-                                            }}>
+                                            <a
+                                                href="https://steemit.com/login.html"
+                                                style={{
+                                                    textDecoration: 'underline',
+                                                }}
+                                            >
                                                 <FormattedMessage id="sign_in" />
                                             </a>
                                         ),
