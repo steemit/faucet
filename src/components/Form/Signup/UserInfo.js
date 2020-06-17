@@ -553,7 +553,7 @@ class UserInfo extends React.Component {
                                 {
                                     validator: this.validatePhoneRequired,
                                     message: intl.formatMessage({
-                                        id: 'error_api_phone_required',
+                                        id: 'error_phone_required',
                                     }),
                                 },
                             ],
