@@ -57,7 +57,7 @@ class SignupOptions extends React.Component {
                 </p> */}
     
                 <div
-                    className="signup-options__buttons"
+                    className={`${pending_claimed_accounts >= 100 && 'claim-account-active'} signup-options__buttons`}
                 >
                     <div className="wrapper">
                         <img src="img/free.png" alt="" />
