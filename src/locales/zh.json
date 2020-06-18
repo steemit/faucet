@@ -126,7 +126,7 @@
     "signup_options_referrer":
         "{referrer}与一般社交应用不同，Steemit 基于 Steem 区块链运行。",
     "signup_options_body_1":
-        "Steem 区块链支持包括 Stemmit 在内的众多实时内容应用，并由遍布全球的社区成员负责运营。为避免机器人攻击或恶意占用用户名行为，创建账户需收取一小笔费用。",
+        "Steem 区块链支持包括 Steemit 在内的众多实时内容应用，并由遍布全球的社区成员负责运营。为避免机器人攻击或恶意占用用户名行为，创建账户需收取一小笔费用。",
     "signup_options": "注册选项",
     "confirmPassword": "确认密码",
     "create_account": "创建账户",
