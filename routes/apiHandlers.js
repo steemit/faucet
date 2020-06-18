@@ -1193,9 +1193,9 @@ async function handleRequestSmsNew(req) {
     try {
         let msg;
         if (req.body.locale === 'zh') {
-            msg = `【Steemit】免费注册-手机验证码：${phoneCode}。请不要将验证码告知他人。该手机验证码将于30分钟后失效`;
+            msg = `[Steemit] 验证码为：${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
         } else {
-            msg = `[Steemit] Sign up for free - your verification code via SMS: ${phoneCode}. Please do not disclose your code to others. The code will expire in 30 minutes.`;
+            msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
         }
         const response = await services.sendSMS(phoneNumber, msg);
         logger.info({ response }, 'sms_response_info');
