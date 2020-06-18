@@ -16,7 +16,12 @@ mail.send = function sendMail(to, template, params = {}) {
         // eslint-disable-next-line no-restricted-syntax
         for (const key of Object.keys(params)) {
             // eslint-disable-line no-restricted-syntax
-            data.text = data.text.replace(`{${key}}`, params[key]);
+            if (data.html) {
+                data.html = data.html.replace(`{${key}}`, params[key]);
+            }
+            if (data.text) {
+                data.text = data.text.replace(`{${key}}`, params[key]);
+            }
             data.subject = data.subject.replace(`{${key}}`, params[key]);
         }
         data.to = to;
