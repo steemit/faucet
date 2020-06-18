@@ -463,21 +463,12 @@
           }
         }
         .recaptcha-wrapper {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
+          display: block;
           .submit-button {
-            width: 100%;
+            width: 240px;
+            margin-top: 26px;
             text-align: center;
-            padding-left: 10px;
-          }
-          @media (max-width: @screen-xs) {
-            display: block;
-            .submit-button {
-              margin-top: 26px;
-              padding: 0;
-            }
+            padding: 0;
           }
         }
       }
@@ -545,7 +536,7 @@
     .ant-btn-primary {
       background-color: @primary-color;
       border-color: @primary-color;
-      box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+      /*box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);*/
     }
 
     .ant-select-selection-selected-value {
@@ -725,7 +716,7 @@
 }
 .signin_redirect {
   text-align: left;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .welcome-wrap{
