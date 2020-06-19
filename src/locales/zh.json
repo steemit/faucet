@@ -121,6 +121,7 @@
     "signup_pay_tip3": "第三方平台会收取一小笔手续费。",
     "signup_free_tip1": "创建新账户的费用将由我们承担。",
     "signup_free_tip2": "您需要提交邮箱和手机号以验证您非机器人。",
+    "signup_free_tip3": "名额不足，请稍后再试。",
     "signup_options_button_pay": "付费注册",
     "signup_options_button_free": "免费注册",
     "signup_options_referrer":

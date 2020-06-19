@@ -68,6 +68,9 @@ class SignupOptions extends React.Component {
                             <p>
                                 <FormattedMessage id="signup_free_tip2" />
                             </p>
+                            {pending_claimed_accounts < 100 && <p className="special-tip">
+                                <FormattedMessage id="signup_free_tip3" />
+                            </p>}
                         </div>
                         <Button
                             className={`${pending_claimed_accounts >= 100 && 'get-in-register__button'} custom-btn`}
