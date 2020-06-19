@@ -179,6 +179,7 @@
     "signup_free_tip1": "We will cover the fee for creating new accounts.",
     "signup_free_tip2":
         "Your email and phone number are needed to check that you're a real person.",
+    "signup_free_tip3": "Insufficient places，please try again later.",
     "confirmPassword": "Confirm password",
     "create_account_tip1":
         "Please wait for around 10 seconds after clicking on \"Create account\"",
