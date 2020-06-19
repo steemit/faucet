@@ -641,18 +641,6 @@ class UserInfo extends React.Component {
                                     />
                                 )}
                             </div>
-                            {/*<div className="submit-button">
-                                <Button
-                                    className="custom-btn"
-                                    type="primary"
-                                    htmlType="submit"
-                                    size="large"
-                                    loading={this.state.pending_create_user}
-                                    disabled={this.getBtnStatus()}
-                                >
-                                    <FormattedMessage id="continue" />
-                                </Button>
-                            </div>*/}
                         </div>
                     </Form.Item>
                     {origin === 'steemit' && (
