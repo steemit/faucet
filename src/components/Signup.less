@@ -471,6 +471,24 @@
             padding: 0;
           }
         }
+        .submit-button-wrapper {
+          display: flex;
+          flex-direction: row-reverse;
+          align-items: center;
+          justify-content: space-between;
+          .submit-button {
+            width: 200px;
+            text-align: center;
+            padding: 0;
+          }
+          @media(max-width: @screen-xs) {
+            display: block;
+            .submit-button {
+              margin-top: 14px;
+              margin-bottom: 15px;
+            }
+          }
+        }
       }
     }
 
