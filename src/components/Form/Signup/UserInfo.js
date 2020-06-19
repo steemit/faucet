@@ -501,7 +501,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
-                    <Form.Item>
+                    <Form.Item hasFeedback>
                         {getFieldDecorator('email_code', {
                             validateFirst: true,
                             rules: [
@@ -517,6 +517,7 @@ class UserInfo extends React.Component {
                             ],
                         })(
                             <Input
+                                className="feedback"
                                 placeholder={intl.formatMessage({
                                     id: 'enter_confirmation_code',
                                 })}
@@ -583,7 +584,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
-                    <Form.Item>
+                    <Form.Item hasFeedback>
                         {getFieldDecorator('phone_code', {
                             normalize: this.normalizeUsername,
                             validateFirst: true,
@@ -600,7 +601,7 @@ class UserInfo extends React.Component {
                             ],
                         })(
                             <Input
-                                className="send-btn"
+                                className="feedback"
                                 placeholder={intl.formatMessage({
                                     id: 'enter_confirmation_code',
                                 })}
