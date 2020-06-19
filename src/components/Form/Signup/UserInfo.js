@@ -641,7 +641,7 @@ class UserInfo extends React.Component {
                                     />
                                 )}
                             </div>
-                            <div className="submit-button">
+                            {/*<div className="submit-button">
                                 <Button
                                     className="custom-btn"
                                     type="primary"
@@ -652,27 +652,41 @@ class UserInfo extends React.Component {
                                 >
                                     <FormattedMessage id="continue" />
                                 </Button>
-                            </div>
+                            </div>*/}
                         </div>
                     </Form.Item>
                     {origin === 'steemit' && (
                         <Form.Item>
-                            <div className="signin_redirect">
-                                <FormattedMessage
-                                    id="username_steemit_login"
-                                    values={{
-                                        link: (
-                                            <a
-                                                href="https://steemit.com/login.html"
-                                                style={{
-                                                    textDecoration: 'underline',
-                                                }}
-                                            >
-                                                <FormattedMessage id="sign_in" />
-                                            </a>
-                                        ),
-                                    }}
-                                />
+                            <div className="submit-button-wrapper">
+                                <div className="submit-button">
+                                    <Button
+                                        className="custom-btn"
+                                        type="primary"
+                                        htmlType="submit"
+                                        size="large"
+                                        loading={this.state.pending_create_user}
+                                        disabled={this.getBtnStatus()}
+                                    >
+                                        <FormattedMessage id="continue" />
+                                    </Button>
+                                </div>
+                                <div className="signin_redirect">
+                                    <FormattedMessage
+                                        id="username_steemit_login"
+                                        values={{
+                                            link: (
+                                                <a
+                                                    href="https://steemit.com/login.html"
+                                                    style={{
+                                                        textDecoration: 'underline',
+                                                    }}
+                                                >
+                                                    <FormattedMessage id="sign_in" />
+                                                </a>
+                                            ),
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </Form.Item>
                     )}
