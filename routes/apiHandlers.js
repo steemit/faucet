@@ -1610,6 +1610,7 @@ async function handleCreateAccountNew(req) {
     }
 
     try {
+        const createdTime = new Date();
         user = await database.createUser({
             email: decoded.email,
             email_normalized: normalizeEmail(decoded.email),
@@ -1619,8 +1620,8 @@ async function handleCreateAccountNew(req) {
             ip: req.ip,
             account_is_created: true,
             status: 'created',
-            created_at: new Date(),
-            updated_at: null,
+            created_at: createdTime,
+            updated_at: createdTime,
             fingerprint: fingerprint ? JSON.parse(fingerprint) : {},
             username: decoded.username,
             tracking_id: xref || generateTrackingId(),
