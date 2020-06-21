@@ -8,6 +8,7 @@ const db = require('./db/models');
 const getClientConfig = require('./helpers/getClientConfig');
 const logger = require('./helpers/logger');
 const moment = require('moment');
+const fs = require('fs');
 
 const { Sequelize } = db;
 const { Op } = Sequelize;
@@ -72,10 +73,30 @@ if (process.env.NODE_ENV !== 'production') {
   require('./webpack/webpack')(app);
 }
 
+// get the base js filename
+const publicJsPath = `${__dirname}/public/js`;
+let baseJsFile;
+if (process.env.NODE_ENV === 'production') {
+  const files = fs.readdirSync(publicJsPath);
+  console.log(files);
+  files.sort((val1, val2) => {
+    const stat1 = fs.statSync(`${publicJsPath}/${val1}`);
+    const stat2 = fs.statSync(`${publicJsPath}/${val2}`);
+    return stat2.mtime - stat1.mtime;
+  });
+  const reg = /^app.min.[\w]+.js$/;
+  baseJsFile = files.find(f => reg.test(f));
+}
+if (baseJsFile === undefined) {
+  baseJsFile = 'app.min.js';
+}
+logger.info(`The latest base js file is: ${baseJsFile}`);
+
 const hbs = require('hbs');
 
 hbs.registerHelper('clientConfig', () => clientConfig);
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
+hbs.registerHelper('baseJs', () => new hbs.SafeString(`<script type="text/javascript" src="/js/${baseJsFile}"></script>`));
 hbs.registerPartials(`${__dirname}/views/partials`);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
