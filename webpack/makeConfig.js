@@ -109,7 +109,7 @@ function makeConfig(options) {
         ]),
         output: {
             path: path.join(options.baseDir, '/public/js'),
-            filename: 'app.min.js',
+            filename: 'app.min.[hash:5].js',
             publicPath: '/js/',
         },
         plugins: makePlugins(options),
