@@ -78,7 +78,6 @@ const publicJsPath = `${__dirname}/public/js`;
 let baseJsFile;
 if (process.env.NODE_ENV === 'production') {
   const files = fs.readdirSync(publicJsPath);
-  console.log(files);
   files.sort((val1, val2) => {
     const stat1 = fs.statSync(`${publicJsPath}/${val1}`);
     const stat2 = fs.statSync(`${publicJsPath}/${val2}`);
