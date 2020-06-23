@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const needle = require('needle');
-const moment = require('moment');
 
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const badDomains = require('../bad-domains');
@@ -1716,10 +1715,9 @@ async function handleCreateAccountNew(req) {
     });
 
     // TOS
-    const tosDate = moment().format('YYYYMMDD');
     const tosParams = [
         decoded.username,
-        `accepted_tos_${tosDate}`,
+        'accepted_tos_20180614',
     ];
     services.conveyorCall('assign_tag', tosParams).catch(error => {
         req.log.warn(
