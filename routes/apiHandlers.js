@@ -1557,17 +1557,67 @@ async function handleCreateAccountNew(req) {
         });
     }
 
-    let user = await database.findUser({
-        where: {
-            username: decoded.username,
-            email: decoded.email,
-            phone_number: decoded.phoneNumber,
-        },
-    });
-
-    if (user) {
-        throw new ApiError({ type: 'error_api_user_exist' });
+    const userExists = await services.checkUsername(decoded.username);
+    if (userExists) {
+        throw new ApiError({
+            type: 'error_api_username_used',
+            status: 200,
+        });
     }
+
+    const usernameExist = await database.countUsers({
+        username: decoded.username,
+    });
+    if (usernameExist) {
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_user_exist',
+        });
+    }
+    const emailIsInUse = await database.emailIsInUse(decoded.email);
+    if (emailIsInUse) {
+        throw new ApiError({
+            type: 'error_api_email_used',
+            field: 'email',
+        });
+    }
+    const emailRegistered = await services.conveyorCall('is_email_registered', [
+        decoded.email,
+    ]);
+    if (emailRegistered) {
+        throw new ApiError({
+            type: 'error_api_email_used',
+            field: 'email',
+        });
+    }
+    const phoneExists = await database.phoneIsInUse(decoded.phoneNumber);
+    if (phoneExists) {
+        throw new ApiError({
+            field: 'phoneNumber',
+            type: 'error_api_phone_used',
+        });
+    }
+    const phoneRegistered = await services.conveyorCall('is_phone_registered', [
+        decoded.phoneNumber,
+    ]);
+    if (phoneRegistered) {
+        throw new ApiError({
+            field: 'phoneNumber',
+            type: 'error_api_phone_used',
+        });
+    }
+
+    // let user = await database.findUser({
+    //     where: {
+    //         username: decoded.username,
+    //         email: decoded.email,
+    //         phone_number: decoded.phoneNumber,
+    //     },
+    // });
+
+    // if (user) {
+    //     throw new ApiError({ type: 'error_api_user_exist' });
+    // }
 
     const weightThreshold = 1;
     const accountAuths = [];
@@ -1609,6 +1659,7 @@ async function handleCreateAccountNew(req) {
         });
     }
 
+    let user;
     try {
         const createdTime = new Date();
         user = await database.createUser({
