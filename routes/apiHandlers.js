@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const needle = require('needle');
+const moment = require('moment');
 
 const generateCode = require('../src/utils/phone-utils').generateCode;
 const badDomains = require('../bad-domains');
@@ -1710,6 +1711,25 @@ async function handleCreateAccountNew(req) {
             // eslint-disable-next-line
             services.conveyorCall('set_user_data', params).catch(error => {
                 req.log.error(error, 'Unable to store user data in conveyor');
+            });
+        }, 5 * 1000);
+    });
+
+    // TOS
+    const tosDate = moment().format('YYYYMMDD');
+    const tosParams = [
+        decoded.username,
+        `accepted_tos_${tosDate}`,
+    ];
+    services.conveyorCall('assign_tag', tosParams).catch(error => {
+        req.log.warn(
+            error,
+            'Unable to store user tos in conveyor... retrying'
+        );
+        setTimeout(() => {
+            // eslint-disable-next-line
+            services.conveyorCall('assign_tag', tosParams).catch(error => {
+                req.log.error(error, 'Unable to store user tos in conveyor');
             });
         }, 5 * 1000);
     });
