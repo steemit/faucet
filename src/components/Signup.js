@@ -128,7 +128,8 @@ class Signup extends Component {
 
     handleFreeSignup = () => {
         this.props.incrementStep();
-        this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
+        // this is similar with CHECKPOINTS.signup_start
+        // this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
     };
     handleSavePassword = password => {
         this.setState({
