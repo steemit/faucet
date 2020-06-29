@@ -821,20 +821,9 @@ async function handleGuessCountry(req) {
 async function handleAnalytics(req) {
     const { event_id, superkey, total, t } = req.query;
     /**
-     * Temporary events relationship.
-     * 1 => https://steemwallet.app/
-     * 2 => https://anon.steem.network/
-     * 3 => https://account.buildteam.io/apps/steem-account
-     * 4 => https://widget.steem.ninja/widget.html
-     * 5 => https://actifit.io/signup
-     * 6 => the total of @steem account claim-account
-     * 7 => the total of @steem account used claim-account
-     * 8 => the total of @steem account used 3steem created account
-     * 9 => the total of all claim-account on blockchain
-     * 10 => the total of all used claim-account
-     * 11 => the total of all used 3steem created account
+     * Temporary API.
      */
-    if (event_id < 1 || event_id > 11) {
+    if (event_id < 1) {
         throw new ApiError({
             type: 'error_event_id',
             status: 200,
@@ -876,7 +865,7 @@ async function handleAnalytics(req) {
             req.log.error(error, 'Unable to store analytics data');
             return { success: true };
         }
-    } else {
+    }/* else {
         // In normal mode we only update `total` by adding 1.
         const today = new Date().toISOString().replace(/T.+/, '');
         const where = {
@@ -892,7 +881,7 @@ async function handleAnalytics(req) {
             req.log.error(error, 'Unable to store analytics data');
             return { success: true };
         }
-    }
+    } */
     return { success: true };
 }
 
