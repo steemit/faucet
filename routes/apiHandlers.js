@@ -1356,21 +1356,23 @@ async function finalizeSignupNew(
     phoneCode,
     username
 ) {
-    if (!recaptcha) {
-        throw new ApiError({
-            field: 'code',
-            type: 'error_api_recaptcha_required',
-        });
-    }
-
-    try {
-        await services.verifyCaptcha(recaptcha, ip);
-    } catch (cause) {
-        throw new ApiError({
-            field: 'code',
-            type: 'error_api_recaptcha_invalid',
-            cause,
-        });
+    
+    if (process.env.RECAPTCHA_SITE_KEY !== '') {
+        if (!recaptcha) {
+            throw new ApiError({
+                field: 'code',
+                type: 'error_api_recaptcha_required',
+            });
+        }
+        try {
+            await services.verifyCaptcha(recaptcha, ip);
+        } catch (cause) {
+            throw new ApiError({
+                field: 'code',
+                type: 'error_api_recaptcha_invalid',
+                cause,
+            });
+        }
     }
 
     if (!username) {

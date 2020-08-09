@@ -107,7 +107,9 @@ class UserInfo extends React.Component {
             check_phone_code,
             rawPhone,
         } = this.state;
-        const recaptcha = this.props.form.getFieldValue('recaptcha');
+        const recaptcha = window.config.RECAPTCHA_SITE_KEY !== '' ?
+            this.props.form.getFieldValue('recaptcha'):
+            true;
         return !(
             check_username &&
             check_email &&
@@ -621,7 +623,7 @@ class UserInfo extends React.Component {
                         )}
                     </Form.Item>
                     <Placeholder height="14px" />
-                    <Form.Item>
+                    { window.config.RECAPTCHA_SITE_KEY !== '' && <Form.Item>
                         <div className="recaptcha-wrapper">
                             <div className="recaptcha">
                                 {getFieldDecorator('recaptcha', {
@@ -642,7 +644,7 @@ class UserInfo extends React.Component {
                                 )}
                             </div>
                         </div>
-                    </Form.Item>
+                    </Form.Item>}
                     {origin === 'steemit' && (
                         <Form.Item>
                             <div className="submit-button-wrapper">
