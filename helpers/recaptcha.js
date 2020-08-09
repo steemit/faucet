@@ -1,4 +1,5 @@
 const reloadRecaptcha = () => {
+    if (window.config.RECAPTCHA_SITE_KEY === '') return;
     for (
         let i = document.getElementsByTagName('script').length - 1;
         i >= 0;
