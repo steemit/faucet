@@ -398,7 +398,7 @@ class UserInfo extends React.Component {
         });
         const { form, intl, handleSubmitUserInfo } = this.props;
         const data = {
-            recaptcha: form.getFieldValue('recaptcha'),
+            recaptcha: window.config.RECAPTCHA_SITE_KEY !== '' ? form.getFieldValue('recaptcha') : '',
             email: form.getFieldValue('email'),
             emailCode: form.getFieldValue('email_code'),
             phoneNumber: `+${form.getFieldValue('phone')}`,
