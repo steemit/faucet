@@ -11,6 +11,7 @@ function getClientConfig() {
         'DEFAULT_REDIRECT_URI',
         'SIFTSCIENCE_JS_SNIPPET_KEY',
         'REACT_DISABLE_ACCOUNT_CREATION',
+        'RECAPTCHA_SWITCH',
     ];
 
     return JSON.stringify(

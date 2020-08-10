@@ -1,5 +1,5 @@
 const reloadRecaptcha = () => {
-    if (window.config.RECAPTCHA_SITE_KEY === '') {
+    if (window.config.RECAPTCHA_SWITCH === 'OFF') {
         // eslint-disable-next-line no-console
         console.log('recaptcha closed');
         return;

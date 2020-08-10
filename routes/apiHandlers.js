@@ -1357,7 +1357,7 @@ async function finalizeSignupNew(
     username
 ) {
     
-    if (process.env.RECAPTCHA_SITE_KEY !== '') {
+    if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
         if (!recaptcha) {
             throw new ApiError({
                 field: 'code',
