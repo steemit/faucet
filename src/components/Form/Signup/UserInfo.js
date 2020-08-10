@@ -107,7 +107,7 @@ class UserInfo extends React.Component {
             check_phone_code,
             rawPhone,
         } = this.state;
-        const recaptcha = window.config.RECAPTCHA_SITE_KEY !== '' ?
+        const recaptcha = window.config.RECAPTCHA_SWITCH !== 'OFF' ?
             this.props.form.getFieldValue('recaptcha'):
             true;
         return !(
@@ -623,7 +623,7 @@ class UserInfo extends React.Component {
                         )}
                     </Form.Item>
                     <Placeholder height="14px" />
-                    { window.config.RECAPTCHA_SITE_KEY !== '' && <Form.Item>
+                    { window.config.RECAPTCHA_SWITCH !== 'OFF' && <Form.Item>
                         <div className="recaptcha-wrapper">
                             <div className="recaptcha">
                                 {getFieldDecorator('recaptcha', {
