@@ -1,5 +1,9 @@
 const reloadRecaptcha = () => {
-    if (window.config.RECAPTCHA_SITE_KEY === '') return;
+    if (window.config.RECAPTCHA_SITE_KEY === '') {
+        // eslint-disable-next-line no-console
+        console.log('recaptcha closed');
+        return;
+    }
     for (
         let i = document.getElementsByTagName('script').length - 1;
         i >= 0;
