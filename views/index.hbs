@@ -9,7 +9,9 @@
   {{baseCss}}
   <link rel="stylesheet" href="/css/ie.css" type="text/css" media="all">
   <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  {{#if clientConfig.RECAPTCHA_SITE_KEY}}
   <script src='//www.google.com/recaptcha/api.js'></script>
+  {{/if}}
 </head>
 <body>
   <div id="app"></div>
