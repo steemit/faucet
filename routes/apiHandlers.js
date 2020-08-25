@@ -18,6 +18,7 @@ const {
     isEmail,
 } = require('../helpers/validator');
 const { ApiError } = require('../helpers/errortypes.js');
+const { getTronAccount, updateTronUser } = require('../helpers/tron');
 
 /**
  * Verifies that the json webtoken passed was signed by us and
@@ -1512,7 +1513,7 @@ async function handleCreateAccountNew(req) {
         });
     }
 
-    const { public_keys, token, fingerprint, xref, locale } = req.body; // eslint-disable-line camelcase
+    const { public_keys, token, fingerprint, xref, locale, tron_bind_data } = req.body; // eslint-disable-line camelcase
 
     if (!public_keys) {
         // eslint-disable-line camelcase
@@ -1522,6 +1523,11 @@ async function handleCreateAccountNew(req) {
     if (!token) {
         throw new ApiError({ type: 'error_api_token_required' });
     }
+
+    if (!tron_bind_data) {
+        throw new ApiError({ type: 'error_api_tron_bind_data_required' });
+    }
+    const tronBindData = JSON.parse(tron_bind_data);
 
     let decoded;
 
@@ -1630,6 +1636,7 @@ async function handleCreateAccountNew(req) {
         key_auths: [[publicKeys.posting, 1]],
     };
 
+    // create user on Steem Chain.
     try {
         await services.createAccount({
             active,
@@ -1650,6 +1657,7 @@ async function handleCreateAccountNew(req) {
         });
     }
 
+    // add user info into db
     let user;
     try {
         const createdTime = new Date();
@@ -1672,6 +1680,18 @@ async function handleCreateAccountNew(req) {
         logger.error({ decoded, cause }, 'create user in database error');
         throw new ApiError({
             type: 'error_api_insert_user_into_db_failed',
+            cause,
+            status: 500,
+        });
+    }
+
+    try {
+        const updateTronUserResult = await updateTronUser(decoded.username, tronBindData);
+        logger.info({decoded, updateTronUserResult}, 'bind_tron_address_success');
+    } catch (cause) {
+        logger.error({ decoded, tronBindData, cause }, 'error_api_bind_tron_addr_failed');
+        throw new ApiError({
+            type: 'error_api_bind_tron_addr_failed',
             cause,
             status: 500,
         });
@@ -1765,6 +1785,11 @@ async function handleCreateAccountNew(req) {
     return { success: true };
 }
 
+async function handleCreateTronAddr() {
+    const tronUser = await getTronAccount();
+    return tronUser;
+}
+
 module.exports = {
     handleRequestEmail,
     handleRequestSms,
@@ -1781,4 +1806,5 @@ module.exports = {
     finalizeSignupNew,
     handleConfirmEmailCode,
     handleCreateAccountNew,
+    handleCreateTronAddr,
 };

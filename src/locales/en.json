@@ -187,6 +187,8 @@
         "Keep the internet connected and do not quit while waiting",
     "create_account_tip3":
         "You’ll receive a confirmation email after the account is successfully created.",
+    "create_account_tip4":
+        "You’ll receive a confirmation email after the account is successfully created.",
     "email_description":
         "We will send a verification code to your email address",
     "phone_description": "We will send a verification code to your phone",

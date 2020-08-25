@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { Component, PropTypes } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Button, Icon, Popover } from 'antd';
@@ -16,6 +17,7 @@ import SavePassword from './Form/Signup/SavePassword';
 import CreateAccount from './Form/Signup/CreateAccount';
 import SiftTracker from './SiftTracker';
 import { getPendingClaimedAccounts } from '../../helpers/validator';
+import getTronAddr from '../utils/tron';
 
 class Signup extends Component {
     static propTypes = {
@@ -81,6 +83,10 @@ class Signup extends Component {
             pending_claimed_accounts: 0,
             password: '',
             language_item_visible: false,
+            tronAddr: {
+                pubKey: '',
+                privKey: '',
+            },
         };
     }
 
@@ -120,6 +126,9 @@ class Signup extends Component {
         if (!paramUsername && step === 'signupOptions') {
             logCheckpoint(CHECKPOINTS.signup_start);
         }
+
+        const tronAddr = await getTronAddr();
+        this.setState({ tronAddr });
     }
 
     goBack = () => {
@@ -403,6 +412,7 @@ class Signup extends Component {
                                     token={token}
                                     password={this.state.password}
                                     locale={locale}
+                                    tronAddr={this.state.tronAddr}
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
