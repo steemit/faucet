@@ -181,14 +181,15 @@
         "Your email and phone number are needed to check that you're a real person.",
     "signup_free_tip3": "Insufficient places，please try again later.",
     "confirmPassword": "Confirm password",
+    "create_account_and_download_pdf": "Create the account and download the private key file.",
     "create_account_tip1":
-        "Please wait for around 10 seconds after clicking on \"Create account\"",
+        "Click the button below and wait for about 10 seconds. Do not quit the page. Make sure you have internet access.",
     "create_account_tip2":
-        "Keep the internet connected and do not quit while waiting",
+        "After the account is created, the PDF containing your private key will be downloaded automatically.",
     "create_account_tip3":
-        "You’ll receive a confirmation email after the account is successfully created.",
+        "Please kepp it safe, otherwise we cannot recover it for you.Please do not share the file with anyone else.",
     "create_account_tip4":
-        "You’ll receive a confirmation email after the account is successfully created.",
+        "Also, you will receive a welcome e-mail from us after you create the account.",
     "email_description":
         "We will send a verification code to your email address",
     "phone_description": "We will send a verification code to your phone",

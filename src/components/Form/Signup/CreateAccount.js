@@ -214,7 +214,7 @@ class CreateAccount extends React.Component {
                             loading={this.state.submitting}
                             disabled={this.getBtnStatus()}
                         >
-                            <FormattedMessage id={'create_account'} />
+                            <FormattedMessage id={'create_account_and_download_pdf'} />
                         </Button>
                     </Form.Item>
                     {goBack && (
