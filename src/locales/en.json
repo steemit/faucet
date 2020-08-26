@@ -203,8 +203,15 @@
     "error_api_email_code_invalid": "Invalid email code",
     "error_api_user_exist": "User existed",
     "welcome_page_title": "Welcome",
+    "click_here_to_download": "Click here",
     "welcome_page_message_1":
+        " to download the PDF with your private key.",
+    "welcome_page_message_2":
+        "Please kepp it safe, otherwise we cannot recover it for you.Please do not share the file with anyone else.",
+    "welcome_page_message_3":
         "You’re almost done！To get your login details and Keys for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com .",
+    "has_downloaded_pdf": "PDF has been downloaded and saved.",
+    "must_download": "Make sure you have downloaded and saved",
     "welcome_page_go_to_wallet": "Go to wallet",
     "error_api_insert_user_into_db_failed": "User data inserts failed",
     "insufficient_places": "Insufficient Places"

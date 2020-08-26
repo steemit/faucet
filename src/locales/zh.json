@@ -148,8 +148,15 @@
     "error_api_email_code_invalid": "邮箱验证码不正确",
     "error_api_user_exist": "用户已存在",
     "welcome_page_title": "欢迎",
+    "click_here_to_download": "点此下载",
     "welcome_page_message_1":
+        "带有密钥的PDF。",
+    "welcome_page_message_2":
+        "请小心保管，丢失无法找回。不要与任何人共享此文件。",
+    "welcome_page_message_3":
         "即将完成！请前往 http://steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。",
+    "has_downloaded_pdf": "已下载PDF并安全保存",
+    "must_download": "请确保已下载PDF并安全保存",
     "welcome_page_go_to_wallet": "访问钱包",
     "error_api_insert_user_into_db_failed": "用户数据写入失败",
     "insufficient_places": "免费注册额度不足"

@@ -18,6 +18,7 @@ import CreateAccount from './Form/Signup/CreateAccount';
 import SiftTracker from './SiftTracker';
 import { getPendingClaimedAccounts } from '../../helpers/validator';
 import getTronAddr from '../utils/tron';
+import Finish from './Finish';
 
 class Signup extends Component {
     static propTypes = {
@@ -213,6 +214,11 @@ class Signup extends Component {
             hideSignupModal,
             logCheckpoint,
         } = this.props;
+
+        const {
+            password,
+            tronAddr,
+        } = this.state;
 
         const stepNumber = steps.indexOf(step);
 
@@ -544,35 +550,11 @@ class Signup extends Component {
                         )}
                         {step === 'finish' && (
                             <div className="form-content">
-                                <h1>
-                                    <FormattedMessage id="welcome_page_title" />{' '}
-                                    {username}
-                                </h1>
-                                <div
-                                    style={{
-                                        marginTop: '3.2px',
-                                    }}
-                                >
-                                    <FormattedMessage id="welcome_page_message_1" />
-                                </div>
-                                <div
-                                    style={{
-                                        marginTop: '50px',
-                                    }}
-                                >
-                                    <Button
-                                        className="custom-btn"
-                                        style={{ width: '100%' }}
-                                        type="primary"
-                                        size="large"
-                                        onClick={() => {
-                                            window.location =
-                                                `https://steemitwallet.com/@${username}/permissions`;
-                                        }}
-                                    >
-                                        <FormattedMessage id="welcome_page_go_to_wallet" />
-                                    </Button>
-                                </div>
+                                <Finish
+                                    username={username}
+                                    password={password}
+                                    tronAddr={tronAddr}
+                                />
                             </div>
                         )}
                     </div>
