@@ -114,9 +114,9 @@ const findPhoneRecord = async where => db.phonecode.findOne(where);
 const updatePhoneRecord = async (data, where) =>
     db.phonecode.update(data, where);
 
-const deletePhoneRecord = async where => db.phonecode.destroy(where);
+const deletePhoneRecord = async where => db.phonecode.destroy({where});
 
-const deleteEmailRecord = async where => db.emailcode.destroy(where);
+const deleteEmailRecord = async where => db.emailcode.destroy({where});
 
 /**
  * remove user id references

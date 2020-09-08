@@ -1776,8 +1776,8 @@ async function handleCreateAccountNew(req) {
     }
 
     try {
-        await database.deleteEmailRecord(user.email);
-        await database.deletePhoneRecord(user.phone_number);
+        await database.deleteEmailRecord({email: user.email});
+        await database.deletePhoneRecord({phone_number: user.phone_number});
     } catch (err) {
         req.log.warn(err, 'remove email or phone code record error');
     }
