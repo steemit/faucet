@@ -1305,11 +1305,24 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    const record = await database.findPhoneRecord({
-        where: { phone_number: req.body.phoneNumber },
-    });
+    let record = null;
 
-    if (!record) {
+    try {
+        record = await database.findPhoneRecord({
+            where: { phone_number: req.body.phoneNumber },
+        });
+    } catch(cause) {
+        logger.warn({ cause }, 'error_api_findPhoneRecord_failed');
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_findPhoneRecord_failed',
+            cause,
+        });
+    }
+
+    logger.info({ record }, 'handleConfirmSmsNew_findPhoneRecord_result');
+
+    if (record === null) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_unknown_phone_number',
