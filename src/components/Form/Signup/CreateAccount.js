@@ -3,8 +3,8 @@ import React from 'react';
 import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
+import { signData } from '@steemfans/auth-data';
 import apiCall from '../../../utils/api';
-import { signData } from '../../../utils/encrypted';
 import getFingerprint from '../../../../helpers/fingerprint';
 
 class CreateAccount extends React.Component {
