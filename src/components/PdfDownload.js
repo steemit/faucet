@@ -156,7 +156,7 @@ export default class PdfDownload extends Component {
         );
 
         offset += 0.265;
-        offset += this.renderText(ctx, `Steem keys for @${this.props.name}`, {
+        offset += this.renderText(ctx, `Keys for @${this.props.name}`, {
             scale,
             x: margin,
             y: offset,
