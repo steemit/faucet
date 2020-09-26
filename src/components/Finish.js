@@ -46,6 +46,7 @@ class Finish extends React.Component {
 
     handleSubmit = () => {
         // this.downloadPdf();
+        console.log('go to wallet');
         const { username } = this.props;
         const url = `https://steemitwallet.com/@${username}/permissions`;
         window.location = url;
@@ -136,6 +137,7 @@ class Finish extends React.Component {
                             style={{ width: '100%' }}
                             type="primary"
                             size="large"
+                            onClick={this.handleSubmit}
                             disabled={this.getBtnStatus()}
                         >
                             <FormattedMessage id="welcome_page_go_to_wallet" />
