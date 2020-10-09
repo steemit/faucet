@@ -19,7 +19,7 @@ function image2canvas(image, bgcolor) {
     const canvas = document.createElement('canvas');
     canvas.width = image.width * 32;
     canvas.height = image.height * 32;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = bgcolor;
     ctx.fillRect(0.0, 0.0, canvas.width, canvas.height);
@@ -188,8 +188,8 @@ export default class PdfDownload extends Component {
         offset += 0.15;
         offset += this.renderText(
             ctx,
-            `Generated at ${ 
-                new Date().toISOString().replace(/\.\d{3}/, '') 
+            `Generated at ${
+                new Date().toISOString().replace(/\.\d{3}/, '')
                 } by steemit.com`,
             {
                 scale,
@@ -284,7 +284,7 @@ export default class PdfDownload extends Component {
         offset += 0.1;
         offset += this.renderText(
             ctx,
-            'TRON Account Public key(Tron Account Address)',
+            'TRON Public Key (TRON Address)',
             {
                 scale,
                 x: margin + qrSize + 0.1,
@@ -341,7 +341,7 @@ export default class PdfDownload extends Component {
         );
 
         offset += 0.1;
-        offset += this.renderText(ctx, 'TRON Account Private Key', {
+        offset += this.renderText(ctx, 'TRON Private Key', {
             scale,
             x: margin + qrSize + 0.1,
             y: offset,
@@ -406,9 +406,9 @@ export default class PdfDownload extends Component {
         offset += 0.15;
         this.drawQr(
             ctx,
-            `steem://import/wif/${ 
-                keys.postingPrivate 
-                }/account/${ 
+            `steem://import/wif/${
+                keys.postingPrivate
+                }/account/${
                 this.props.name}`,
             margin,
             offset,
@@ -467,9 +467,9 @@ export default class PdfDownload extends Component {
         offset += 0.15;
         this.drawQr(
             ctx,
-            `steem://import/wif/${ 
-                keys.memoPrivate 
-                }/account/${ 
+            `steem://import/wif/${
+                keys.memoPrivate
+                }/account/${
                 this.props.name}`,
             margin,
             offset,
@@ -531,9 +531,9 @@ export default class PdfDownload extends Component {
         offset += 0.15;
         this.drawQr(
             ctx,
-            `steem://import/wif/${ 
-                keys.activePrivate 
-                }/account/${ 
+            `steem://import/wif/${
+                keys.activePrivate
+                }/account/${
                 this.props.name}`,
             margin,
             offset,
@@ -596,9 +596,9 @@ export default class PdfDownload extends Component {
         offset += 0.15;
         this.drawQr(
             ctx,
-            `steem://import/wif/${ 
-                keys.ownerPrivate 
-                }/account/${ 
+            `steem://import/wif/${
+                keys.ownerPrivate
+                }/account/${
                 this.props.name}`,
             margin,
             offset,
@@ -724,7 +724,7 @@ export default class PdfDownload extends Component {
             ctx,
             `${'Public keys are associated with usernames and are used to ' +
                 'encrypt and verify messages. Your public keys are not required ' +
-                'for login. You can view these anytime at: https://steemscan.com/account/'}${ 
+                'for login. You can view these anytime at: https://steemscan.com/account/'}${
                 this.props.name}`,
             {
                 scale,
