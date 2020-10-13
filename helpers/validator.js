@@ -76,18 +76,18 @@ const accountNameIsValid = name => {
 
     for (i = 0, len = ref.length; i < len; i += 1) {
         label = ref[i];
-        if (!/^[a-z]/.test(label)) {
-            throw new Error(
-                hasSegment
-                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_start
-                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_start
-            );
-        }
         if (!/^[a-z0-9-]*$/.test(label)) {
             throw new Error(
                 hasSegment
                     ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_alpha
                     : INVALID_ACCOUNTNAME_REASONS.error_validation_account_alpha
+            );
+        }
+        if (!/^[a-z]/.test(label)) {
+            throw new Error(
+                hasSegment
+                    ? INVALID_ACCOUNTNAME_REASONS.error_validation_account_segment_start
+                    : INVALID_ACCOUNTNAME_REASONS.error_validation_account_start
             );
         }
         if (/--/.test(label)) {
