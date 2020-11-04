@@ -26,15 +26,6 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
     setLocale: locale => {
-        if (locale === 'zh') {
-            window.recaptchaOptions = {
-                lang: 'zh-CN',
-            };
-        } else {
-            window.recaptchaOptions = {
-                lang: 'en',
-            };
-        }
         dispatch(setLocale(locale));
     },
     guessCountryCode: () => {

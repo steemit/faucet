@@ -90,7 +90,7 @@
     "react-addons-test-utils": "15.3.2",
     "react-async-script": "0.9.1",
     "react-dom": "15.3.2",
-    "react-google-recaptcha": "git://github.com/busyorg/react-google-recaptcha.git#0b3362f",
+    "react-google-recaptcha": "git://github.com/steemit/react-google-recaptcha.git#2b8d5d7",
     "react-hot-loader": "4.0.1",
     "react-intl": "2.4.0",
     "react-phone-input-2": "^2.13.5",
