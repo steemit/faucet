@@ -7,7 +7,6 @@ import { Form, Input, Button, Icon, message } from 'antd';
 import SendCode from './SendCode';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
-import reloadRecaptcha from '../../../../helpers/recaptcha';
 // import Loading from '../../../widgets/Loading';
 import { accountNameIsValid, emailValid } from '../../../../helpers/validator';
 import badDomains from '../../../../bad-domains';
@@ -35,6 +34,7 @@ class UserInfo extends React.Component {
             check_email: false,
             check_email_code: false,
             check_phone_code: false,
+            change_locale_to: this.props.locale,
         };
     }
 
@@ -48,35 +48,31 @@ class UserInfo extends React.Component {
                 id: 'send_code',
             }),
         });
-        setTimeout(() => {
-            reloadRecaptcha();
-        });
     }
 
     componentWillReceiveProps(nextProps) {
         if (this.props.locale !== nextProps.locale) {
-            setTimeout(() => {
-                reloadRecaptcha();
-                const newState = {};
-                const { email_code_sending, phone_code_sending } = this.state;
-                if (!email_code_sending) {
-                    newState.email_send_code_txt = this.props.intl.formatMessage(
-                        {
-                            id: 'send_code',
-                        }
-                    );
-                }
-                if (!phone_code_sending) {
-                    newState.phone_send_code_txt = this.props.intl.formatMessage(
-                        {
-                            id: 'send_code',
-                        }
-                    );
-                }
-                if (Object.keys(newState).length > 0) {
-                    this.setState(newState);
-                }
-            });
+            const newState = {};
+            const { email_code_sending, phone_code_sending } = this.state;
+            if (!email_code_sending) {
+                newState.email_send_code_txt = this.props.intl.formatMessage(
+                    {
+                        id: 'send_code',
+                    }
+                );
+            }
+            if (!phone_code_sending) {
+                newState.phone_send_code_txt = this.props.intl.formatMessage(
+                    {
+                        id: 'send_code',
+                    }
+                );
+            }
+            newState.change_locale_to = nextProps.locale;
+            if (Object.keys(newState).length > 0) {
+                this.setState(newState);
+            }
+            this.clearGoogleRecaptcha();
         }
     }
 
@@ -85,18 +81,7 @@ class UserInfo extends React.Component {
         clearInterval(window.email_code_interval);
         clearInterval(window.phone_code_interval);
         // remove google recaptcha
-        for (
-            let i = document.getElementsByTagName('script').length - 1;
-            i >= 0;
-            i -= 1
-        ) {
-            const scriptNode = document.getElementsByTagName('script')[i];
-            if (scriptNode.src.includes('recaptcha')) {
-                scriptNode.parentNode.removeChild(scriptNode);
-            }
-        }
-        delete window.grecaptcha;
-        delete window.onloadcallback;
+        // this.clearGoogleRecaptcha();
     }
 
     getBtnStatus = () => {
@@ -123,6 +108,22 @@ class UserInfo extends React.Component {
     getPhoneMasks = () => ({
         cn: '... .... ....',
     });
+
+    clearGoogleRecaptcha = () => {
+        // remove google recaptcha
+        for (
+            let i = document.getElementsByTagName('script').length - 1;
+            i >= 0;
+            i -= 1
+        ) {
+            const scriptNode = document.getElementsByTagName('script')[i];
+            if (scriptNode.src.includes('recaptcha')) {
+                scriptNode.parentNode.removeChild(scriptNode);
+            }
+        }
+        delete window.grecaptcha;
+        delete window.onloadcallback;
+    }
 
     validateAccountNameIntl = (rule, value, callback) => {
         try {
@@ -639,6 +640,7 @@ class UserInfo extends React.Component {
                                         }
                                         type="image"
                                         size="normal"
+                                        hl={this.state.change_locale_to === 'zh' ? 'zh_CN' : 'en'}
                                         onChange={() => {}}
                                     />
                                 )}
