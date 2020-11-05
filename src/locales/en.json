@@ -79,25 +79,25 @@
     "error_username_taken":
         "The username you chose {username} has already been taken. Please choose another username.",
     "error_validation_account_alpha":
-        "Account name should contain only letters, digits, periods, and dashes",
+        "Account name should contain only lower case letters, digits, periods, and dashes",
     "error_validation_account_dash":
         "Account name should contain only one dash in a row",
     "error_validation_account_end":
-        "Account name should end with a letter or digit",
+        "Account name should end with a lower case letter or digit",
     "error_validation_account_max": "Account name should be shorter",
     "error_validation_account_min": "Account name should be longer",
     "error_validation_account_start":
-        "Each username segment should start with a letter",
+        "Each username segment should start with a lower case letter",
     "error_validation_account_segment_alpha":
-        "Each username segment should contain only letters, digits, and dashes",
+        "Each username segment should contain only lower case letters, digits, and dashes",
     "error_validation_account_segment_dash":
         "Each username segment should contain only one dash in a row",
     "error_validation_account_segment_end":
-        "Each username segment should end with a letter or digit",
+        "Each username segment should end with a lower case letter or digit",
     "error_validation_account_segment_min":
         "Each username segment should be longer",
     "error_validation_account_segment_start":
-        "Each username segment should start with a letter",
+        "Each username segment should start with a lower case letter",
     "finish_text_1":
         "After validating your signup request, we will look it over for approval. Please be patient, as it may take time to review the account. As soon as you're approved, you will be sent a link to finalize your account.",
     "finish_text_2":
