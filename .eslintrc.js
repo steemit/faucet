@@ -23,5 +23,6 @@ module.exports = {
     'import/no-extraneous-dependencies': 0,
     'no-mixed-operators': 0,
     'react/jsx-filename-extension': [1, { extensions: ['.js'] }],
+    'react/sort-comp': 0,
   },
 };
