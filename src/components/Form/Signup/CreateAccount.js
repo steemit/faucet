@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
-import apiCall, { recordActivityTracker } from '../../../utils/api';
+import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 
 class CreateAccount extends React.Component {
