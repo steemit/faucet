@@ -437,6 +437,7 @@ class Signup extends Component {
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
+                                    trackingId={trackingId}
                                     app={this.props.app}
                                 />
                             </div>
