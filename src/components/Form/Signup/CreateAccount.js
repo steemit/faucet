@@ -120,10 +120,9 @@ class CreateAccount extends React.Component {
                 ['localhost', '127.0.0.1'].indexOf(hostname) === -1
                     ? `.${locationInfo[1]}.${locationInfo[0]}`
                     : hostname;
-            console.log('cookies:', activityTags, trackingId, domain, cookieName, expiresTime);
+            console.log('cookies update:', activityTags, trackingId, domain, cookieName, expiresTime);
             Object.keys(activityTags).forEach(tag => {
                 if (activityTags[tag].isReg === 0) {
-                    recordActivityTracker({trackingId, activityTag: tag});
                     activityTags[tag].isReg = 1;
                 }
             });
