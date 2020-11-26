@@ -438,11 +438,11 @@ function recordActivityTracker({ trackingId, activityTag }) {
         measurement: 'activity_tracker',
         tags: {
             activityTag,
+            appType: 'faucet',
         },
         fields: {
             reg: 1,
             trackingId,
-            appType: 'faucet',
         },
     };
     api.call('overseer.collect', ['custom', data], error => {
