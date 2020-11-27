@@ -1370,7 +1370,7 @@ async function finalizeSignupNew(
     phoneCode,
     username
 ) {
-    
+
     if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
         if (!recaptcha) {
             throw new ApiError({
@@ -1526,7 +1526,7 @@ async function handleCreateAccountNew(req) {
         });
     }
 
-    const { public_keys, token, fingerprint, xref, locale, tron_bind_data } = req.body; // eslint-disable-line camelcase
+    const { public_keys, token, fingerprint, xref, locale, activityTags, tron_bind_data } = req.body; // eslint-disable-line camelcase
 
     if (!public_keys) {
         // eslint-disable-line camelcase
@@ -1793,6 +1793,16 @@ async function handleCreateAccountNew(req) {
         await database.deletePhoneRecord({phone_number: user.phone_number});
     } catch (err) {
         req.log.warn(err, 'remove email or phone code record error');
+    }
+
+    // activity tag analytics
+    try {
+        logger.info({ activityTags }, 'activity_tag_analytics_starting');
+        activityTags.forEach(tag => {
+            services.recordActivityTracker({trackingId: xref, activityTag: tag, username: decoded.username});
+        });
+    } catch (err) {
+        req.log.warn(err, 'activity tag analytics error');
     }
 
     return { success: true };

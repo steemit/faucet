@@ -1,4 +1,6 @@
+/* eslint-disable no-console */
 import fetch from 'isomorphic-fetch';
+import { api } from '@steemit/steem-js';
 
 export default async function apiCall(path, payload, reqType = 'POST') {
     const reqObjs = {
@@ -31,4 +33,21 @@ export default async function apiCall(path, payload, reqType = 'POST') {
         throw error;
     }
     return responseData;
+}
+
+export function recordActivityTracker({ trackingId, activityTag }) {
+    const data = {
+        measurement: 'activity_tracker',
+        tags: {
+            activityTag,
+            appType: 'faucet',
+        },
+        fields: {
+            views: 1,
+            trackingId,
+        },
+    };
+    api.call('overseer.collect', ['custom', data], error => {
+        if (error) console.warn('overseer error:', data, error);
+    });
 }
