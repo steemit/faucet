@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 /* eslint-disable react/prop-types */
 import React from 'react';
+import Cookies from 'js-cookie';
 import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
@@ -65,6 +67,7 @@ class CreateAccount extends React.Component {
         const { fingerprint } = this.state;
         const roles = ['posting', 'active', 'owner', 'memo'];
         const pubKeys = steem.auth.generateKeys(username, password, roles);
+        const activityTags = this.getActivityTags();
         validateFieldsAndScroll(err => {
             if (!err) {
                 apiCall('/api/create_account_new', {
@@ -73,9 +76,11 @@ class CreateAccount extends React.Component {
                     fingerprint,
                     xref: trackingId,
                     locale,
+                    activityTags,
                 })
                     .then(() => {
                         this.setState({ submitting: false });
+                        this.updateActivityTags();
                         handleCreateAccount();
                     })
                     .catch(error => {
@@ -87,6 +92,43 @@ class CreateAccount extends React.Component {
             }
         });
     };
+
+    getActivityTags = () => {
+        const cookieName = this.props.app.activityCookieName;
+        const activityTags = Cookies.getJSON(cookieName);
+        const result = [];
+        if (activityTags !== undefined) {
+            Object.keys(activityTags).forEach(tag => {
+                if (activityTags[tag].isReg === 0) {
+                    result.push(tag);
+                }
+            });
+        }
+        return result;
+    }
+
+    updateActivityTags = () => {
+        const cookieName = this.props.app.activityCookieName;
+        const expiresTime = this.props.app.activityCookieExpiresTime;
+        const activityTags = Cookies.getJSON(cookieName);
+        const trackingId = this.props.trackingId;
+        if (activityTags !== undefined) {
+            // location info
+            const hostname = window.location.hostname;
+            const locationInfo = hostname.split('.').reverse();
+            const domain =
+                ['localhost', '127.0.0.1'].indexOf(hostname) === -1
+                    ? `.${locationInfo[1]}.${locationInfo[0]}`
+                    : hostname;
+            console.log('cookies update:', activityTags, trackingId, domain, cookieName, expiresTime);
+            Object.keys(activityTags).forEach(tag => {
+                if (activityTags[tag].isReg === 0) {
+                    activityTags[tag].isReg = 1;
+                }
+            });
+            Cookies.set(cookieName, activityTags, { expires: expiresTime, domain })
+        }
+    }
 
     render() {
         const { form: { getFieldDecorator }, intl, goBack } = this.props;

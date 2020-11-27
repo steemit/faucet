@@ -1,4 +1,6 @@
+/* eslint-disable no-console */
 import React, { Component, PropTypes } from 'react';
+import Cookies from 'js-cookie';
 import { FormattedMessage } from 'react-intl';
 import { Button, Icon, Popover } from 'antd';
 import { CHECKPOINTS } from '../../constants';
@@ -16,12 +18,15 @@ import SavePassword from './Form/Signup/SavePassword';
 import CreateAccount from './Form/Signup/CreateAccount';
 import SiftTracker from './SiftTracker';
 import { getPendingClaimedAccounts } from '../../helpers/validator';
+import { recordActivityTracker } from '../utils/api';
 
 class Signup extends Component {
     static propTypes = {
         app: PropTypes.shape({
             locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
             signupModalVisible: React.PropTypes.bool.isRequired,
+            activityCookieName: React.PropTypes.string,
+            activityCookieExpiresTime: React.PropTypes.number,
         }).isRequired,
         user: PropTypes.shape({
             username: PropTypes.string.isRequired,
@@ -119,6 +124,32 @@ class Signup extends Component {
 
         if (!paramUsername && step === 'signupOptions') {
             logCheckpoint(CHECKPOINTS.signup_start);
+        }
+
+        this.updateActivityTag();
+    }
+
+    updateActivityTag = () => {
+        const cookieName = this.props.app.activityCookieName;
+        const expiresTime = this.props.app.activityCookieExpiresTime;
+        const activityTags = Cookies.getJSON(cookieName);
+        const trackingId = this.props.user.trackingId;
+        if (activityTags !== undefined) {
+            // location info
+            const hostname = window.location.hostname;
+            const locationInfo = hostname.split('.').reverse();
+            const domain =
+                ['localhost', '127.0.0.1'].indexOf(hostname) === -1
+                    ? `.${locationInfo[1]}.${locationInfo[0]}`
+                    : hostname;
+            console.log('cookies:', activityTags, trackingId, domain, cookieName, expiresTime);
+            Object.keys(activityTags).forEach(tag => {
+                if (activityTags[tag].isVisit === 0) {
+                    recordActivityTracker({trackingId, activityTag: tag});
+                    activityTags[tag].isVisit = 1;
+                }
+            });
+            Cookies.set(cookieName, activityTags, { expires: expiresTime, domain })
         }
     }
 
@@ -347,7 +378,7 @@ class Signup extends Component {
                                 <p className="text">
                                     <FormattedMessage id="save_password_text" />
                                 </p>
-                                <SavePassword 
+                                <SavePassword
                                     password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
                                     handleSavePassword={this.handleSavePassword}/> */}
                             </div>
@@ -406,6 +437,8 @@ class Signup extends Component {
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
+                                    trackingId={trackingId}
+                                    app={this.props.app}
                                 />
                             </div>
                         )}
