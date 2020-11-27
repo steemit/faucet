@@ -1779,7 +1779,7 @@ async function handleCreateAccountNew(req) {
     try {
         logger.info({ activityTags }, 'activity_tag_analytics_starting');
         activityTags.forEach(tag => {
-            services.recordActivityTracker({trackingId: xref, activityTag: tag});
+            services.recordActivityTracker({trackingId: xref, activityTag: tag, username: decoded.username});
         });
     } catch (err) {
         req.log.warn(err, 'activity tag analytics error');

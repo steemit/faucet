@@ -433,7 +433,7 @@ async function getOverseerStats(dateFrom, dateTo) {
     );
 }
 
-function recordActivityTracker({ trackingId, activityTag }) {
+function recordActivityTracker({ trackingId, activityTag, username }) {
     const data = {
         measurement: 'activity_tracker',
         tags: {
@@ -443,6 +443,7 @@ function recordActivityTracker({ trackingId, activityTag }) {
         fields: {
             reg: 1,
             trackingId,
+            username,
         },
     };
     api.call('overseer.collect', ['custom', data], error => {
