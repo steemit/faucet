@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
+import { signData } from '@steemfans/auth-data';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 
@@ -63,10 +64,16 @@ class CreateAccount extends React.Component {
             handleCreateAccount,
             trackingId,
             locale,
+            tronAddr,
         } = this.props;
         const { fingerprint } = this.state;
         const roles = ['posting', 'active', 'owner', 'memo'];
         const pubKeys = steem.auth.generateKeys(username, password, roles);
+        const privKeys = steem.auth.getPrivateKeys(username, password, roles);
+        const tronBindData = signData({
+            username,
+            tron_addr: tronAddr.pubKey,
+        }, privKeys.posting);
         const activityTags = this.getActivityTags();
         validateFieldsAndScroll(err => {
             if (!err) {
@@ -74,6 +81,7 @@ class CreateAccount extends React.Component {
                     token,
                     public_keys: JSON.stringify(pubKeys),
                     fingerprint,
+                    tron_bind_data: JSON.stringify(tronBindData),
                     xref: trackingId,
                     locale,
                     activityTags,
@@ -223,7 +231,21 @@ class CreateAccount extends React.Component {
                             </Checkbox>
                         )}
                     </Form.Item>
-                    <Form.Item style={{ marginTop: '3rem' }}>
+                    <div className="create-account-info" style={{ marginTop: '3rem', marginBottom: '1rem', }}>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip1" />
+                        </p>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip2" />
+                        </p>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip3" />
+                        </p>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip4" />
+                        </p>
+                    </div>
+                    <Form.Item>
                         <Button
                             className="create-account custom-btn"
                             style={{
@@ -234,7 +256,7 @@ class CreateAccount extends React.Component {
                             loading={this.state.submitting}
                             disabled={this.getBtnStatus()}
                         >
-                            <FormattedMessage id={'create_account'} />
+                            <FormattedMessage id={'create_account_and_download_pdf'} />
                         </Button>
                     </Form.Item>
                     {goBack && (
@@ -251,17 +273,6 @@ class CreateAccount extends React.Component {
                         </Form.Item>
                     )}
                 </Form>
-                <div className="create-account-info">
-                    <p style={{ paddingBottom: '0.2rem' }}>
-                        <FormattedMessage id="create_account_tip1" />
-                    </p>
-                    <p style={{ paddingBottom: '0.2rem' }}>
-                        <FormattedMessage id="create_account_tip2" />
-                    </p>
-                    <p style={{ paddingBottom: '0.2rem' }}>
-                        <FormattedMessage id="create_account_tip3" />
-                    </p>
-                </div>
             </div>
         );
     }

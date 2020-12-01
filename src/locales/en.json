@@ -181,12 +181,15 @@
         "Your email and phone number are needed to check that you're a real person.",
     "signup_free_tip3": "Insufficient places，please try again later.",
     "confirmPassword": "Confirm password",
+    "create_account_and_download_pdf": "Create the account and download the private key file.",
     "create_account_tip1":
-        "Please wait for around 10 seconds after clicking on \"Create account\"",
+        "Click the button below and wait for about 10 seconds. Do not quit the page. Make sure you have internet access.",
     "create_account_tip2":
-        "Keep the internet connected and do not quit while waiting",
+        "After the account is created, the PDF containing your private key will be downloaded automatically.",
     "create_account_tip3":
-        "You’ll receive a confirmation email after the account is successfully created.",
+        "Please keep it safe, otherwise we cannot recover it for you.Please do not share the file with anyone else.",
+    "create_account_tip4":
+        "Also, you will receive a welcome e-mail from us after you create the account.",
     "email_description":
         "We will send a verification code to your email address",
     "phone_description": "We will send a verification code to your phone",
@@ -200,8 +203,15 @@
     "error_api_email_code_invalid": "Invalid email code",
     "error_api_user_exist": "User existed",
     "welcome_page_title": "Welcome",
+    "click_here_to_download": "Click here",
     "welcome_page_message_1":
+        " to download the PDF with your private key.",
+    "welcome_page_message_2":
+        "Please keep it safe, otherwise we cannot recover it for you.Please do not share the file with anyone else.",
+    "welcome_page_message_3":
         "You’re almost done！To get your login details and Keys for Steemit.com, go and sign in to the Steemit wallet at https://steemitwallet.com .",
+    "has_downloaded_pdf": "PDF has been downloaded and saved.",
+    "must_download": "Make sure you have downloaded and saved",
     "welcome_page_go_to_wallet": "Go to wallet",
     "error_api_insert_user_into_db_failed": "User data inserts failed",
     "insufficient_places": "Insufficient Places"

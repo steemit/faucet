@@ -131,9 +131,11 @@
     "signup_options": "注册选项",
     "confirmPassword": "确认密码",
     "create_account": "创建账户",
-    "create_account_tip1": "点击创建账户后请耐心等待约10秒钟",
-    "create_account_tip2": "中途不要离开网页，并保证网络状况良好",
-    "create_account_tip3": "此外，成功创建账户后我们会给您发送一封欢迎邮件",
+    "create_account_and_download_pdf": "创建账户并下载密钥文件",
+    "create_account_tip1": "点击下方按钮后请耐心等待约10秒钟，不要离开网页，并保证网络状况良好",
+    "create_account_tip2": "成功创建账户后，将自动为您下载带有私钥的PDF",
+    "create_account_tip3": "请小心保管，丢失无法找回。不要与任何人共享此文件",
+    "create_account_tip4": "此外，成功创建账户后我们会给您发送一封欢迎邮件",
     "email_description": "我们将给你的邮箱发送邮箱验证码",
     "phone_description": "我们将给你的手机发送手机验证码",
     "send_code": "发送验证码",
@@ -146,8 +148,15 @@
     "error_api_email_code_invalid": "邮箱验证码不正确",
     "error_api_user_exist": "用户已存在",
     "welcome_page_title": "欢迎",
+    "click_here_to_download": "点此下载",
     "welcome_page_message_1":
+        "带有密钥的PDF。",
+    "welcome_page_message_2":
+        "请小心保管，丢失无法找回。不要与任何人共享此文件。",
+    "welcome_page_message_3":
         "即将完成！请前往 http://steemitwallet.com 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。",
+    "has_downloaded_pdf": "已下载PDF并安全保存",
+    "must_download": "请确保已下载PDF并安全保存",
     "welcome_page_go_to_wallet": "访问钱包",
     "error_api_insert_user_into_db_failed": "用户数据写入失败",
     "insufficient_places": "免费注册额度不足"

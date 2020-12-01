@@ -115,4 +115,6 @@ router.post(
     apiMiddleware(apiHandlers.handleCreateAccountNew)
 );
 
+router.get('/create_tron_addr', apiMiddleware(apiHandlers.handleCreateTronAddr));
+
 module.exports = router;

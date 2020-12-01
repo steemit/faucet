@@ -18,6 +18,8 @@ import SavePassword from './Form/Signup/SavePassword';
 import CreateAccount from './Form/Signup/CreateAccount';
 import SiftTracker from './SiftTracker';
 import { getPendingClaimedAccounts } from '../../helpers/validator';
+import getTronAddr from '../utils/tron';
+import Finish from './Finish';
 import { recordActivityTracker } from '../utils/api';
 
 class Signup extends Component {
@@ -86,6 +88,10 @@ class Signup extends Component {
             pending_claimed_accounts: 0,
             password: '',
             language_item_visible: false,
+            tronAddr: {
+                pubKey: '',
+                privKey: '',
+            },
         };
     }
 
@@ -126,6 +132,8 @@ class Signup extends Component {
             logCheckpoint(CHECKPOINTS.signup_start);
         }
 
+        const tronAddr = await getTronAddr();
+        this.setState({ tronAddr });
         this.updateActivityTag();
     }
 
@@ -235,6 +243,11 @@ class Signup extends Component {
             hideSignupModal,
             logCheckpoint,
         } = this.props;
+
+        const {
+            password,
+            tronAddr,
+        } = this.state;
 
         const stepNumber = steps.indexOf(step);
 
@@ -434,6 +447,7 @@ class Signup extends Component {
                                     token={token}
                                     password={this.state.password}
                                     locale={locale}
+                                    tronAddr={this.state.tronAddr}
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
@@ -567,35 +581,11 @@ class Signup extends Component {
                         )}
                         {step === 'finish' && (
                             <div className="form-content">
-                                <h1>
-                                    <FormattedMessage id="welcome_page_title" />{' '}
-                                    {username}
-                                </h1>
-                                <div
-                                    style={{
-                                        marginTop: '3.2px',
-                                    }}
-                                >
-                                    <FormattedMessage id="welcome_page_message_1" />
-                                </div>
-                                <div
-                                    style={{
-                                        marginTop: '50px',
-                                    }}
-                                >
-                                    <Button
-                                        className="custom-btn"
-                                        style={{ width: '100%' }}
-                                        type="primary"
-                                        size="large"
-                                        onClick={() => {
-                                            window.location =
-                                                `https://steemitwallet.com/@${username}/permissions`;
-                                        }}
-                                    >
-                                        <FormattedMessage id="welcome_page_go_to_wallet" />
-                                    </Button>
-                                </div>
+                                <Finish
+                                    username={username}
+                                    password={password}
+                                    tronAddr={tronAddr}
+                                />
                             </div>
                         )}
                     </div>
