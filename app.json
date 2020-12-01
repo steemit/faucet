@@ -51,6 +51,9 @@
     "ANALYTICS_UPDATE_SUPERKEY": {
       "required": true
     },
+    "WALLET_URL": {
+      "required": true
+    },
     "LOG_FORMAT": "short",
     "DEFAULT_REDIRECT_URI": ""
   },

@@ -10,6 +10,7 @@ const steem = require('@steemit/steem-js');
 const geoip = require('../helpers/maxmind');
 const jwt = require('jsonwebtoken');
 const { checkpoints } = require('../constants');
+const { api } = require('@steemit/steem-js');
 
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined;
 
@@ -432,6 +433,24 @@ async function getOverseerStats(dateFrom, dateTo) {
     );
 }
 
+function recordActivityTracker({ trackingId, activityTag, username }) {
+    const data = {
+        measurement: 'activity_tracker',
+        tags: {
+            activityTag,
+            appType: 'faucet',
+        },
+        fields: {
+            reg: 1,
+            trackingId,
+            username,
+        },
+    };
+    api.call('overseer.collect', ['custom', data], error => {
+        throw new Error(`activity tracker error: ${error.message}`);
+    });
+}
+
 module.exports = {
     checkUsername,
     condenserTransfer,
@@ -451,4 +470,5 @@ module.exports = {
     sendSMS,
     validatePhone,
     verifyCaptcha,
+    recordActivityTracker,
 };

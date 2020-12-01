@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => (
         last_attempt_verify_phone_number: DataTypes.DATE,
         phone_code_sent: DataTypes.INTEGER,
         phone_code_generated: DataTypes.DATE,
+        phone_code_first_sent: DataTypes.DATE,
     }, {
         freezeTableName: true,
         underscored: true,

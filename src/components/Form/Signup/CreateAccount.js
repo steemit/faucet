@@ -1,8 +1,11 @@
+/* eslint-disable no-console */
 /* eslint-disable react/prop-types */
 import React from 'react';
+import Cookies from 'js-cookie';
 import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
+import { signData } from '@steemfans/auth-data';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 
@@ -18,6 +21,14 @@ class CreateAccount extends React.Component {
         this.setState({
             fingerprint: JSON.stringify(getFingerprint()),
         });
+    }
+
+    getBtnStatus = () => {
+        const { form, password } = this.props;
+        const tos = form.getFieldValue('agree_tos');
+        const pp = form.getFieldValue('agree_pp');
+        const isEqual = form.getFieldValue('password') === password;
+        return !(isEqual && tos && pp);
     }
 
     passwordEquals = (rule, value, callback) => {
@@ -53,21 +64,31 @@ class CreateAccount extends React.Component {
             handleCreateAccount,
             trackingId,
             locale,
+            tronAddr,
         } = this.props;
         const { fingerprint } = this.state;
         const roles = ['posting', 'active', 'owner', 'memo'];
         const pubKeys = steem.auth.generateKeys(username, password, roles);
+        const privKeys = steem.auth.getPrivateKeys(username, password, roles);
+        const tronBindData = signData({
+            username,
+            tron_addr: tronAddr.pubKey,
+        }, privKeys.posting);
+        const activityTags = this.getActivityTags();
         validateFieldsAndScroll(err => {
             if (!err) {
                 apiCall('/api/create_account_new', {
                     token,
                     public_keys: JSON.stringify(pubKeys),
                     fingerprint,
+                    tron_bind_data: JSON.stringify(tronBindData),
                     xref: trackingId,
                     locale,
+                    activityTags,
                 })
                     .then(() => {
                         this.setState({ submitting: false });
+                        this.updateActivityTags();
                         handleCreateAccount();
                     })
                     .catch(error => {
@@ -79,6 +100,43 @@ class CreateAccount extends React.Component {
             }
         });
     };
+
+    getActivityTags = () => {
+        const cookieName = this.props.app.activityCookieName;
+        const activityTags = Cookies.getJSON(cookieName);
+        const result = [];
+        if (activityTags !== undefined) {
+            Object.keys(activityTags).forEach(tag => {
+                if (activityTags[tag].isReg === 0) {
+                    result.push(tag);
+                }
+            });
+        }
+        return result;
+    }
+
+    updateActivityTags = () => {
+        const cookieName = this.props.app.activityCookieName;
+        const expiresTime = this.props.app.activityCookieExpiresTime;
+        const activityTags = Cookies.getJSON(cookieName);
+        const trackingId = this.props.trackingId;
+        if (activityTags !== undefined) {
+            // location info
+            const hostname = window.location.hostname;
+            const locationInfo = hostname.split('.').reverse();
+            const domain =
+                ['localhost', '127.0.0.1'].indexOf(hostname) === -1
+                    ? `.${locationInfo[1]}.${locationInfo[0]}`
+                    : hostname;
+            console.log('cookies update:', activityTags, trackingId, domain, cookieName, expiresTime);
+            Object.keys(activityTags).forEach(tag => {
+                if (activityTags[tag].isReg === 0) {
+                    activityTags[tag].isReg = 1;
+                }
+            });
+            Cookies.set(cookieName, activityTags, { expires: expiresTime, domain })
+        }
+    }
 
     render() {
         const { form: { getFieldDecorator }, intl, goBack } = this.props;
@@ -99,10 +157,7 @@ class CreateAccount extends React.Component {
                             initialValue: '',
                         })(
                             <Input.TextArea
-                                style={{
-                                    background: 'rgba(47,47,47,0.04)',
-                                    fontSize: '1rem',
-                                }}
+                                className="input-password-textarea"
                                 placeholder={intl.formatMessage({
                                     id: 'master_password',
                                 })}
@@ -130,6 +185,7 @@ class CreateAccount extends React.Component {
                                     values={{
                                         document: (
                                             <a
+                                                className="doc-link"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 href="https://steemit.com/tos.html"
@@ -162,6 +218,7 @@ class CreateAccount extends React.Component {
                                     values={{
                                         document: (
                                             <a
+                                                className="doc-link"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 href="https://steemit.com/privacy.html"
@@ -174,44 +231,48 @@ class CreateAccount extends React.Component {
                             </Checkbox>
                         )}
                     </Form.Item>
-                    <Form.Item style={{ marginTop: '3rem' }}>
+                    <div className="create-account-info" style={{ marginTop: '3rem', marginBottom: '1rem', }}>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip1" />
+                        </p>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip2" />
+                        </p>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip3" />
+                        </p>
+                        <p style={{ paddingBottom: '0.2rem' }}>
+                            <FormattedMessage id="create_account_tip4" />
+                        </p>
+                    </div>
+                    <Form.Item>
                         <Button
+                            className="create-account custom-btn"
+                            style={{
+                                fontSize: '16px',
+                            }}
                             type="primary"
                             htmlType="submit"
                             loading={this.state.submitting}
+                            disabled={this.getBtnStatus()}
                         >
-                            <FormattedMessage id={'create_account'} />
+                            <FormattedMessage id={'create_account_and_download_pdf'} />
                         </Button>
                     </Form.Item>
                     {goBack && (
                         <Form.Item>
-                            <Button
-                                htmlType="button"
+                            <a
+                                role="button"
+                                tabIndex={0}
                                 className="back"
-                                onClick={() => goBack()}
-                            >
-                                <FormattedMessage id="go_back" />
-                            </Button>
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    goBack();
+                                }}
+                            ><FormattedMessage id="go_back" /></a>
                         </Form.Item>
                     )}
                 </Form>
-                <div
-                    style={{
-                        opacity: '0.6',
-                        fontSize: '.875rem',
-                        color: '#ABABAB',
-                    }}
-                >
-                    <p style={{ paddingBottom: '0.2rem' }}>
-                        <FormattedMessage id="create_account_tip1" />
-                    </p>
-                    <p style={{ paddingBottom: '0.2rem' }}>
-                        <FormattedMessage id="create_account_tip2" />
-                    </p>
-                    <p style={{ paddingBottom: '0.2rem' }}>
-                        <FormattedMessage id="create_account_tip3" />
-                    </p>
-                </div>
             </div>
         );
     }

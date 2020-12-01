@@ -41,7 +41,7 @@ async function emailIsInUse(email) {
     const userCount = await db.users.count({
         where: {
             email_normalized: normalized,
-            email_is_verified: true,
+            // email_is_verified: true,
         },
     });
     return userCount > 0;
@@ -74,7 +74,7 @@ async function phoneIsInUse(phone_number) {
     const userCount = await db.users.count({
         where: {
             phone_number,
-            phone_number_is_verified: true,
+            // phone_number_is_verified: true,
         },
     });
     return userCount > 0;
@@ -114,7 +114,9 @@ const findPhoneRecord = async where => db.phonecode.findOne(where);
 const updatePhoneRecord = async (data, where) =>
     db.phonecode.update(data, where);
 
-const deletePhoneRecord = async where => db.phonecode.destroy(where);
+const deletePhoneRecord = async where => db.phonecode.destroy({where});
+
+const deleteEmailRecord = async where => db.emailcode.destroy({where});
 
 /**
  * remove user id references
@@ -159,4 +161,5 @@ module.exports = {
     findPhoneRecord,
     updatePhoneRecord,
     deletePhoneRecord,
+    deleteEmailRecord,
 };

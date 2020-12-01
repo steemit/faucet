@@ -35,6 +35,8 @@ const initialState = Map({
         // user gets email with link to /create-account
     ]),
     signupModalVisible: false,
+    activityCookieName: 'activity_tag',
+    activityCookieExpiresTime: 30,
 });
 
 export default (state = initialState, action = {}) => {

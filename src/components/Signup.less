@@ -36,9 +36,6 @@
   justify-content: space-around;
   max-width: 1400px;
   margin: 0 auto;
-  @media (min-width: @screen-md) {
-     height: 100%;
-   }
   .Signup__form, .Signup__icons {
     max-width: 600px;
     min-height: 600px;
@@ -49,15 +46,6 @@
     @media (max-width: @screen-md) {
       padding: 50px 20px;
       margin-top: 50px;
-    }
-    .signup_options_wrap{
-      p{
-        opacity: 0.6;
-        font-family: HelveticaNeue;
-        font-size: 18px;
-        color: #2F2F2F;
-        line-height: 24px;
-      }
     }
   }
 
@@ -129,13 +117,10 @@
         flex: 1;
         display: flex;
         flex-direction:column;
-        align-items: center;
+        align-items: stretch;
         padding: 3.75rem 1.25rem 1.5rem;
         border: 1px solid rgba(171,171,171,0.30);
         border-radius: .625rem;
-        &:first-child{
-          margin-right: 2.5rem;
-        }
         p{
           margin-bottom: .4rem;
           padding-bottom: 0;
@@ -150,10 +135,13 @@
           transform: translate(-50%, -60%);
         }
         >div{
-          min-height: 7.5rem;
+          min-height: 3.75rem;
+          margin-bottom: 2.5rem;
         }
         button{
+          width: 13rem;
           padding: 0 .5rem;
+          margin: 0 auto;
         }
       }
       @media (max-width: 500px) {
@@ -175,10 +163,13 @@
     .save-password-wrap{
       .password-wrap{
         padding: 1.25rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.25rem;
         background: rgba(47,47,47,0.04);
         border-radius: 10px;
         word-break: break-all;
+        color: #ABABAB;
+        font-size: 16px;
+        line-height: 1.5rem;
       }
       .ant-btn{
         width: 100%;
@@ -189,12 +180,17 @@
         font-family: HelveticaNeue-Medium;
         font-size: 1rem;
         color: #1720C9;
-        &.ant-btn-primary{
+        &.ant-btn-primary {
           color: #FFFFFF;
           font-family: HelveticaNeue-Bold;
         }
       }
-
+      .ant-btn:hover:not(:last-child) {
+        opacity: 0.3;
+      }
+      .ant-btn-primary:active {
+        opacity: 0.5;
+      }
     }
     .signup-form{
       .ant-form-item-control {
@@ -207,12 +203,13 @@
         .ant-checkbox-input{
           width: 1.125rem;
           height: 1.125rem;
+          border-radius: 4px;
         }
         .ant-checkbox-inner{
           width: 1.125rem;
           height: 1.125rem;
           border: 0;
-          background: rgba(47,47,47,0.04);
+          background: rgba(47,47,47,0.1);
           &:after{
             left: 6px;
             top: 2px;
@@ -225,6 +222,43 @@
             background-color: #1720C9;
           }
         }
+        .doc-link {
+          text-decoration: underline;
+          padding-left: 10px;
+        }
+      }
+      .input-password-textarea {
+        background: rgba(47,47,47,0.04);
+        font-size: 1rem;
+        resize: none;
+        border: 2px solid #fff;
+        background: rgba(47,47,47,0.04);
+        border-radius: 10px;
+      }
+      .input-password-textarea:focus {
+        background-color: #fff;
+        border: 2px solid rgba(23,32,201,0.40);
+        border-radius: 10px;
+        box-shadow: none;
+      }
+      .has-success {
+        .input-password-textarea {
+          background: rgba(23,32,201,0.06);
+          border: 2px solid #fff;
+        }
+        .input-password-textarea:focus {
+          background-color: #fff;
+          border: 2px solid rgba(23,32,201,0.40);
+        }
+      }
+      .has-error {
+        .input-password-textarea {
+          background: #FFFFFF;
+          border: 2px solid rgba(243,89,85,0.60);
+        }
+      }
+      .create-account:active {
+        opacity: 0.5;
       }
     }
 
@@ -241,6 +275,220 @@
         font-size: 1rem;
         color: #2F2F2F;
         line-height: 1.5;
+      }
+      .signup-form {
+        .ant-form-explain {
+          margin-top: 6px;
+          margin-bottom: 0px;
+        }
+        .ant-input {
+          border: 2px solid #fff;
+          background: rgba(47,47,47,0.04);
+          border-radius: 10px;
+        }
+        .ant-input-affix-wrapper .ant-input:focus {
+          background-color: #fff;
+          border: 2px solid rgba(23,32,201,0.40);
+          border-radius: 10px;
+          box-shadow: none;
+        }
+        .has-feedback.has-success {
+          .ant-input {
+            border-radius: 10px;
+            background: rgba(23,32,201,0.06);
+            border: 2px solid #fff;
+          }
+          .ant-input:focus {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            border-radius: 10px;
+            box-shadow: none;
+          }
+        }
+        .has-feedback.has-error {
+          .ant-input {
+            background: #FFFFFF;
+            border: 2px solid rgba(243,89,85,0.60);
+            border-radius: 10px;
+          }
+        }
+        .ant-input-group-wrapper {
+          .ant-input {
+            border-right: 0;
+            background: rgba(47,47,47,0.04);
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+          }
+          .ant-input + span {
+            border-left: 0;
+            border-right: 2px solid #fff;
+            background: rgba(47,47,47,0.04);
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+          }
+          .ant-input:focus {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            border-right: 0;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            box-shadow: none;
+          }
+          .ant-input:focus + span {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            border-left: 0;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            box-shadow: none;
+          }
+        }
+        .has-success {
+          .ant-input-group-wrapper {
+            .ant-input.feedback {
+              border-right: 0;
+              background: rgba(23,32,201,0.06);
+              border-top-right-radius: 0;
+              border-bottom-right-radius: 0;
+            }
+            .ant-input + span {
+              border-left: 0;
+              background: rgba(23,32,201,0.06);
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+            }
+            .ant-input:focus, .ant-input:focus + span {
+              background-color: #fff;
+            }
+          }
+        }
+        .has-error {
+          .ant-input-group-wrapper {
+            .ant-input.feedback {
+              background: #fff;
+              border-top-right-radius: 0;
+              border-bottom-right-radius: 0;
+              border: 2px solid rgba(243,89,85,0.60);
+              border-right: 0;
+            }
+            .ant-input + span {
+              border: 2px solid rgba(243,89,85,0.60);
+              border-left: 0;
+              background: #fff;
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+            }
+          }
+        }
+        .send-code {
+          border-radius: 0;
+          border: 0;
+          border-left: 1px solid #e7e7e7;
+          font-family: HelveticaNeue;
+          font-size: 16px;
+          color: #ABABAB;
+          letter-spacing: 0;
+          line-height: 18px;
+          font-weight: 400;
+          height: 20px;
+          width: 9.375rem;
+          background-color: transparent;
+        }
+        .send-code.checked {
+          color: #1720C9;
+        }
+        .send-code.sending {
+          opacity: 0.6;
+          color: #ABABAB;
+          letter-spacing: 0;
+        }
+        .ant-input-group-addon {
+          background-color: rgba(47,47,47,0.04);
+          border-top: 2px solid #fff;
+          border-right: 2px solid #fff;
+          border-bottom: 2px solid #fff;
+          border-right: 0;
+          border-top-right-radius: 10px;
+          border-bottom-right-radius: 10px;
+          padding: 0.75rem;
+        }
+        .react-tel-input {
+          font-family: Whitney, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 16px;
+          line-height: 2rem;
+          .form-control {
+            color: rgba(51, 51, 51, 0.5);
+            font-size: 16px;
+            line-height: 1.125;
+            background-color: rgba(47,47,47,0.04);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            width: 100%;
+            padding: 0.875rem 14px 0.875rem 62px;
+          }
+          .form-control:focus, .form-control.open {
+            background-color: #fff;
+            border: 2px solid rgba(23,32,201,0.40);
+            box-shadow: none;
+          }
+          .flag-dropdown {
+            .flag {
+              .arrow {
+                top: 55%;
+                border-top: 4px solid rgba(51, 51, 51, 0.5);
+              }
+            }
+          }
+
+        }
+        .has-feedback.has-success {
+          .react-tel-input {
+            .form-control {
+              background: rgba(23,32,201,0.06);
+              border: 2px solid #fff;
+            }
+            .form-control:focus, .form-control.open {
+              background-color: #fff;
+              border: 2px solid rgba(23,32,201,0.40);
+              box-shadow: none;
+            }
+          }
+        }
+        .has-feedback.has-error {
+          .react-tel-input {
+            .form-control {
+              background: #FFFFFF;
+              border: 2px solid rgba(243,89,85,0.60);
+            }
+          }
+        }
+        .recaptcha-wrapper {
+          display: block;
+          .submit-button {
+            width: 240px;
+            margin-top: 26px;
+            text-align: center;
+            padding: 0;
+          }
+        }
+        .submit-button-wrapper {
+          display: flex;
+          flex-direction: row-reverse;
+          align-items: center;
+          justify-content: space-between;
+          .submit-button {
+            width: 200px;
+            text-align: center;
+            padding: 0;
+          }
+          @media(max-width: @screen-xs) {
+            display: block;
+            .submit-button {
+              margin-top: 14px;
+              margin-bottom: 15px;
+            }
+          }
+        }
       }
     }
 
@@ -265,7 +513,38 @@
     }
 
     .ant-input {
-      color: rgba(51, 51, 51, 0.5);
+      color: #2f2f2f;
+      border-radius: 10px;
+    }
+
+    .ant-input::placeholder {
+      opacity: 0.6;
+      color: #ABABAB;
+    }
+
+    .ant-input-prefix {
+      i {
+        opacity: 0.6;
+        color: #ABABAB;
+      }
+    }
+
+    .has-success, .has-error {
+      .ant-input-prefix {
+        i {
+          color: #2f2f2f;
+          opacity: 1;
+        }
+      }
+    }
+
+    .create-account-info {
+      p {
+        color: #ABABAB;
+        opacity: 0.6;
+        font-weight: inherit;
+        font-size: 0.875rem;
+      }
     }
 
     .ant-form-item {
@@ -275,7 +554,7 @@
     .ant-btn-primary {
       background-color: @primary-color;
       border-color: @primary-color;
-      box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+      /*box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);*/
     }
 
     .ant-select-selection-selected-value {
@@ -342,7 +621,20 @@
       color: @primary-color;
       background: none;
       font-size: 16px;
+      font-weight: 500;
       border: none;
+      &:hover {
+        color: @primary-color;
+      }
+    }
+
+    a.back {
+      color: @primary-color;
+      background: none;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      line-height: 1rem;
       &:hover {
         color: @primary-color;
       }
@@ -396,6 +688,20 @@
       }
     }
   }
+
+  .custom-btn:active {
+    opacity: 0.5;
+  }
+  .custom-btn {
+    border: 0 !important;
+    border-radius: 10px;
+  }
+  .has-success.has-feedback:after {
+    color: #25d3ad;
+  }
+  .has-error.has-feedback:after {
+    color: #ff514c;
+  }
 }
 
 #signup-username, #signup-password, #signup-error {
@@ -428,7 +734,7 @@
 }
 .signin_redirect {
   text-align: left;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .welcome-wrap{

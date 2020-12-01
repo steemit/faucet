@@ -1,4 +1,6 @@
+/* eslint-disable no-console */
 import React, { Component, PropTypes } from 'react';
+import Cookies from 'js-cookie';
 import { FormattedMessage } from 'react-intl';
 import { Button, Icon, Popover } from 'antd';
 import { CHECKPOINTS } from '../../constants';
@@ -16,12 +18,17 @@ import SavePassword from './Form/Signup/SavePassword';
 import CreateAccount from './Form/Signup/CreateAccount';
 import SiftTracker from './SiftTracker';
 import { getPendingClaimedAccounts } from '../../helpers/validator';
+import getTronAddr from '../utils/tron';
+import Finish from './Finish';
+import { recordActivityTracker } from '../utils/api';
 
 class Signup extends Component {
     static propTypes = {
         app: PropTypes.shape({
             locale: React.PropTypes.oneOf(['en', 'fr', 'zh']),
             signupModalVisible: React.PropTypes.bool.isRequired,
+            activityCookieName: React.PropTypes.string,
+            activityCookieExpiresTime: React.PropTypes.number,
         }).isRequired,
         user: PropTypes.shape({
             username: PropTypes.string.isRequired,
@@ -80,6 +87,11 @@ class Signup extends Component {
         this.state = {
             pending_claimed_accounts: 0,
             password: '',
+            language_item_visible: false,
+            tronAddr: {
+                pubKey: '',
+                privKey: '',
+            },
         };
     }
 
@@ -119,6 +131,34 @@ class Signup extends Component {
         if (!paramUsername && step === 'signupOptions') {
             logCheckpoint(CHECKPOINTS.signup_start);
         }
+
+        const tronAddr = await getTronAddr();
+        this.setState({ tronAddr });
+        this.updateActivityTag();
+    }
+
+    updateActivityTag = () => {
+        const cookieName = this.props.app.activityCookieName;
+        const expiresTime = this.props.app.activityCookieExpiresTime;
+        const activityTags = Cookies.getJSON(cookieName);
+        const trackingId = this.props.user.trackingId;
+        if (activityTags !== undefined) {
+            // location info
+            const hostname = window.location.hostname;
+            const locationInfo = hostname.split('.').reverse();
+            const domain =
+                ['localhost', '127.0.0.1'].indexOf(hostname) === -1
+                    ? `.${locationInfo[1]}.${locationInfo[0]}`
+                    : hostname;
+            console.log('cookies:', activityTags, trackingId, domain, cookieName, expiresTime);
+            Object.keys(activityTags).forEach(tag => {
+                if (activityTags[tag].isVisit === 0) {
+                    recordActivityTracker({trackingId, activityTag: tag});
+                    activityTags[tag].isVisit = 1;
+                }
+            });
+            Cookies.set(cookieName, activityTags, { expires: expiresTime, domain })
+        }
     }
 
     goBack = () => {
@@ -127,7 +167,8 @@ class Signup extends Component {
 
     handleFreeSignup = () => {
         this.props.incrementStep();
-        this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
+        // this is similar with CHECKPOINTS.signup_start
+        // this.props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
     };
     handleSavePassword = password => {
         this.setState({
@@ -203,6 +244,11 @@ class Signup extends Component {
             logCheckpoint,
         } = this.props;
 
+        const {
+            password,
+            tronAddr,
+        } = this.state;
+
         const stepNumber = steps.indexOf(step);
 
         // If param exists in url, prefer that:
@@ -226,11 +272,24 @@ class Signup extends Component {
                                         key={key}
                                         locale={key}
                                         setLocale={setLocale}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            this.setState({
+                                                language_item_visible: false,
+                                            });
+                                        }}
                                     />
                                 ))}
                             </ul>
                         }
                         trigger="click"
+                        visible={this.state.language_item_visible}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            this.setState({
+                                language_item_visible: true,
+                            });
+                        }}
                     >
                         <Button>
                             {locales[locale]}
@@ -332,7 +391,7 @@ class Signup extends Component {
                                 <p className="text">
                                     <FormattedMessage id="save_password_text" />
                                 </p>
-                                <SavePassword 
+                                <SavePassword
                                     password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
                                     handleSavePassword={this.handleSavePassword}/> */}
                             </div>
@@ -350,7 +409,7 @@ class Signup extends Component {
                                 <h1>
                                     <FormattedMessage id="save_password" />
                                 </h1>
-                                <p className="text">
+                                <p className="text" style={{marginBottom: '16px'}}>
                                     <FormattedMessage id="save_password_text" />
                                 </p>
                                 <SavePassword
@@ -375,7 +434,9 @@ class Signup extends Component {
                                 <p className="text">
                                     <FormattedMessage id="confirm_password" />
                                 </p>
-                                <p className="text">
+                                <p className="text" style={{
+                                    marginBottom: '0.875rem',
+                                }}>
                                     <FormattedMessage id="master_password" />
                                 </p>
                                 <CreateAccount
@@ -386,9 +447,12 @@ class Signup extends Component {
                                     token={token}
                                     password={this.state.password}
                                     locale={locale}
+                                    tronAddr={this.state.tronAddr}
                                     handleCreateAccount={
                                         this.handleCreateAccount
                                     }
+                                    trackingId={trackingId}
+                                    app={this.props.app}
                                 />
                             </div>
                         )}
@@ -517,34 +581,11 @@ class Signup extends Component {
                         )}
                         {step === 'finish' && (
                             <div className="form-content">
-                                <h1>
-                                    <FormattedMessage id="welcome_page_title" />{' '}
-                                    {username}
-                                </h1>
-                                <div
-                                    style={{
-                                        marginTop: '36px',
-                                    }}
-                                >
-                                    <FormattedMessage id="welcome_page_message_1" />
-                                </div>
-                                <div
-                                    style={{
-                                        marginTop: '50px',
-                                    }}
-                                >
-                                    <Button
-                                        style={{ width: '100%' }}
-                                        type="primary"
-                                        size="large"
-                                        onClick={() => {
-                                            window.location =
-                                                'https://steemitwallet.com';
-                                        }}
-                                    >
-                                        <FormattedMessage id="welcome_page_go_to_wallet" />
-                                    </Button>
-                                </div>
+                                <Finish
+                                    username={username}
+                                    password={password}
+                                    tronAddr={tronAddr}
+                                />
                             </div>
                         )}
                     </div>

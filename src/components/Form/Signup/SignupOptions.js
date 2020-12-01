@@ -1,216 +1,228 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { FormattedMessage } from 'react-intl';
+import React, { PropTypes } from 'react';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { Button, Modal, Icon } from 'antd';
 import { CHECKPOINTS } from '../../../../constants';
 import updateAnalytics from '../../../../helpers/analytics';
 import './SignupOptions.less';
 
-const SignupOptions = ({
-    signupModalVisible,
-    hideSignupModal,
-    // showSignupModal,
-    handleFreeSignup,
-    logCheckpoint,
-    pending_claimed_accounts,
-}) => {
-    const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
+class SignupOptions extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+    }
 
-    const capitalizeFirstLetter = string =>
-        string.charAt(0).toUpperCase() + string.slice(1);
+    render() {
+        const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
 
-    // const actionWithLog = (action, loggerFn, actionName) => () => {
-    //     loggerFn(actionName);
-    //     action();
-    // };
+        const capitalizeFirstLetter = string =>
+            string.charAt(0).toUpperCase() + string.slice(1);
 
-    return (
-        <div className="signup_options_wrap">
-            <h1>
-                <FormattedMessage id="signup_options" />
-            </h1>
-            {/* <p>
-                {referrer && (
+        // const actionWithLog = (action, loggerFn, actionName) => () => {
+        //     loggerFn(actionName);
+        //     action();
+        // };
+
+        const {
+            signupModalVisible,
+            hideSignupModal,
+            // showSignupModal,
+            handleFreeSignup,
+            logCheckpoint,
+            pending_claimed_accounts,
+        } = this.props;
+        return (
+            <div className="signup_options_wrap">
+                <h1>
+                    <FormattedMessage id="signup_options" />
+                </h1>
+                {/* <p>
+                    {referrer && (
+                        <FormattedMessage
+                            id="signup_options_referrer"
+                            values={{ referrer: capitalizeFirstLetter(referrer) }}
+                        />
+                    )}
+                </p> */}
+                <p>
                     <FormattedMessage
                         id="signup_options_referrer"
-                        values={{ referrer: capitalizeFirstLetter(referrer) }}
+                        values={{ referrer: capitalizeFirstLetter('steemit') }}
                     />
-                )}
-            </p> */}
-            <p>
-                <FormattedMessage
-                    id="signup_options_referrer"
-                    values={{ referrer: capitalizeFirstLetter('steemit') }}
-                />
-            </p>
-            <p>
-                <FormattedMessage id="signup_options_body_1" />
-            </p>
-            {/* <p>
-                <FormattedMessage id="signup_options_body_3" />
-            </p> */}
-
-            <div className="signup-options__buttons">
-                <div>
-                    <img src="img/free.png" alt="" />
-                    <div>
-                        <p>
-                            <FormattedMessage id="signup_free_tip1" />
-                        </p>
-                        <p>
-                            <FormattedMessage id="signup_free_tip2" />
-                        </p>
-                    </div>
-                    <Button
-                        type={`${pending_claimed_accounts >= 100 && 'primary'}`}
-                        htmlType="button"
-                        onClick={handleFreeSignup}
-                        disabled={pending_claimed_accounts < 100}
-                    >
-                        <FormattedMessage id="signup_options_button_free" />
-                        {pending_claimed_accounts < 100 && (
-                            <span>
-                                <br />
-                                <span className="btn-caveat">
-                                    Insufficient Places
-                                    {/* <FormattedMessage id="signup_options_button_free_caveat" /> */}
-                                </span>
-                            </span>
-                        )}
-                    </Button>
-                </div>
-            </div>
-
-            <Modal
-                title={modalTitle}
-                visible={signupModalVisible}
-                onCancel={hideSignupModal}
-                footer={null}
-            >
-                <a
-                    className="external-link"
-                    href="https://steemwallet.app"
-                    onClick={() => {
-                        updateAnalytics(1);
-                        logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_steemwalletapp
-                        );
-                    }}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        SteemWallet.app
-                        <Icon type="link" />
-                    </Button>
-                </a>
-                <p>
-                    <FormattedMessage id="signup_options_steemwalletapp" />
                 </p>
-                <a
-                    className="external-link"
-                    href="https://anon.steem.network/"
-                    onClick={() => {
-                        updateAnalytics(2);
-                        logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_anonsteem
-                        );
-                    }}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        AnonSteem
-                        <Icon type="link" />
-                    </Button>
-                </a>
                 <p>
-                    <FormattedMessage id="signup_options_anonsteem" />
+                    <FormattedMessage id="signup_options_body_1" />
                 </p>
-                <a
-                    className="external-link"
-                    href="https://account.buildteam.io/apps/steem-account"
-                    onClick={() => {
-                        updateAnalytics(3);
-                        logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_buildteam
-                        );
-                    }}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        BuildTeam
-                        <Icon type="link" />
-                    </Button>
-                </a>
-                <p>
-                    <FormattedMessage id="signup_options_buildteam" />
-                </p>
-                <a
-                    className="external-link"
-                    href="https://widget.steem.ninja/widget.html"
-                    onClick={() => {
-                        updateAnalytics(4);
-                        logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_steemninja
-                        );
-                    }}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        Steem.Ninja
-                        <Icon type="link" />
-                    </Button>
-                </a>
-                <p>
-                    <FormattedMessage id="signup_options_steemninja" />
-                </p>
-                <a
-                    className="external-link"
-                    href="https://actifit.io/signup"
-                    onClick={() => {
-                        updateAnalytics(5);
-                        logCheckpoint(CHECKPOINTS.paid_signup_clicked_actifit);
-                    }}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        Actifit
-                        <Icon type="link" />
-                    </Button>
-                </a>
-                <p>
-                    <FormattedMessage id="signup_options_actifit" />
-                </p>
-                {/* <a
-                    className="external-link"
-                    href="https://blocktrades.us/create-steem-account"
-                    onClick={() => {
-                        logCheckpoint(
-                            CHECKPOINTS.paid_signup_clicked_blocktrades
-                        );
-                    }}
-                >
-                    <Button type="primary" ghost htmlType="button">
-                        Blocktrades
-                        <Icon type="link" />
-                    </Button>
-                </a>
-                <p>
-                    <FormattedMessage id="signup_options_blocktrades" />
+                {/* <p>
+                    <FormattedMessage id="signup_options_body_3" />
                 </p> */}
+    
+                <div
+                    className={`${pending_claimed_accounts >= 100 && 'claim-account-active'} signup-options__buttons`}
+                >
+                    <div className="wrapper">
+                        <img src="img/free.png" alt="" />
+                        <div>
+                            <p>
+                                <FormattedMessage id="signup_free_tip1" />
+                            </p>
+                            <p>
+                                <FormattedMessage id="signup_free_tip2" />
+                            </p>
+                            {pending_claimed_accounts < 100 && <p className="special-tip">
+                                <FormattedMessage id="signup_free_tip3" />
+                            </p>}
+                        </div>
+                        <Button
+                            className={`${pending_claimed_accounts >= 100 && 'get-in-register__button'} custom-btn`}
+                            htmlType="button"
+                            onClick={handleFreeSignup}
+                            disabled={pending_claimed_accounts < 100}
+                        >
+                            <FormattedMessage id="signup_options_button_free" />
+                            {pending_claimed_accounts < 100 && (
+                                <span>
+                                    <br />
+                                    <span className="btn-caveat">
+                                        <FormattedMessage id="insufficient_places" />
+                                    </span>
+                                </span>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+    
+                <Modal
+                    title={modalTitle}
+                    visible={signupModalVisible}
+                    onCancel={hideSignupModal}
+                    footer={null}
+                >
+                    <a
+                        className="external-link"
+                        href="https://steemwallet.app"
+                        onClick={() => {
+                            updateAnalytics(1);
+                            logCheckpoint(
+                                CHECKPOINTS.paid_signup_clicked_steemwalletapp
+                            );
+                        }}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <Button type="primary" ghost htmlType="button">
+                            SteemWallet.app
+                            <Icon type="link" />
+                        </Button>
+                    </a>
+                    <p>
+                        <FormattedMessage id="signup_options_steemwalletapp" />
+                    </p>
+                    <a
+                        className="external-link"
+                        href="https://anon.steem.network/"
+                        onClick={() => {
+                            updateAnalytics(2);
+                            logCheckpoint(
+                                CHECKPOINTS.paid_signup_clicked_anonsteem
+                            );
+                        }}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <Button type="primary" ghost htmlType="button">
+                            AnonSteem
+                            <Icon type="link" />
+                        </Button>
+                    </a>
+                    <p>
+                        <FormattedMessage id="signup_options_anonsteem" />
+                    </p>
+                    <a
+                        className="external-link"
+                        href="https://account.buildteam.io/apps/steem-account"
+                        onClick={() => {
+                            updateAnalytics(3);
+                            logCheckpoint(
+                                CHECKPOINTS.paid_signup_clicked_buildteam
+                            );
+                        }}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <Button type="primary" ghost htmlType="button">
+                            BuildTeam
+                            <Icon type="link" />
+                        </Button>
+                    </a>
+                    <p>
+                        <FormattedMessage id="signup_options_buildteam" />
+                    </p>
+                    <a
+                        className="external-link"
+                        href="https://widget.steem.ninja/widget.html"
+                        onClick={() => {
+                            updateAnalytics(4);
+                            logCheckpoint(
+                                CHECKPOINTS.paid_signup_clicked_steemninja
+                            );
+                        }}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <Button type="primary" ghost htmlType="button">
+                            Steem.Ninja
+                            <Icon type="link" />
+                        </Button>
+                    </a>
+                    <p>
+                        <FormattedMessage id="signup_options_steemninja" />
+                    </p>
+                    <a
+                        className="external-link"
+                        href="https://actifit.io/signup"
+                        onClick={() => {
+                            updateAnalytics(5);
+                            logCheckpoint(CHECKPOINTS.paid_signup_clicked_actifit);
+                        }}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <Button type="primary" ghost htmlType="button">
+                            Actifit
+                            <Icon type="link" />
+                        </Button>
+                    </a>
+                    <p>
+                        <FormattedMessage id="signup_options_actifit" />
+                    </p>
+                    {/* <a
+                        className="external-link"
+                        href="https://blocktrades.us/create-steem-account"
+                        onClick={() => {
+                            logCheckpoint(
+                                CHECKPOINTS.paid_signup_clicked_blocktrades
+                            );
+                        }}
+                    >
+                        <Button type="primary" ghost htmlType="button">
+                            Blocktrades
+                            <Icon type="link" />
+                        </Button>
+                    </a>
+                    <p>
+                        <FormattedMessage id="signup_options_blocktrades" />
+                    </p> */}
+    
+                    <hr />
+                    <p className="modal-disclaimer">
+                        <FormattedMessage id="signup_options_disclaimer" />
+                    </p>
+                </Modal>
+            </div>
+        );
+    }
+}
 
-                <hr />
-                <p className="modal-disclaimer">
-                    <FormattedMessage id="signup_options_disclaimer" />
-                </p>
-            </Modal>
-        </div>
-    );
-};
 
 SignupOptions.propTypes = {
     signupModalVisible: PropTypes.bool.isRequired,
@@ -227,4 +239,4 @@ SignupOptions.defaultProps = {
     pending_claimed_accounts: 0,
 };
 
-export default SignupOptions;
+export default injectIntl(SignupOptions);
