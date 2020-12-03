@@ -54,6 +54,9 @@
     "WALLET_URL": {
       "required": true
     },
+    "INTERNAL_API_TOKEN": {
+      "required": true
+    },
     "LOG_FORMAT": "short",
     "DEFAULT_REDIRECT_URI": ""
   },
