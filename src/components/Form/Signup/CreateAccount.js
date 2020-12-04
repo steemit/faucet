@@ -73,6 +73,7 @@ class CreateAccount extends React.Component {
         const tronBindData = signData({
             username,
             tron_addr: tronAddr.pubKey,
+            is_new_user: true,
         }, privKeys.posting);
         const activityTags = this.getActivityTags();
         validateFieldsAndScroll(err => {

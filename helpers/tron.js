@@ -22,14 +22,19 @@ async function getTronAccount() {
 
 async function updateTronUser(username, data) {
     try {
-        const apiUrl = `${walletUrl}/api/v1/tron/tron_user`;
-        // check if username has been created on Steem chain
-        const user = await axios.get(`${apiUrl}?username=${username}`);
-        if (user.data.error) {
-            logger.error('update_tronuser_error_info:', user.data.error);
-            return false;
-        }
-        const result = await axios.post(`${apiUrl}`, data);
+        const apiUrl = `${walletUrl}/api/v1/tron/tron_user_from_internal`;
+        const willUpData = {
+            internal_api_token: process.env.INTERNAL_API_TOKEN,
+            method: 'insert',
+            data_from: 'faucet',
+            username,
+            will_update_data: {
+                username,
+                tron_addr: data.tron_addr,
+                is_new_user: 1,
+            }
+        };
+        const result = await axios.post(`${apiUrl}`, willUpData);
         if (result.data.error) {
             logger.error('update_tronuser_error_info:', result.data.error);
             return false;
