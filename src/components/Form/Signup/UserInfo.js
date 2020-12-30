@@ -200,6 +200,10 @@ class UserInfo extends React.Component {
         if (value) {
             const { intl, form } = this.props;
             const email = form.getFieldValue('email');
+            if (value.length < 6) {
+                callback();
+                return;
+            }
             apiCall('/api/check_email_code', { code: value, email })
                 .then(() => {
                     this.setState({
@@ -236,6 +240,10 @@ class UserInfo extends React.Component {
         if (value) {
             const { intl, form } = this.props;
             const phoneNumber = `+${form.getFieldValue('phone')}`;
+            if (value.length < 6) {
+                callback();
+                return;
+            }
             apiCall('/api/check_phone_code', { code: value, phoneNumber })
                 .then(() => {
                     this.setState({
