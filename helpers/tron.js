@@ -32,6 +32,7 @@ async function updateTronUser(username, data) {
                 username,
                 tron_addr: data.tron_addr,
                 is_new_user: 1,
+                tron_addr_create_count: 1,
             }
         };
         const result = await axios.post(`${apiUrl}`, willUpData);
