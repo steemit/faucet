@@ -559,6 +559,7 @@ class UserInfo extends React.Component {
                                 placeholder={intl.formatMessage({
                                     id: 'enter_phone',
                                 })}
+                                autoFormat={false}
                                 masks={this.getPhoneMasks()}
                                 disabled={this.phone_code_sending}
                                 onChange={(phone, data) => {
