@@ -1526,7 +1526,16 @@ async function handleCreateAccountNew(req) {
         });
     }
 
-    const { public_keys, token, fingerprint, xref, locale, activityTags, tron_bind_data } = req.body; // eslint-disable-line camelcase
+    const {
+        public_keys,
+        token,
+        fingerprint,
+        xref,
+        locale,
+        activityTags,
+        tron_bind_data,
+        source, // format: app|tag (eg. condenser|submit_post)
+    } = req.body; // eslint-disable-line camelcase
 
     if (!public_keys) {
         // eslint-disable-line camelcase
@@ -1795,12 +1804,17 @@ async function handleCreateAccountNew(req) {
         req.log.warn(err, 'remove email or phone code record error');
     }
 
-    // activity tag analytics
+    // activity tag analytics, reg source
     try {
         logger.info({ activityTags }, 'activity_tag_analytics_starting');
         activityTags.forEach(tag => {
             services.recordActivityTracker({trackingId: xref, activityTag: tag, username: decoded.username});
         });
+        const regSource = source ? source.split('|') : [];
+        logger.info({ regSource }, 'reg_source_record_starting');
+        if (regSource.length > 0) {
+            services.recordSource({trackingId: xref, app: regSource[0], from_page: regSource[1]});
+        }
     } catch (err) {
         req.log.warn(err, 'activity tag analytics error');
     }

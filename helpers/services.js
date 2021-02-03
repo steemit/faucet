@@ -451,6 +451,22 @@ function recordActivityTracker({ trackingId, activityTag, username }) {
     });
 }
 
+function recordSource({ trackingId, app, from_page }) {
+    const data = {
+        measurement: 'signup_origin',
+        tags: {
+            app,
+            from_page,
+        },
+        fields: {
+            trackingId,
+        },
+    };
+    api.call('overseer.collect', ['custom', data], error => {
+        throw new Error(`record source error: ${error.message}, app: ${app}, from_page: ${from_page}`);
+    });
+}
+
 module.exports = {
     checkUsername,
     condenserTransfer,
@@ -471,4 +487,5 @@ module.exports = {
     validatePhone,
     verifyCaptcha,
     recordActivityTracker,
+    recordSource,
 };

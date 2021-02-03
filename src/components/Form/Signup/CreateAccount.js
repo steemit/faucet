@@ -8,12 +8,15 @@ import { Form, message, Input, Button, Checkbox } from 'antd';
 import { signData } from '@steemfans/auth-data';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
+import getHashParams from '../../../utils/url';
 
 class CreateAccount extends React.Component {
     constructor(props) {
         super(props);
+        const urlParams = getHashParams();
         this.state = {
             fingerprint: '',
+            source: urlParams.source ? urlParams.source : null,
         };
     }
 
@@ -66,7 +69,7 @@ class CreateAccount extends React.Component {
             locale,
             tronAddr,
         } = this.props;
-        const { fingerprint } = this.state;
+        const { fingerprint, source } = this.state;
         const roles = ['posting', 'active', 'owner', 'memo'];
         const pubKeys = steem.auth.generateKeys(username, password, roles);
         const privKeys = steem.auth.getPrivateKeys(username, password, roles);
@@ -86,6 +89,7 @@ class CreateAccount extends React.Component {
                     xref: trackingId,
                     locale,
                     activityTags,
+                    source, // format: app|tag (eg. condenser|submit_post)
                 })
                     .then(() => {
                         this.setState({ submitting: false });
