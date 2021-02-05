@@ -12,6 +12,7 @@ function getClientConfig() {
         'SIFTSCIENCE_JS_SNIPPET_KEY',
         'REACT_DISABLE_ACCOUNT_CREATION',
         'RECAPTCHA_SWITCH',
+        'PENDING_CLAIMED_ACCOUNTS_THRESHOLD',
     ];
 
     return JSON.stringify(

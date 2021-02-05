@@ -8,7 +8,12 @@ import './SignupOptions.less';
 class SignupOptions extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            pending_claimed_accounts_threshold:
+                window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD ?
+                    parseInt(window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD, 10) :
+                    100,
+        };
     }
 
     render() {
@@ -21,6 +26,10 @@ class SignupOptions extends React.Component {
         //     loggerFn(actionName);
         //     action();
         // };
+
+        const {
+            pending_claimed_accounts_threshold,
+        } = this.state;
 
         const {
             signupModalVisible,
@@ -55,9 +64,9 @@ class SignupOptions extends React.Component {
                 {/* <p>
                     <FormattedMessage id="signup_options_body_3" />
                 </p> */}
-    
+
                 <div
-                    className={`${pending_claimed_accounts >= 100 && 'claim-account-active'} signup-options__buttons`}
+                    className={`${pending_claimed_accounts >= pending_claimed_accounts_threshold && 'claim-account-active'} signup-options__buttons`}
                 >
                     <div className="wrapper">
                         <img src="img/free.png" alt="" />
@@ -68,18 +77,18 @@ class SignupOptions extends React.Component {
                             <p>
                                 <FormattedMessage id="signup_free_tip2" />
                             </p>
-                            {pending_claimed_accounts < 100 && <p className="special-tip">
+                            {pending_claimed_accounts < pending_claimed_accounts_threshold && <p className="special-tip">
                                 <FormattedMessage id="signup_free_tip3" />
                             </p>}
                         </div>
                         <Button
-                            className={`${pending_claimed_accounts >= 100 && 'get-in-register__button'} custom-btn`}
+                            className={`${pending_claimed_accounts >= pending_claimed_accounts_threshold && 'get-in-register__button'} custom-btn`}
                             htmlType="button"
                             onClick={handleFreeSignup}
-                            disabled={pending_claimed_accounts < 100}
+                            disabled={pending_claimed_accounts < pending_claimed_accounts_threshold}
                         >
                             <FormattedMessage id="signup_options_button_free" />
-                            {pending_claimed_accounts < 100 && (
+                            {pending_claimed_accounts < pending_claimed_accounts_threshold && (
                                 <span>
                                     <br />
                                     <span className="btn-caveat">
@@ -90,7 +99,7 @@ class SignupOptions extends React.Component {
                         </Button>
                     </div>
                 </div>
-    
+
                 <Modal
                     title={modalTitle}
                     visible={signupModalVisible}
@@ -212,7 +221,7 @@ class SignupOptions extends React.Component {
                     <p>
                         <FormattedMessage id="signup_options_blocktrades" />
                     </p> */}
-    
+
                     <hr />
                     <p className="modal-disclaimer">
                         <FormattedMessage id="signup_options_disclaimer" />
