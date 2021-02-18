@@ -1188,9 +1188,9 @@ async function handleRequestSmsNew(req) {
             msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
         }
         const response = await services.sendSMS(phoneNumber, msg);
-        logger.info({ response }, 'sms_response_info');
+        req.log.info({ response }, 'sms_response_info');
     } catch (cause) {
-        logger.warn({ cause }, 'sms_send_error');
+        req.log.warn({ cause }, 'sms_send_error');
         if (cause.code === 21614 || cause.code === 21211) {
             throw new ApiError({
                 cause,
@@ -1313,7 +1313,7 @@ async function handleConfirmSmsNew(req) {
             where: { phone_number: req.body.phoneNumber },
         });
     } catch(cause) {
-        logger.warn({ cause }, 'error_api_findPhoneRecord_failed');
+        req.log.warn({ cause }, 'error_api_findPhoneRecord_failed');
         throw new ApiError({
             field: 'code',
             type: 'error_api_findPhoneRecord_failed',
@@ -1321,7 +1321,7 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    logger.info({ record }, 'handleConfirmSmsNew_findPhoneRecord_result');
+    req.log.info({ record }, 'handleConfirmSmsNew_findPhoneRecord_result');
 
     if (record === null) {
         throw new ApiError({
@@ -1699,7 +1699,7 @@ async function handleCreateAccountNew(req) {
             tracking_id: xref || generateTrackingId(),
         });
     } catch (cause) {
-        logger.error({ decoded, cause }, 'create user in database error');
+        req.log.error({ decoded, cause }, 'create user in database error');
         throw new ApiError({
             type: 'error_api_insert_user_into_db_failed',
             cause,
@@ -1709,9 +1709,9 @@ async function handleCreateAccountNew(req) {
 
     try {
         const updateTronUserResult = await updateTronUser(decoded.username, tronBindData);
-        logger.info({decoded, updateTronUserResult}, 'bind_tron_address_success');
+        req.log.info({decoded, updateTronUserResult}, 'bind_tron_address_success');
     } catch (cause) {
-        logger.error({ decoded, tronBindData, cause }, 'error_api_bind_tron_addr_failed');
+        req.log.error({ decoded, tronBindData, cause }, 'error_api_bind_tron_addr_failed');
         throw new ApiError({
             type: 'error_api_bind_tron_addr_failed',
             cause,
@@ -1722,7 +1722,7 @@ async function handleCreateAccountNew(req) {
     // try {
     //     await services.gatekeeperMarkSignupCreated(user);
     // } catch (error) {
-    //     logger.warn({ error }, 'gatekeeper.signup_mark_created failed');
+    //     req.log.warn({ error }, 'gatekeeper.signup_mark_created failed');
     // }
 
     const params = [
@@ -1806,12 +1806,12 @@ async function handleCreateAccountNew(req) {
 
     // activity tag analytics, reg source
     try {
-        logger.info({ activityTags }, 'activity_tag_analytics_starting');
+        req.log.info({ activityTags }, 'activity_tag_analytics_starting');
         activityTags.forEach(tag => {
             services.recordActivityTracker({trackingId: xref, activityTag: tag, username: decoded.username});
         });
         const regSource = source ? source.split('|') : [];
-        logger.info({ regSource }, 'reg_source_record_starting');
+        req.log.info({ regSource }, 'reg_source_record_starting');
         if (regSource.length > 0) {
             services.recordSource({trackingId: xref, app: regSource[0], from_page: regSource[1]});
         }
