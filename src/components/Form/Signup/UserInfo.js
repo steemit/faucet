@@ -52,26 +52,6 @@ class UserInfo extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (this.props.locale !== nextProps.locale) {
-            const newState = {};
-            const { email_code_sending, phone_code_sending } = this.state;
-            if (!email_code_sending) {
-                newState.email_send_code_txt = this.props.intl.formatMessage(
-                    {
-                        id: 'send_code',
-                    }
-                );
-            }
-            if (!phone_code_sending) {
-                newState.phone_send_code_txt = this.props.intl.formatMessage(
-                    {
-                        id: 'send_code',
-                    }
-                );
-            }
-            newState.change_locale_to = nextProps.locale;
-            if (Object.keys(newState).length > 0) {
-                this.setState(newState);
-            }
             this.clearGoogleRecaptcha();
         }
     }
@@ -220,6 +200,10 @@ class UserInfo extends React.Component {
         if (value) {
             const { intl, form } = this.props;
             const email = form.getFieldValue('email');
+            if (value.length < 6) {
+                callback();
+                return;
+            }
             apiCall('/api/check_email_code', { code: value, email })
                 .then(() => {
                     this.setState({
@@ -256,6 +240,10 @@ class UserInfo extends React.Component {
         if (value) {
             const { intl, form } = this.props;
             const phoneNumber = `+${form.getFieldValue('phone')}`;
+            if (value.length < 6) {
+                callback();
+                return;
+            }
             apiCall('/api/check_phone_code', { code: value, phoneNumber })
                 .then(() => {
                     this.setState({
@@ -528,7 +516,7 @@ class UserInfo extends React.Component {
                                     <SendCode
                                         checked={this.state.check_email}
                                         sending={this.state.email_code_sending}
-                                        btnText={this.state.email_send_code_txt}
+                                        btnText={this.state.email_code_sending ? this.state.email_send_code_txt : intl.formatMessage({ id: 'send_code' })}
                                         onClick={() =>
                                             this.SendEmailCode(
                                                 getFieldValue('email')
@@ -571,6 +559,7 @@ class UserInfo extends React.Component {
                                 placeholder={intl.formatMessage({
                                     id: 'enter_phone',
                                 })}
+                                autoFormat={false}
                                 masks={this.getPhoneMasks()}
                                 disabled={this.phone_code_sending}
                                 onChange={(phone, data) => {
@@ -612,7 +601,7 @@ class UserInfo extends React.Component {
                                     <SendCode
                                         checked={!!this.state.rawPhone}
                                         sending={this.state.phone_code_sending}
-                                        btnText={this.state.phone_send_code_txt}
+                                        btnText={this.state.phone_code_sending ? this.state.phone_send_code_txt : intl.formatMessage({ id: 'send_code' })}
                                         onClick={() => this.SendPhoneCode()}
                                     />
                                 }
