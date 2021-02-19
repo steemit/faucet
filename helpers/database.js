@@ -133,7 +133,7 @@ async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
             where: { ip, created_at, action: { [Op.eq]: action } },
         }),
     ];
-    const ipActions = await Promise.all(promises);
+    const [ipActions] = await Promise.all(promises);
     if (ipActions > ipLimit) {
         throw new ApiError({ type: 'error_api_actionlimit' });
     }
