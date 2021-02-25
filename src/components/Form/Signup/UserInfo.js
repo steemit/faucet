@@ -3,7 +3,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { Form, Input, Button, Icon, message } from 'antd';
+import { Form, Input, Button, Icon, message, Modal } from 'antd';
 import SendCode from './SendCode';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
@@ -35,6 +35,8 @@ class UserInfo extends React.Component {
             check_email_code: false,
             check_phone_code: false,
             change_locale_to: this.props.locale,
+            recaptcha_modal_visible: false,
+            phone_recaptcha: null,
         };
     }
 
@@ -55,18 +57,14 @@ class UserInfo extends React.Component {
             const newState = {};
             const { email_code_sending, phone_code_sending } = this.state;
             if (!email_code_sending) {
-                newState.email_send_code_txt = this.props.intl.formatMessage(
-                    {
-                        id: 'send_code',
-                    }
-                );
+                newState.email_send_code_txt = this.props.intl.formatMessage({
+                    id: 'send_code',
+                });
             }
             if (!phone_code_sending) {
-                newState.phone_send_code_txt = this.props.intl.formatMessage(
-                    {
-                        id: 'send_code',
-                    }
-                );
+                newState.phone_send_code_txt = this.props.intl.formatMessage({
+                    id: 'send_code',
+                });
             }
             newState.change_locale_to = nextProps.locale;
             if (Object.keys(newState).length > 0) {
@@ -92,9 +90,10 @@ class UserInfo extends React.Component {
             check_phone_code,
             rawPhone,
         } = this.state;
-        const recaptcha = window.config.RECAPTCHA_SWITCH !== 'OFF' ?
-            this.props.form.getFieldValue('recaptcha'):
-            true;
+        const recaptcha =
+            window.config.RECAPTCHA_SWITCH !== 'OFF'
+                ? this.props.form.getFieldValue('recaptcha')
+                : true;
         return !(
             check_username &&
             check_email &&
@@ -123,7 +122,7 @@ class UserInfo extends React.Component {
         }
         delete window.grecaptcha;
         delete window.onloadcallback;
-    }
+    };
 
     validateAccountNameIntl = (rule, value, callback) => {
         try {
@@ -247,7 +246,9 @@ class UserInfo extends React.Component {
             if (this.state.rawPhone) {
                 callback();
             } else {
-                callback(intl.formatMessage({ id: 'error_api_phone_required' }));
+                callback(
+                    intl.formatMessage({ id: 'error_api_phone_required' })
+                );
             }
         });
     };
@@ -333,10 +334,22 @@ class UserInfo extends React.Component {
             });
     };
 
+    SendPhoneCodeWrapper = () => {
+        if (!this.state.rawPhone) return;
+        if (this.state.phone_code_sending) return;
+        if (window.config.RECAPTCHA_SWITCH !== 'OFF') {
+            this.setState({
+                recaptcha_modal_visible: true,
+            });
+        } else {
+            this.SendPhoneCode();
+        }
+    };
+
     SendPhoneCode = () => {
         if (this.state.phone_code_sending) return;
         const { intl, locale } = this.props;
-        const { phone, rawPhone, prefix } = this.state;
+        const { phone, rawPhone, prefix, phone_recaptcha } = this.state;
         this.setState({
             phone_code_sending: true,
         });
@@ -344,6 +357,7 @@ class UserInfo extends React.Component {
             phoneNumber: rawPhone,
             prefix,
             locale,
+            phone_recaptcha,
         })
             .then(() => {
                 this.props.form.setFields({
@@ -399,7 +413,10 @@ class UserInfo extends React.Component {
         });
         const { form, intl, handleSubmitUserInfo } = this.props;
         const data = {
-            recaptcha: window.config.RECAPTCHA_SITE_KEY !== '' ? form.getFieldValue('recaptcha') : '',
+            recaptcha:
+                window.config.RECAPTCHA_SITE_KEY !== ''
+                    ? form.getFieldValue('recaptcha')
+                    : '',
             email: form.getFieldValue('email'),
             emailCode: form.getFieldValue('email_code'),
             phoneNumber: `+${form.getFieldValue('phone')}`,
@@ -422,6 +439,12 @@ class UserInfo extends React.Component {
             });
     };
 
+    hideRecaptchaModal = () => {
+        this.setState({
+            recaptcha_modal_visible: false,
+        });
+    };
+
     render() {
         const {
             form: { getFieldDecorator, getFieldValue },
@@ -429,6 +452,7 @@ class UserInfo extends React.Component {
             origin,
             countryCode,
         } = this.props;
+        const { recaptcha_modal_visible } = this.state;
         return (
             <div className="user-info-wrap">
                 <Form onSubmit={this.handleSubmit} className="signup-form">
@@ -613,7 +637,9 @@ class UserInfo extends React.Component {
                                         checked={!!this.state.rawPhone}
                                         sending={this.state.phone_code_sending}
                                         btnText={this.state.phone_send_code_txt}
-                                        onClick={() => this.SendPhoneCode()}
+                                        onClick={() =>
+                                            this.SendPhoneCodeWrapper()
+                                        }
                                     />
                                 }
                                 autoComplete="off"
@@ -624,29 +650,36 @@ class UserInfo extends React.Component {
                         )}
                     </Form.Item>
                     <Placeholder height="14px" />
-                    { window.config.RECAPTCHA_SWITCH !== 'OFF' && <Form.Item>
-                        <div className="recaptcha-wrapper">
-                            <div className="recaptcha">
-                                {getFieldDecorator('recaptcha', {
-                                    rules: [{}],
-                                    validateTrigger: '',
-                                })(
-                                    <ReCAPTCHA
-                                        ref={el => {
-                                            this.captcha = el;
-                                        }}
-                                        sitekey={
-                                            window.config.RECAPTCHA_SITE_KEY
-                                        }
-                                        type="image"
-                                        size="normal"
-                                        hl={this.state.change_locale_to === 'zh' ? 'zh_CN' : 'en'}
-                                        onChange={() => {}}
-                                    />
-                                )}
+                    {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
+                        <Form.Item>
+                            <div className="recaptcha-wrapper">
+                                <div className="recaptcha">
+                                    {getFieldDecorator('recaptcha', {
+                                        rules: [{}],
+                                        validateTrigger: '',
+                                    })(
+                                        <ReCAPTCHA
+                                            ref={el => {
+                                                this.captcha = el;
+                                            }}
+                                            sitekey={
+                                                window.config.RECAPTCHA_SITE_KEY
+                                            }
+                                            type="image"
+                                            size="normal"
+                                            hl={
+                                                this.state.change_locale_to ===
+                                                'zh'
+                                                    ? 'zh_CN'
+                                                    : 'en'
+                                            }
+                                            onChange={() => {}}
+                                        />
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </Form.Item>}
+                        </Form.Item>
+                    )}
                     {origin === 'steemit' && (
                         <Form.Item>
                             <div className="submit-button-wrapper">
@@ -670,7 +703,8 @@ class UserInfo extends React.Component {
                                                 <a
                                                     href="https://steemit.com/login.html"
                                                     style={{
-                                                        textDecoration: 'underline',
+                                                        textDecoration:
+                                                            'underline',
                                                     }}
                                                 >
                                                     <FormattedMessage id="sign_in" />
@@ -683,6 +717,36 @@ class UserInfo extends React.Component {
                         </Form.Item>
                     )}
                 </Form>
+                <Modal
+                    title={null}
+                    visible={recaptcha_modal_visible}
+                    onCancel={this.hideRecaptchaModal}
+                    footer={null}
+                    closable={false}
+                >
+                    {recaptcha_modal_visible === true && (
+                        <ReCAPTCHA
+                            ref={el => {
+                                this.captcha = el;
+                            }}
+                            sitekey={window.config.RECAPTCHA_SITE_KEY}
+                            type="image"
+                            size="normal"
+                            hl={
+                                this.state.change_locale_to === 'zh'
+                                    ? 'zh_CN'
+                                    : 'en'
+                            }
+                            onChange={recaptcha => {
+                                this.setState({
+                                    phone_recaptcha: recaptcha,
+                                    recaptcha_modal_visible: false,
+                                });
+                                this.SendPhoneCode();
+                            }}
+                        />
+                    )}
+                </Modal>
             </div>
         );
     }

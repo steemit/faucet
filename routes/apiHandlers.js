@@ -866,7 +866,7 @@ async function handleAnalytics(req) {
             req.log.error(error, 'Unable to store analytics data');
             return { success: true };
         }
-    }/* else {
+    } /* else {
         // In normal mode we only update `total` by adding 1.
         const today = new Date().toISOString().replace(/T.+/, '');
         const where = {
@@ -1044,6 +1044,25 @@ async function handleRequestEmailCode(ip, email, log, locale) {
  * compare to old request sms func
  */
 async function handleRequestSmsNew(req) {
+    if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
+        const recaptcha = req.body.phone_recaptcha;
+        if (!recaptcha) {
+            throw new ApiError({
+                field: 'code',
+                type: 'error_api_recaptcha_required',
+            });
+        }
+        try {
+            await services.verifyCaptcha(recaptcha, req.ip);
+        } catch (cause) {
+            throw new ApiError({
+                field: 'code',
+                type: 'error_api_recaptcha_invalid',
+                cause,
+            });
+        }
+    }
+
     if (!req.body.phoneNumber) {
         throw new ApiError({
             type: 'error_api_phone_required',
@@ -1188,7 +1207,7 @@ async function handleRequestSmsNew(req) {
             msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
         }
         const response = await services.sendSMS(phoneNumber, msg);
-        req.log.info({ response }, 'sms_response_info');
+        req.log.info({ response, ip: req.ip }, 'sms_response_info');
     } catch (cause) {
         req.log.warn({ cause }, 'sms_send_error');
         if (cause.code === 21614 || cause.code === 21211) {
@@ -1312,7 +1331,7 @@ async function handleConfirmSmsNew(req) {
         record = await database.findPhoneRecord({
             where: { phone_number: req.body.phoneNumber },
         });
-    } catch(cause) {
+    } catch (cause) {
         req.log.warn({ cause }, 'error_api_findPhoneRecord_failed');
         throw new ApiError({
             field: 'code',
@@ -1370,7 +1389,6 @@ async function finalizeSignupNew(
     phoneCode,
     username
 ) {
-
     if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
         if (!recaptcha) {
             throw new ApiError({
@@ -1708,10 +1726,19 @@ async function handleCreateAccountNew(req) {
     }
 
     try {
-        const updateTronUserResult = await updateTronUser(decoded.username, tronBindData);
-        req.log.info({decoded, updateTronUserResult}, 'bind_tron_address_success');
+        const updateTronUserResult = await updateTronUser(
+            decoded.username,
+            tronBindData
+        );
+        req.log.info(
+            { decoded, updateTronUserResult },
+            'bind_tron_address_success'
+        );
     } catch (cause) {
-        req.log.error({ decoded, tronBindData, cause }, 'error_api_bind_tron_addr_failed');
+        req.log.error(
+            { decoded, tronBindData, cause },
+            'error_api_bind_tron_addr_failed'
+        );
         throw new ApiError({
             type: 'error_api_bind_tron_addr_failed',
             cause,
@@ -1748,15 +1775,9 @@ async function handleCreateAccountNew(req) {
     });
 
     // TOS
-    const tosParams = [
-        decoded.username,
-        'accepted_tos_20180614',
-    ];
+    const tosParams = [decoded.username, 'accepted_tos_20180614'];
     services.conveyorCall('assign_tag', tosParams).catch(error => {
-        req.log.warn(
-            error,
-            'Unable to store user tos in conveyor... retrying'
-        );
+        req.log.warn(error, 'Unable to store user tos in conveyor... retrying');
         setTimeout(() => {
             // eslint-disable-next-line
             services.conveyorCall('assign_tag', tosParams).catch(error => {
@@ -1798,8 +1819,8 @@ async function handleCreateAccountNew(req) {
     }
 
     try {
-        await database.deleteEmailRecord({email: user.email});
-        await database.deletePhoneRecord({phone_number: user.phone_number});
+        await database.deleteEmailRecord({ email: user.email });
+        await database.deletePhoneRecord({ phone_number: user.phone_number });
     } catch (err) {
         req.log.warn(err, 'remove email or phone code record error');
     }
@@ -1808,12 +1829,20 @@ async function handleCreateAccountNew(req) {
     try {
         req.log.info({ activityTags }, 'activity_tag_analytics_starting');
         activityTags.forEach(tag => {
-            services.recordActivityTracker({trackingId: xref, activityTag: tag, username: decoded.username});
+            services.recordActivityTracker({
+                trackingId: xref,
+                activityTag: tag,
+                username: decoded.username,
+            });
         });
         const regSource = source ? source.split('|') : [];
         req.log.info({ regSource }, 'reg_source_record_starting');
         if (regSource.length > 0) {
-            services.recordSource({trackingId: xref, app: regSource[0], from_page: regSource[1]});
+            services.recordSource({
+                trackingId: xref,
+                app: regSource[0],
+                from_page: regSource[1],
+            });
         }
     } catch (err) {
         req.log.warn(err, 'activity tag analytics error');
