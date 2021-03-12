@@ -32,7 +32,7 @@
     "isomorphic-fetch": "2.2.1",
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "8.1.1",
-    "jspdf": "^2.1.0",
+    "jspdf": "^2.3.1",
     "maxmind": "2.4.0",
     "moment": "2.20.1",
     "mysql2": "1.6.5",
