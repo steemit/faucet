@@ -120,6 +120,7 @@
     "save_password": "Sauvegarder votre mot de passe",
     "save_password_text":
         "Si vous perdez votre mot de passe, votre compte sera perdu de façon irreversible. Nous ne conservons pas votre mot de passe et ne pouvons vous aider à le récupérer.",
+    "save_continue": "I've copied the password. Continue.",
     "send_sms": "Nous devons vous envoyer un SMS.",
     "sign_in": "Connectez-vous",
     "signup_username_right_text":

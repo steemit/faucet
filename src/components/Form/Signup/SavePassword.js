@@ -24,7 +24,7 @@ class SavePassword extends React.Component {
         }
     }
 
-    generateWif = (isFirstTrigger) => {
+    generateWif = isFirstTrigger => {
         const newWif = `P${key_utils.get_random_key().toWif()}`;
         if (isFirstTrigger) {
             this.setState({
@@ -68,7 +68,7 @@ class SavePassword extends React.Component {
                     onClick={() => handleSavePassword(this.state.password)}
                     disabled={!this.state.isClickedCopyBtn}
                 >
-                    <FormattedMessage id="continue" />
+                    <FormattedMessage id="save_continue" />
                 </Button>
             </div>
         );
