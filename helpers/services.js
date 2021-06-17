@@ -78,30 +78,29 @@ async function authSMSCode(to, code) {
     if (DEBUG_MODE) {
         logger.warn('Send SMS to %s with code: %s', to, code);
         return true;
-    } else {
-        let result;
-        try {
-            result = await twilio.checkAuthCode(to, code);
-            if (result.status === 'approved') {
-                return true;
-            }
-        } catch (err) {
-            logger.warn(
-                '[Check Error]Phone %s with code %s, err: %s',
-                to,
-                code,
-                JSON.stringify(err)
-            );
-            return false;
+    }
+    let result;
+    try {
+        result = await twilio.checkAuthCode(to, code);
+        if (result.status === 'approved') {
+            return true;
         }
+    } catch (err) {
         logger.warn(
-            '[Check Error]Phone %s with code %s, result: %s',
+            '[Check Error]Phone %s with code %s, err: %s',
             to,
             code,
-            JSON.stringify(result)
+            JSON.stringify(err)
         );
         return false;
     }
+    logger.warn(
+        '[Check Error]Phone %s with code %s, result: %s',
+        to,
+        code,
+        JSON.stringify(result)
+    );
+    return false;
 }
 
 /**

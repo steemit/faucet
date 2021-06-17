@@ -1208,12 +1208,11 @@ async function handleRequestSmsNew(req) {
         //     msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
         // }
         // const response = await services.sendSMS(phoneNumber, msg);
-        console.log('before_send_sms');
         const response = await services.sendSMSCode(phoneNumber);
         req.log.info({ response, ip: req.ip }, 'sms_response_info');
         if (response.status !== 'pending') {
             throw new ApiError({
-                cause,
+                cause: {},
                 field: 'phoneNumber',
                 type: 'error_api_sent_phone_code_failed',
             });
