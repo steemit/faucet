@@ -43,7 +43,7 @@
     "sequelize": "5.2.4",
     "serve-favicon": "2.4.5",
     "tronweb": "^3.0.0",
-    "twilio": "3.16.0",
+    "twilio": "^3.64.0",
     "validator": "9.2.0"
   },
   "devDependencies": {
