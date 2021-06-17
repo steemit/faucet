@@ -255,6 +255,15 @@ class UserInfo extends React.Component {
 
     validatePhoneCode = (rule, value, callback) => {
         if (value) {
+            if (value.length !== 6) {
+                this.setState({
+                    check_phone_code: false,
+                });
+                callback(
+                    intl.formatMessage({ id: 'error_api_phone_code_invalid' })
+                );
+                return;
+            }
             const { intl, form } = this.props;
             const phoneNumber = `+${form.getFieldValue('phone')}`;
             apiCall('/api/check_phone_code', { code: value, phoneNumber })

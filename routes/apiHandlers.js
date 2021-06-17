@@ -1145,6 +1145,7 @@ async function handleRequestSmsNew(req) {
 
     if (existingRecord) {
         record = existingRecord;
+        record.phone_code = null;
     } else {
         const newPhoneRecord = await database.createPhoneRecord({
             phone_number: phoneNumber,
@@ -1197,19 +1198,28 @@ async function handleRequestSmsNew(req) {
         metadata: { phoneNumber },
     });
 
-    const phoneCode = generateCode(6);
+    // const phoneCode = generateCode(6);
 
     try {
-        let msg;
-        if (req.body.locale === 'zh') {
-            msg = `[Steemit] 验证码为：${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
-        } else {
-            msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
-        }
-        const response = await services.sendSMS(phoneNumber, msg);
+        // let msg;
+        // if (req.body.locale === 'zh') {
+        //     msg = `[Steemit] 验证码为：${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
+        // } else {
+        //     msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
+        // }
+        // const response = await services.sendSMS(phoneNumber, msg);
+        console.log('before_send_sms');
+        const response = await services.sendSMSCode(phoneNumber);
         req.log.info({ response, ip: req.ip }, 'sms_response_info');
+        if (response.status !== 'pending') {
+            throw new ApiError({
+                cause,
+                field: 'phoneNumber',
+                type: 'error_api_sent_phone_code_failed',
+            });
+        }
     } catch (cause) {
-        req.log.warn({ cause }, 'sms_send_error');
+        req.log.warn({ cause, phoneNumber }, 'sms_send_error');
         if (cause.code === 21614 || cause.code === 21211) {
             throw new ApiError({
                 cause,
@@ -1226,7 +1236,7 @@ async function handleRequestSmsNew(req) {
     }
 
     record.phone_code_attempts = 0;
-    record.phone_code = phoneCode;
+    // record.phone_code = phoneCode;
     record.phone_code_generated = new Date();
     // count every 24 hours
     if (record.phone_code_generated >= minusOneDay) {
@@ -1325,6 +1335,13 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
+    if (req.body.code.length !== 6) {
+        throw new ApiError({
+            type: 'error_api_code_length_required',
+            field: 'code',
+        });
+    }
+
     let record = null;
 
     try {
@@ -1349,7 +1366,7 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    if (record.phone_code_attempts >= 100) {
+    if (record.phone_code_attempts >= 50) {
         throw new ApiError({
             field: 'code',
             type: 'error_api_phone_too_many',
@@ -1369,6 +1386,24 @@ async function handleConfirmSmsNew(req) {
     }
 
     record.phone_code_attempts += 1;
+
+    if (record.phone_code === null) {
+        const response = await services.authSMSCode(
+            req.body.phoneNumber,
+            req.body.code
+        );
+        if (response === true) {
+            record.phone_code = req.body.code;
+            record.save();
+            return { success: true };
+        }
+        await record.save();
+        throw new ApiError({
+            field: 'code',
+            type: 'error_api_phone_code_invalid',
+        });
+    }
+
     if (record.phone_code !== req.body.code) {
         await record.save();
         throw new ApiError({

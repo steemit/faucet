@@ -58,6 +58,53 @@ async function sendSMS(to, body) {
 }
 
 /**
+ * Send a SMS Code.
+ * @param to Message recipient, e.g. +1234567890.
+ */
+async function sendSMSCode(to) {
+    if (DEBUG_MODE) {
+        logger.warn('Send SMS to %s with code: %s', to);
+    } else {
+        return twilio.sendAuthCode(to);
+    }
+}
+
+/**
+ * Auth a SMS Code.
+ * @param to Message recipient, e.g. +1234567890.
+ * @param code Auth Code.
+ */
+async function authSMSCode(to, code) {
+    if (DEBUG_MODE) {
+        logger.warn('Send SMS to %s with code: %s', to, code);
+        return true;
+    } else {
+        let result;
+        try {
+            result = await twilio.checkAuthCode(to, code);
+            if (result.status === 'approved') {
+                return true;
+            }
+        } catch (err) {
+            logger.warn(
+                '[Check Error]Phone %s with code %s, err: %s',
+                to,
+                code,
+                JSON.stringify(err)
+            );
+            return false;
+        }
+        logger.warn(
+            '[Check Error]Phone %s with code %s, result: %s',
+            to,
+            code,
+            JSON.stringify(result)
+        );
+        return false;
+    }
+}
+
+/**
  * Validate phone number.
  * @param number Number to validate, e.g. +1234567890.
  */
@@ -463,7 +510,11 @@ function recordSource({ trackingId, app, from_page }) {
         },
     };
     api.call('overseer.collect', ['custom', data], error => {
-        throw new Error(`record source error: ${error.message}, app: ${app}, from_page: ${from_page}`);
+        throw new Error(
+            `record source error: ${
+                error.message
+            }, app: ${app}, from_page: ${from_page}`
+        );
     });
 }
 
@@ -484,6 +535,8 @@ module.exports = {
     sendApprovalEmail,
     sendEmail,
     sendSMS,
+    sendSMSCode,
+    authSMSCode,
     validatePhone,
     verifyCaptcha,
     recordActivityTracker,
