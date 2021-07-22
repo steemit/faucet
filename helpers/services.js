@@ -63,7 +63,7 @@ async function sendSMS(to, body) {
  */
 async function sendSMSCode(to) {
     if (DEBUG_MODE) {
-        logger.warn('Send SMS to %s with code: %s', to);
+        logger.warn('Send SMS to %s', to);
     } else {
         return twilio.sendAuthCode(to);
     }

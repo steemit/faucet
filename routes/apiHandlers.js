@@ -1198,24 +1198,28 @@ async function handleRequestSmsNew(req) {
         metadata: { phoneNumber },
     });
 
-    // const phoneCode = generateCode(6);
+    const phoneCode = generateCode(6);
+    countryCodeList = process.env.COUNTRY_CODE.split(',');
 
     try {
-        // let msg;
-        // if (req.body.locale === 'zh') {
-        //     msg = `[Steemit] 验证码为：${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
-        // } else {
-        //     msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
-        // }
-        // const response = await services.sendSMS(phoneNumber, msg);
-        const response = await services.sendSMSCode(phoneNumber);
-        req.log.info({ response, ip: req.ip }, 'sms_response_info');
-        if (response.status !== 'pending') {
-            throw new ApiError({
-                cause: {},
-                field: 'phoneNumber',
-                type: 'error_api_sent_phone_code_failed',
-            });
+        if (countryCodeList.indexOf(countryCode) === -1) {
+            let msg;
+            if (req.body.locale === 'zh') {
+                msg = `[Steemit] 验证码为：${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
+            } else {
+                msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
+            }
+            const response = await services.sendSMS(phoneNumber, msg);
+        } else {
+            const response = await services.sendSMSCode(phoneNumber);
+            req.log.info({ response, ip: req.ip }, 'sms_response_info');
+            if (response && response.status !== 'pending') {
+                throw new ApiError({
+                    cause: {},
+                    field: 'phoneNumber',
+                    type: 'error_api_sent_phone_code_failed',
+                });
+            }
         }
     } catch (cause) {
         req.log.warn({ cause, phoneNumber }, 'sms_send_error');
@@ -1235,7 +1239,9 @@ async function handleRequestSmsNew(req) {
     }
 
     record.phone_code_attempts = 0;
-    // record.phone_code = phoneCode;
+    if (countryCodeList.indexOf(countryCode) === -1) {
+        record.phone_code = phoneCode;
+    }
     record.phone_code_generated = new Date();
     // count every 24 hours
     if (record.phone_code_generated >= minusOneDay) {
