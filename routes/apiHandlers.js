@@ -1199,7 +1199,7 @@ async function handleRequestSmsNew(req) {
     });
 
     const phoneCode = generateCode(6);
-    countryCodeList = process.env.COUNTRY_CODE.split(',');
+    const countryCodeList = process.env.COUNTRY_CODE.split(',');
 
     try {
         if (countryCodeList.indexOf(countryCode) === -1) {
@@ -1210,6 +1210,7 @@ async function handleRequestSmsNew(req) {
                 msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
             }
             const response = await services.sendSMS(phoneNumber, msg);
+            req.log.info({ response, ip: req.ip }, 'sms_response_info');
         } else {
             const response = await services.sendSMSCode(phoneNumber);
             req.log.info({ response, ip: req.ip }, 'sms_response_info');
