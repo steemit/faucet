@@ -7,6 +7,9 @@ const { Op } = Sequelize;
 const { ApiError } = require('./errortypes');
 const { normalizeEmail } = require('./validator');
 
+const IP_LIMIT = parseInt(process.env.IP_LIMIT, 10) > 0 ? parseInt(process.env.IP_LIMIT, 10) : 32;
+const HOUR_LIMIT = parseInt(process.env.HOUR_LIMIT, 10) > 0 ? parseInt(process.env.HOUR_LIMIT, 10) : 20;
+
 /**
  * Throws if user or ip exceeds number of allowed actions within time period.
  */
@@ -122,10 +125,10 @@ const deleteEmailRecord = async where => db.emailcode.destroy({where});
  * remove user id references
  * to remove username reserve mechanism
  */
-async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
+async function actionLimitNew(ip, action = 'default', ipLimit = IP_LIMIT) {
     const created_at = {
         [Op.gte]: moment()
-            .subtract(20, 'hours')
+            .subtract(HOUR_LIMIT, 'hours')
             .toDate(),
     };
     const promises = [
