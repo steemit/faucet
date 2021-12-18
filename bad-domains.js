@@ -1405,6 +1405,7 @@ mail.aws910.com
 mail.backflip.cf
 mail.bestoption25.club
 mail.by
+mail.com.tr
 mail.fettometern.com
 mail.illistnoise.com
 mail.mailinator.com
