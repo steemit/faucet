@@ -1,6 +1,6 @@
 const steem = require('@steemit/steem-js');
 const validator = require('validator');
-const badDomains = require('../bad-domains');
+// const badDomains = require('../bad-domains');
 
 const accountNotExist = (rule, value, callback) => {
     steem.api.getAccounts([value], (err, result) => {
@@ -156,18 +156,19 @@ const validateEmail = (rule, value, callback) => {
  * Used in src/components/Form/Signup/Email.js
  * */
 const validateEmailDomain = (rule, value, callback) => {
-    if (value) {
-        const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
-        if (domain && badDomains.includes(domain)) {
-            callback(
-                'This domain name is blacklisted, please provide another email'
-            );
-        } else {
-            callback();
-        }
-    } else {
-        callback();
-    }
+    callback();
+    // if (value) {
+    //     const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
+    //     if (domain && badDomains.includes(domain)) {
+    //         callback(
+    //             'This domain name is blacklisted, please provide another email'
+    //         );
+    //     } else {
+    //         callback();
+    //     }
+    // } else {
+    //     callback();
+    // }
 };
 
 // Remove dots (if gmail) and plus sign aliases from an email address.

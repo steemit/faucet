@@ -168,10 +168,8 @@ async function handleRequestEmail(
         });
     }
     if (badDomains.includes(email.split('@')[1])) {
-        throw new ApiError({
-            type: 'error_api_domain_blacklisted',
-            field: 'email',
-        });
+        logger.warn({ email }, 'error_api_domain_blacklisted');
+        return { success: true, token: null, xref: null };
     }
 
     await database.actionLimit(ip);
@@ -902,10 +900,8 @@ async function handleRequestEmailCode(ip, email, log, locale) {
     }
     // bad domains check
     if (badDomains.includes(email.split('@')[1])) {
-        throw new ApiError({
-            type: 'error_api_domain_blacklisted',
-            field: 'email',
-        });
+        logger.warn({ email }, 'error_api_domain_blacklisted');
+        return { success: true, token: null, xref: null };
     }
 
     await database.actionLimitNew(ip, 'request_email_code');

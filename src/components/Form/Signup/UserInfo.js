@@ -164,11 +164,12 @@ class UserInfo extends React.Component {
             const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
             if (domain && badDomains.includes(domain)) {
                 this.setState({
-                    check_email: false,
+                    check_email: true,
                 });
-                callback(
-                    'This domain name is blacklisted, please provide another email'
-                );
+                // callback(
+                //     'This domain name is blacklisted, please provide another email'
+                // );
+                callback();
             } else {
                 if (domain) {
                     this.setState({
