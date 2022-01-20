@@ -1198,18 +1198,31 @@ async function handleRequestSmsNew(req) {
     const countryCodeList = process.env.COUNTRY_CODE.split(',');
 
     try {
-        if (countryCodeList.indexOf(countryCode) === -1) {
+        if (countryCodeList.indexOf(countryCode) !== -1) {
             let msg;
             if (req.body.locale === 'zh') {
-                msg = `[Steemit] 验证码为：${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
+                msg = `[Steemit] 验证码为: ${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
             } else {
                 msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
             }
             const response = await services.sendSMS(phoneNumber, msg);
-            req.log.info({ response, ip: req.ip }, 'sms_response_info');
+            req.log.info(
+                { response, ip: req.ip, req: req.body },
+                'sms_response_info_in_country_code_list'
+            );
+            if (response && response.status !== 'pending') {
+                throw new ApiError({
+                    cause: {},
+                    field: 'phoneNumber',
+                    type: 'error_api_sent_phone_code_failed',
+                });
+            }
         } else {
             const response = await services.sendSMSCode(phoneNumber);
-            req.log.info({ response, ip: req.ip }, 'sms_response_info');
+            req.log.info(
+                { response, ip: req.ip, req: req.body },
+                'sms_response_info'
+            );
             if (response && response.status !== 'pending') {
                 throw new ApiError({
                     cause: {},
