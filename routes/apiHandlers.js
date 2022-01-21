@@ -1073,7 +1073,14 @@ async function handleRequestSmsNew(req) {
     }
 
     const countryCode = req.body.prefix.split('_')[1];
+    const countryNumber = req.body.prefix.split('_')[0];
     if (!countryCode) {
+        throw new ApiError({
+            field: 'phoneNumber',
+            type: 'error_api_prefix_invalid',
+        });
+    }
+    if (!countryNumber) {
         throw new ApiError({
             field: 'phoneNumber',
             type: 'error_api_prefix_invalid',
@@ -1081,6 +1088,16 @@ async function handleRequestSmsNew(req) {
     }
 
     let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
+    const countryNumberList = process.env.COUNTRY_NUMBER
+        ? process.env.COUNTRY_NUMBER.split(',')
+        : '';
+    if (countryNumberList.indexOf(countryNumber) !== -1) {
+        req.log.warn(
+            { phoneNumber: req.body },
+            'sms_phone_number_hit_block_list'
+        );
+        return { success: true, phoneNumber, ref: '' };
+    }
 
     const isValid = phoneUtil.isValidNumber(phoneNumber);
 
@@ -1195,7 +1212,9 @@ async function handleRequestSmsNew(req) {
     });
 
     const phoneCode = generateCode(6);
-    const countryCodeList = process.env.COUNTRY_CODE.split(',');
+    const countryCodeList = process.env.COUNTRY_CODE
+        ? process.env.COUNTRY_CODE.split(',')
+        : '';
 
     try {
         if (countryCodeList.indexOf(countryCode) !== -1) {
