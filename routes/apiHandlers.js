@@ -1249,7 +1249,7 @@ async function handleRequestSmsNew(req) {
     }
 
     record.phone_code_attempts = 0;
-    if (countryCodeList.indexOf(countryCode) === -1) {
+    if (countryCodeList.indexOf(countryCode) !== -1) {
         record.phone_code = phoneCode;
     }
     record.phone_code_generated = new Date();
