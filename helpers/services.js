@@ -12,7 +12,12 @@ const jwt = require('jsonwebtoken');
 const { checkpoints } = require('../constants');
 const { api } = require('@steemit/steem-js');
 
+const CLAIM_ACCOUNT = 'steem';
 const DEBUG_MODE = process.env.DEBUG_MODE !== undefined;
+const PENDING_CLAIMED_ACCOUNTS_THRESHOLD = process.env
+    .PENDING_CLAIMED_ACCOUNTS_THRESHOLD
+    ? process.env.PENDING_CLAIMED_ACCOUNTS_THRESHOLD
+    : 100;
 
 const logger = require('./logger').child({ DEBUG_MODE });
 
@@ -517,6 +522,20 @@ function recordSource({ trackingId, app, from_page }) {
     });
 }
 
+const getPendingClaimedAccountsAsync = async function() {
+    return steem.api.getAccountsAsync([CLAIM_ACCOUNT]).then(res => {
+        if (res && res[0]) {
+            if (
+                res[0].pending_claimed_accounts >
+                PENDING_CLAIMED_ACCOUNTS_THRESHOLD
+            ) {
+                return true;
+            }
+        }
+        return false;
+    });
+};
+
 module.exports = {
     checkUsername,
     condenserTransfer,
@@ -540,4 +559,5 @@ module.exports = {
     verifyCaptcha,
     recordActivityTracker,
     recordSource,
+    getPendingClaimedAccountsAsync,
 };

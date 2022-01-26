@@ -885,6 +885,17 @@ async function handleAnalytics(req) {
 }
 
 async function handleRequestEmailCode(ip, email, log, locale) {
+    const isEnoughPendingClaimedAccounts = await services.getPendingClaimedAccountsAsync();
+    if (isEnoughPendingClaimedAccounts === false) {
+        logger.warn(
+            { isEnoughPendingClaimedAccounts },
+            'pending_claimed_accounts_is_not_enough'
+        );
+        throw new ApiError({
+            field: 'email',
+            type: 'signup_free_tip3',
+        });
+    }
     if (!email) {
         throw new ApiError({
             type: 'error_api_email_required',
@@ -1040,6 +1051,17 @@ async function handleRequestEmailCode(ip, email, log, locale) {
  * compare to old request sms func
  */
 async function handleRequestSmsNew(req) {
+    const isEnoughPendingClaimedAccounts = await services.getPendingClaimedAccountsAsync();
+    if (isEnoughPendingClaimedAccounts === false) {
+        req.log.warn(
+            { isEnoughPendingClaimedAccounts },
+            'pending_claimed_accounts_is_not_enough'
+        );
+        throw new ApiError({
+            field: 'code',
+            type: 'signup_free_tip3',
+        });
+    }
     if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
         const recaptcha = req.body.phone_recaptcha;
         if (!recaptcha) {
