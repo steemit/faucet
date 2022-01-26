@@ -526,7 +526,7 @@ const getPendingClaimedAccountsAsync = async function() {
     return steem.api.getAccountsAsync([CLAIM_ACCOUNT]).then(res => {
         if (res && res[0]) {
             if (
-                res[0]['pending_claimed_accounts'] >
+                res[0].pending_claimed_accounts >
                 PENDING_CLAIMED_ACCOUNTS_THRESHOLD
             ) {
                 return true;
