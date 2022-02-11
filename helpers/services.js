@@ -502,6 +502,24 @@ function recordActivityTracker({ trackingId, activityTag, username }) {
     });
 }
 
+function recordSmsTracker({ sendType, countryCode, phoneNumber }) {
+    const data = {
+        measurement: 'send_sms',
+        tags: {
+            sendType,
+            countryCode,
+        },
+        fields: {
+            phoneNumber,
+        },
+    };
+    api.call('overseer.collect', ['custom', data], error => {
+        throw new Error(
+            `record_sms_tracker_error: ${error}, ${sendType}, ${countryCode}, ${phoneNumber}`
+        );
+    });
+}
+
 function recordSource({ trackingId, app, from_page }) {
     const data = {
         measurement: 'signup_origin',
@@ -558,6 +576,7 @@ module.exports = {
     validatePhone,
     verifyCaptcha,
     recordActivityTracker,
+    recordSmsTracker,
     recordSource,
     getPendingClaimedAccountsAsync,
 };
