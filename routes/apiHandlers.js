@@ -1051,6 +1051,11 @@ async function handleRequestEmailCode(ip, email, log, locale) {
  * compare to old request sms func
  */
 async function handleRequestSmsNew(req) {
+    services.recordSmsTracker({
+        sendType: 'get_in',
+        countryCode: req.body.prefix,
+        phoneNumber: req.body.phoneNumber,
+    });
     const isEnoughPendingClaimedAccounts = await services.getPendingClaimedAccountsAsync();
     if (isEnoughPendingClaimedAccounts === false) {
         req.log.warn(
@@ -1122,6 +1127,12 @@ async function handleRequestSmsNew(req) {
     }
 
     const isValid = phoneUtil.isValidNumber(phoneNumber);
+
+    services.recordSmsTracker({
+        sendType: 'fe_condition_fixed',
+        countryCode: req.body.prefix,
+        phoneNumber: req.body.phoneNumber,
+    });
 
     if (!isValid) {
         throw new ApiError({
@@ -1232,6 +1243,11 @@ async function handleRequestSmsNew(req) {
         ip: req.ip,
         metadata: { phoneNumber },
     });
+    services.recordSmsTracker({
+        sendType: 'before_send_sms',
+        countryCode: req.body.prefix,
+        phoneNumber: req.body.phoneNumber,
+    });
 
     const phoneCode = generateCode(6);
     const countryCodeList = process.env.COUNTRY_CODE
@@ -1247,6 +1263,11 @@ async function handleRequestSmsNew(req) {
                 msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
             }
             const response = await services.sendSMS(phoneNumber, msg);
+            services.recordSmsTracker({
+                sendType: 'after_send_sms_1',
+                countryCode: req.body.prefix,
+                phoneNumber: req.body.phoneNumber,
+            });
             req.log.info(
                 { response, ip: req.ip, req: req.body },
                 'sms_response_info_in_country_code_list'
@@ -1260,6 +1281,11 @@ async function handleRequestSmsNew(req) {
             }
         } else {
             const response = await services.sendSMSCode(phoneNumber);
+            services.recordSmsTracker({
+                sendType: 'after_send_sms_2',
+                countryCode: req.body.prefix,
+                phoneNumber: req.body.phoneNumber,
+            });
             req.log.info(
                 { response, ip: req.ip, req: req.body },
                 'sms_response_info'
