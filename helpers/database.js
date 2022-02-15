@@ -1,7 +1,7 @@
 const moment = require('moment');
 const db = require('./../db/models');
 
-const { Sequelize } = db;
+const { Sequelize, sequelize } = db;
 const { Op } = Sequelize;
 
 const { ApiError } = require('./errortypes');
@@ -114,9 +114,9 @@ const findPhoneRecord = async where => db.phonecode.findOne(where);
 const updatePhoneRecord = async (data, where) =>
     db.phonecode.update(data, where);
 
-const deletePhoneRecord = async where => db.phonecode.destroy({where});
+const deletePhoneRecord = async where => db.phonecode.destroy({ where });
 
-const deleteEmailRecord = async where => db.emailcode.destroy({where});
+const deleteEmailRecord = async where => db.emailcode.destroy({ where });
 
 /**
  * remove user id references
@@ -137,6 +137,28 @@ async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
     if (ipActions > ipLimit) {
         throw new ApiError({ type: 'error_api_actionlimit' });
     }
+}
+
+/**
+ * find last send sms action by country number
+ */
+async function findLastSendSmsByCountryNumber(countryNumber, phoneNumber) {
+    let where = `where action = 'send_sms' and metadata->'$.countryNumber' = :countryNumber`;
+    const replacements = {
+        countryNumber,
+    };
+    if (phoneNumber) {
+        where = `${where} and metadata->'$.phoneNumber' != :phoneNumber`;
+        replacements.phoneNumber = phoneNumber;
+    }
+    const actions = await sequelize.query(
+        `select * from actions ${where} order by id desc limit 1`,
+        {
+            replacements,
+            type: Sequelize.QueryTypes.SELECT,
+        }
+    );
+    return actions;
 }
 
 module.exports = {
@@ -162,4 +184,5 @@ module.exports = {
     updatePhoneRecord,
     deletePhoneRecord,
     deleteEmailRecord,
+    findLastSendSmsByCountryNumber,
 };
