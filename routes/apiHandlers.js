@@ -1166,7 +1166,10 @@ async function handleRequestSmsNew(req) {
     await database.logAction({
         action: 'try_number',
         ip: req.ip,
-        metadata: { phoneNumber },
+        metadata: {
+            phoneNumber,
+            countryNumber,
+        },
     });
 
     try {
@@ -1179,6 +1182,7 @@ async function handleRequestSmsNew(req) {
         });
     }
 
+    // same ip policy
     await database.actionLimitNew(req.ip, 'try_number');
 
     let record = null;
@@ -1204,9 +1208,9 @@ async function handleRequestSmsNew(req) {
         });
         record = newPhoneRecord;
     }
-
-    const minusOneDay = Date.now() - 86400000;
-    const minusOneMinute = Date.now() - 60000;
+    const now = Date.now();
+    const minusOneDay = now - 86400000;
+    const minusOneMinute = now - 60000;
 
     const usersLastAttempt = record.last_attempt_verify_phone_number
         ? record.last_attempt_verify_phone_number.getTime()
@@ -1216,11 +1220,12 @@ async function handleRequestSmsNew(req) {
         ? record.phone_code_sent
         : undefined;
 
+    // the first time send code time in one day
     const lastRequestTime = record.phone_code_first_sent
         ? record.phone_code_first_sent.getTime()
         : undefined;
 
-    // if an email has requested code over 5 times with 24 hours, throw an error.
+    // if an phone has requested code over 5 times with 24 hours, throw an error.
     if (dailySentTimes && lastRequestTime) {
         if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
             throw new ApiError({
@@ -1238,10 +1243,61 @@ async function handleRequestSmsNew(req) {
         });
     }
 
+    // delay sending code when the country number in the block list
+    const delaySendBlockCountryNumbers = process.env
+        .DELAY_SEND_SMS_COUNTRY_NUMBER
+        ? process.env.DELAY_SEND_SMS_COUNTRY_NUMBER.split(',')
+        : '';
+    if (delaySendBlockCountryNumbers.indexOf(countryNumber) !== -1) {
+        const delaySendTimeout = process.env.DELAY_SEND_SMS_TIMEOUT
+            ? parseInt(process.env.DELAY_SEND_SMS_TIMEOUT.split(','), 10) * 1000
+            : 3600 * 1000;
+        const hitNumbers = await database.findLastSendSmsByCountryNumber(
+            countryNumber,
+            phoneNumber
+        );
+        if (hitNumbers.length > 0) {
+            const tempNumber = hitNumbers[0];
+            // if sending interval time lower than delaySendTimeout, throw err
+            if (tempNumber.created_at.getTime() - now <= delaySendTimeout) {
+                req.log.warn(
+                    { phoneNumber },
+                    'delay sending code, lower than DELAY_SEND_SMS_TIMEOUT'
+                );
+                throw new ApiError({
+                    field: 'phone',
+                    type: 'error_api_wait_one_minute',
+                });
+            }
+            const lastPhoneCodeRecord = await database.findPhoneRecord({
+                where: { phone_number: tempNumber.metadata.phoneNumber },
+            });
+            // if there is one phone not registering success in 24 hours,
+            // the same country number will be delayed.
+            if (
+                lastPhoneCodeRecord != null &&
+                lastPhoneCodeRecord.last_attempt_verify_phone_number >=
+                    minusOneDay
+            ) {
+                req.log.warn(
+                    { phoneNumber },
+                    'delay sending code when last same country number does not register success'
+                );
+                throw new ApiError({
+                    field: 'phone',
+                    type: 'error_api_wait_one_minute',
+                });
+            }
+        }
+    }
+
     await database.logAction({
         action: 'send_sms',
         ip: req.ip,
-        metadata: { phoneNumber },
+        metadata: {
+            phoneNumber,
+            countryNumber,
+        },
     });
     services.recordSmsTracker({
         sendType: 'before_send_sms',

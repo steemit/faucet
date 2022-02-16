@@ -2,6 +2,7 @@ const express = require('express');
 
 const { ApiError } = require('../helpers/errortypes.js');
 const apiHandlers = require('./apiHandlers');
+// const database = require('../helpers/database');
 
 function apiMiddleware(handler) {
     return (req, res) => {
@@ -115,6 +116,9 @@ router.post(
     apiMiddleware(apiHandlers.handleCreateAccountNew)
 );
 
-router.get('/create_tron_addr', apiMiddleware(apiHandlers.handleCreateTronAddr));
+router.get(
+    '/create_tron_addr',
+    apiMiddleware(apiHandlers.handleCreateTronAddr)
+);
 
 module.exports = router;

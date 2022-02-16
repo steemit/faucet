@@ -540,7 +540,7 @@ function recordSource({ trackingId, app, from_page }) {
     });
 }
 
-const getPendingClaimedAccountsAsync = async function() {
+async function getPendingClaimedAccountsAsync() {
     return steem.api.getAccountsAsync([CLAIM_ACCOUNT]).then(res => {
         if (res && res[0]) {
             if (
@@ -552,7 +552,7 @@ const getPendingClaimedAccountsAsync = async function() {
         }
         return false;
     });
-};
+}
 
 module.exports = {
     checkUsername,
