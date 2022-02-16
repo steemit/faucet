@@ -1259,11 +1259,16 @@ async function handleRequestSmsNew(req) {
         if (hitNumbers.length > 0) {
             const tempNumber = hitNumbers[0];
             // if sending interval time lower than delaySendTimeout, throw err
-            if (tempNumber.created_at.getTime() - now <= delaySendTimeout) {
+            if (now - tempNumber.created_at.getTime() <= delaySendTimeout) {
                 req.log.warn(
                     { phoneNumber },
                     'delay sending code, lower than DELAY_SEND_SMS_TIMEOUT'
                 );
+                services.recordSmsTracker({
+                    sendType: 'hit_delay_sending_1',
+                    countryCode: req.body.prefix,
+                    phoneNumber: req.body.phoneNumber,
+                });
                 throw new ApiError({
                     field: 'phone',
                     type: 'error_api_wait_one_minute',
@@ -1274,15 +1279,30 @@ async function handleRequestSmsNew(req) {
             });
             // if there is one phone not registering success in 24 hours,
             // the same country number will be delayed.
+            const delaySendTimeoutNotRegSuccess = process.env
+                .DELAY_SEND_SMS_TIMEOUT_WHEN_REG_NOT_SUCCESS
+                ? parseInt(
+                      process.env.DELAY_SEND_SMS_TIMEOUT_WHEN_REG_NOT_SUCCESS.split(
+                          ','
+                      ),
+                      10
+                  ) * 1000
+                : 7200 * 1000;
             if (
                 lastPhoneCodeRecord != null &&
-                lastPhoneCodeRecord.last_attempt_verify_phone_number >=
-                    minusOneDay
+                now -
+                    lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() <=
+                    delaySendTimeoutNotRegSuccess
             ) {
                 req.log.warn(
                     { phoneNumber },
                     'delay sending code when last same country number does not register success'
                 );
+                services.recordSmsTracker({
+                    sendType: 'hit_delay_sending_2',
+                    countryCode: req.body.prefix,
+                    phoneNumber: req.body.phoneNumber,
+                });
                 throw new ApiError({
                     field: 'phone',
                     type: 'error_api_wait_one_minute',
