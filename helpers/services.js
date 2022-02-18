@@ -498,7 +498,9 @@ function recordActivityTracker({ trackingId, activityTag, username }) {
         },
     };
     api.call('overseer.collect', ['custom', data], error => {
-        throw new Error(`activity tracker error: ${error.message}`);
+        if (error) {
+            logger.warn({ error, data }, 'activity_tracker_error');
+        }
     });
 }
 
@@ -514,9 +516,9 @@ function recordSmsTracker({ sendType, countryCode, phoneNumber }) {
         },
     };
     api.call('overseer.collect', ['custom', data], error => {
-        throw new Error(
-            `record_sms_tracker_error: ${error}, ${sendType}, ${countryCode}, ${phoneNumber}`
-        );
+        if (error) {
+            logger.warn({ error, data }, 'record_sms_tracker_err');
+        }
     });
 }
 
@@ -532,11 +534,9 @@ function recordSource({ trackingId, app, from_page }) {
         },
     };
     api.call('overseer.collect', ['custom', data], error => {
-        throw new Error(
-            `record source error: ${
-                error.message
-            }, app: ${app}, from_page: ${from_page}`
-        );
+        if (error) {
+            logger.warn({ error, data }, 'record_source_err');
+        }
     });
 }
 
