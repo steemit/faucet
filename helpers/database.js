@@ -161,6 +161,29 @@ async function findLastSendSmsByCountryNumber(countryNumber, phoneNumber) {
     return actions;
 }
 
+/**
+ * find number of try_number actions in last X hours with same country number
+ */
+async function countTryNumber(countryNumber, hours) {
+    let where = `where action = 'try_number' and metadata->'$.countryNumber' = :countryNumber`;
+    where = `${where} and now() - created_at <= :hours * 3600`;
+    const replacements = {
+        countryNumber,
+        hours,
+    };
+    const records = await sequelize.query(
+        `select count(*) as total from actions ${where}`,
+        {
+            replacements,
+            type: Sequelize.QueryTypes.SELECT,
+        }
+    );
+    if (records.length > 0) {
+        return records[0].total;
+    }
+    return 0;
+}
+
 module.exports = {
     Sequelize,
     actionLimit,
@@ -185,4 +208,5 @@ module.exports = {
     deletePhoneRecord,
     deleteEmailRecord,
     findLastSendSmsByCountryNumber,
+    countTryNumber,
 };

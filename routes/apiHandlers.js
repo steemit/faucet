@@ -1209,8 +1209,9 @@ async function handleRequestSmsNew(req) {
         record = newPhoneRecord;
     }
     const now = Date.now();
-    const minusOneDay = now - 86400000;
-    const minusOneMinute = now - 60000;
+    const minusOneDay = now - 24 * 60 * 60 * 1000;
+    const minusOneHour = now - 60 * 60 * 1000;
+    const minusOneMinute = now - 60 * 1000;
 
     const usersLastAttempt = record.last_attempt_verify_phone_number
         ? record.last_attempt_verify_phone_number.getTime()
@@ -1243,6 +1244,62 @@ async function handleRequestSmsNew(req) {
         });
     }
 
+    const hitNumbers = await database.findLastSendSmsByCountryNumber(
+        countryNumber,
+        phoneNumber
+    );
+    let lastPhoneCodeRecord = null;
+    // high frequency policy for all countries (hfp)
+    const highFrequencyRange = process.env.HIGH_FREQUENCY_TIME_RANGE
+        ? parseInt(process.env.HIGH_FREQUENCY_TIME_RANGE, 10)
+        : 2;
+    const highFrequencyCount = process.env.HIGH_FREQUENCY_COUNT
+        ? parseInt(process.env.HIGH_FREQUENCY_COUNT, 10)
+        : 10;
+    if (hitNumbers.length > 0) {
+        const tempNumber = hitNumbers[0];
+        lastPhoneCodeRecord = await database.findPhoneRecord({
+            where: { phone_number: tempNumber.metadata.phoneNumber },
+        });
+        if (lastPhoneCodeRecord != null && !lastPhoneCodeRecord.phone_code) {
+            if (
+                lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
+                minusOneMinute
+            ) {
+                req.log.warn({ phoneNumber }, 'hfp:lower_than_one_minute');
+                services.recordSmsTracker({
+                    sendType: 'hit_hfp_1',
+                    countryCode: req.body.prefix,
+                    phoneNumber: req.body.phoneNumber,
+                });
+                throw new ApiError({
+                    field: 'phone',
+                    type: 'error_api_wait_one_minute',
+                });
+            }
+            const count = await database.countTryNumber(
+                countryNumber,
+                highFrequencyRange
+            );
+            if (
+                count >= highFrequencyCount &&
+                lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
+                    minusOneHour
+            ) {
+                req.log.warn({ phoneNumber }, 'hfp:lower_than_one_hour');
+                services.recordSmsTracker({
+                    sendType: 'hit_hfp_2',
+                    countryCode: req.body.prefix,
+                    phoneNumber: req.body.phoneNumber,
+                });
+                throw new ApiError({
+                    field: 'phone',
+                    type: 'error_api_wait_one_minute',
+                });
+            }
+        }
+    }
+
     // delay sending code when the country number in the block list
     const delaySendBlockCountryNumbers = process.env
         .DELAY_SEND_SMS_COUNTRY_NUMBER
@@ -1252,10 +1309,6 @@ async function handleRequestSmsNew(req) {
         const delaySendTimeout = process.env.DELAY_SEND_SMS_TIMEOUT
             ? parseInt(process.env.DELAY_SEND_SMS_TIMEOUT.split(','), 10) * 1000
             : 3600 * 1000;
-        const hitNumbers = await database.findLastSendSmsByCountryNumber(
-            countryNumber,
-            phoneNumber
-        );
         if (hitNumbers.length > 0) {
             const tempNumber = hitNumbers[0];
             // if sending interval time lower than delaySendTimeout, throw err
@@ -1274,9 +1327,6 @@ async function handleRequestSmsNew(req) {
                     type: 'error_api_wait_one_minute',
                 });
             }
-            const lastPhoneCodeRecord = await database.findPhoneRecord({
-                where: { phone_number: tempNumber.metadata.phoneNumber },
-            });
             // if there is one phone not registering success in 24 hours,
             // the same country number will be delayed.
             const delaySendTimeoutNotRegSuccess = process.env
