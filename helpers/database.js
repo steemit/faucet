@@ -179,7 +179,7 @@ async function countTryNumber(countryNumber, hours) {
         }
     );
     if (records.length > 0) {
-        return records[0]['total'];
+        return records[0].total;
     }
     return 0;
 }
