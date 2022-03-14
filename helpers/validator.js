@@ -12,8 +12,6 @@ const accountNotExist = (rule, value, callback) => {
     });
 };
 
-const CLAIM_ACCOUNT = 'steem';
-
 const INVALID_ACCOUNTNAME_REASONS = {
     error_username_required: 'error_username_required',
     error_validation_account_min: 'error_validation_account_min',
@@ -188,12 +186,31 @@ const normalizeEmail = email => {
     return `${username}@${domain}`;
 };
 
+// this func for frontend
 const getPendingClaimedAccounts = callback => {
-    steem.api.getAccounts([CLAIM_ACCOUNT], (err, response) => {
-        if (response && response[0]) {
-            callback(response[0]);
+    const result = {};
+    if (!window.config || !window.config.CREATOR_INFO) {
+        return callback(result);
+    }
+    const accounts = window.config.CREATOR_INFO.split('|');
+    if (accounts.length === 0) {
+        return callback(result);
+    }
+    steem.api.getAccounts(accounts, (err, response) => {
+        if (err) {
+            /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+            console.error('getPendingClaimedAccounts:', err);
+            return callback();
+        }
+        if (response) {
+            response.forEach(el => {
+                if (el) {
+                    result[el.name] = el.pending_claimed_accounts;
+                }
+            });
+            callback(result);
         } else {
-            callback();
+            callback(result);
         }
     });
 };
