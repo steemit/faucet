@@ -555,7 +555,7 @@ async function getPendingClaimedAccountsAsync() {
                 claim_acconts[acc.name] = acc.pending_claimed_accounts;
             });
             if (
-                Math.max(Object.values(claim_acconts)) >
+                Math.max(...Object.values(claim_acconts)) >
                 PENDING_CLAIMED_ACCOUNTS_THRESHOLD
             ) {
                 return true;
