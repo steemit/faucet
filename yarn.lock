@@ -8753,9 +8753,9 @@ react-element-to-jsx-string@^3.0.0:
     stringify-object "^2.3.1"
     traverse "^0.6.6"
 
-"react-google-recaptcha@git://github.com/steemit/react-google-recaptcha.git#2b8d5d7":
+"react-google-recaptcha@https://github.com/steemit/react-google-recaptcha.git#2b8d5d7":
   version "0.9.7"
-  resolved "git://github.com/steemit/react-google-recaptcha.git#2b8d5d722f94da68a32b05bdf3dfe624ea8c7c8f"
+  resolved "https://github.com/steemit/react-google-recaptcha.git#2b8d5d722f94da68a32b05bdf3dfe624ea8c7c8f"
   dependencies:
     prop-types ">=15.5.0"
 
