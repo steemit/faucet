@@ -111,11 +111,11 @@ class Signup extends Component {
         } = this.props;
 
         getPendingClaimedAccounts(res => {
-            // console.log(111111,res&&res.pending_claimed_accounts)
-            this.setState({
-                pending_claimed_accounts:
-                    (res && res.pending_claimed_accounts) || 0,
-            });
+            if (res && Object.keys(res).length > 0) {
+                this.setState({
+                    pending_claimed_accounts: Math.max(...Object.values(res)),
+                });
+            }
         });
 
         guessCountryCode();
@@ -150,16 +150,26 @@ class Signup extends Component {
                 ['localhost', '127.0.0.1'].indexOf(hostname) === -1
                     ? `.${locationInfo[1]}.${locationInfo[0]}`
                     : hostname;
-            console.log('cookies:', activityTags, trackingId, domain, cookieName, expiresTime);
+            console.log(
+                'cookies:',
+                activityTags,
+                trackingId,
+                domain,
+                cookieName,
+                expiresTime
+            );
             Object.keys(activityTags).forEach(tag => {
                 if (activityTags[tag].isVisit === 0) {
-                    recordActivityTracker({trackingId, activityTag: tag});
+                    recordActivityTracker({ trackingId, activityTag: tag });
                     activityTags[tag].isVisit = 1;
                 }
             });
-            Cookies.set(cookieName, activityTags, { expires: expiresTime, domain })
+            Cookies.set(cookieName, activityTags, {
+                expires: expiresTime,
+                domain,
+            });
         }
-    }
+    };
 
     goBack = () => {
         this.props.decrementStep();
@@ -244,10 +254,7 @@ class Signup extends Component {
             logCheckpoint,
         } = this.props;
 
-        const {
-            password,
-            tronAddr,
-        } = this.state;
+        const { password, tronAddr } = this.state;
 
         const stepNumber = steps.indexOf(step);
 
@@ -272,7 +279,7 @@ class Signup extends Component {
                                         key={key}
                                         locale={key}
                                         setLocale={setLocale}
-                                        onClick={(e) => {
+                                        onClick={e => {
                                             e.preventDefault();
                                             this.setState({
                                                 language_item_visible: false,
@@ -284,7 +291,7 @@ class Signup extends Component {
                         }
                         trigger="click"
                         visible={this.state.language_item_visible}
-                        onClick={(e) => {
+                        onClick={e => {
                             e.preventDefault();
                             this.setState({
                                 language_item_visible: true,
@@ -409,7 +416,10 @@ class Signup extends Component {
                                 <h1>
                                     <FormattedMessage id="save_password" />
                                 </h1>
-                                <p className="text" style={{marginBottom: '16px'}}>
+                                <p
+                                    className="text"
+                                    style={{ marginBottom: '16px' }}
+                                >
                                     <FormattedMessage id="save_password_text" />
                                 </p>
                                 <SavePassword
@@ -434,9 +444,12 @@ class Signup extends Component {
                                 <p className="text">
                                     <FormattedMessage id="confirm_password" />
                                 </p>
-                                <p className="text" style={{
-                                    marginBottom: '0.875rem',
-                                }}>
+                                <p
+                                    className="text"
+                                    style={{
+                                        marginBottom: '0.875rem',
+                                    }}
+                                >
                                     <FormattedMessage id="master_password" />
                                 </p>
                                 <CreateAccount

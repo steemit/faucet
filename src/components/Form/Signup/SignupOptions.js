@@ -9,10 +9,10 @@ class SignupOptions extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            pending_claimed_accounts_threshold:
-                window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD ?
-                    parseInt(window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD, 10) :
-                    100,
+            pending_claimed_accounts_threshold: window.config
+                .PENDING_CLAIMED_ACCOUNTS_THRESHOLD
+                ? parseInt(window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD, 10)
+                : 50,
         };
     }
 
@@ -27,9 +27,7 @@ class SignupOptions extends React.Component {
         //     action();
         // };
 
-        const {
-            pending_claimed_accounts_threshold,
-        } = this.state;
+        const { pending_claimed_accounts_threshold } = this.state;
 
         const {
             signupModalVisible,
@@ -66,7 +64,9 @@ class SignupOptions extends React.Component {
                 </p> */}
 
                 <div
-                    className={`${pending_claimed_accounts >= pending_claimed_accounts_threshold && 'claim-account-active'} signup-options__buttons`}
+                    className={`${pending_claimed_accounts >=
+                        pending_claimed_accounts_threshold &&
+                        'claim-account-active'} signup-options__buttons`}
                 >
                     <div className="wrapper">
                         <img src="img/free.png" alt="" />
@@ -77,18 +77,27 @@ class SignupOptions extends React.Component {
                             <p>
                                 <FormattedMessage id="signup_free_tip2" />
                             </p>
-                            {pending_claimed_accounts < pending_claimed_accounts_threshold && <p className="special-tip">
-                                <FormattedMessage id="signup_free_tip3" />
-                            </p>}
+                            {pending_claimed_accounts <
+                                pending_claimed_accounts_threshold && (
+                                <p className="special-tip">
+                                    <FormattedMessage id="signup_free_tip3" />
+                                </p>
+                            )}
                         </div>
                         <Button
-                            className={`${pending_claimed_accounts >= pending_claimed_accounts_threshold && 'get-in-register__button'} custom-btn`}
+                            className={`${pending_claimed_accounts >=
+                                pending_claimed_accounts_threshold &&
+                                'get-in-register__button'} custom-btn`}
                             htmlType="button"
                             onClick={handleFreeSignup}
-                            disabled={pending_claimed_accounts < pending_claimed_accounts_threshold}
+                            disabled={
+                                pending_claimed_accounts <
+                                pending_claimed_accounts_threshold
+                            }
                         >
                             <FormattedMessage id="signup_options_button_free" />
-                            {pending_claimed_accounts < pending_claimed_accounts_threshold && (
+                            {pending_claimed_accounts <
+                                pending_claimed_accounts_threshold && (
                                 <span>
                                     <br />
                                     <span className="btn-caveat">
@@ -191,7 +200,9 @@ class SignupOptions extends React.Component {
                         href="https://actifit.io/signup"
                         onClick={() => {
                             updateAnalytics(5);
-                            logCheckpoint(CHECKPOINTS.paid_signup_clicked_actifit);
+                            logCheckpoint(
+                                CHECKPOINTS.paid_signup_clicked_actifit
+                            );
                         }}
                         rel="noopener noreferrer"
                         target="_blank"
@@ -231,7 +242,6 @@ class SignupOptions extends React.Component {
         );
     }
 }
-
 
 SignupOptions.propTypes = {
     signupModalVisible: PropTypes.bool.isRequired,

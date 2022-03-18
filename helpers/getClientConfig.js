@@ -13,6 +13,7 @@ function getClientConfig() {
         'REACT_DISABLE_ACCOUNT_CREATION',
         'RECAPTCHA_SWITCH',
         'PENDING_CLAIMED_ACCOUNTS_THRESHOLD',
+        'CREATOR_INFO',
     ];
 
     return JSON.stringify(
