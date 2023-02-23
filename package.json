@@ -40,7 +40,7 @@
     "qrious": "^4.0.2",
     "react-copy-to-clipboard": "^5.0.2",
     "redux-saga": "0.16.0",
-    "sequelize": "5.2.4",
+    "sequelize": "6.28.2",
     "serve-favicon": "2.4.5",
     "tronweb": "^3.0.0",
     "twilio": "^3.64.0",
