@@ -19,6 +19,7 @@ https.globalAgent.maxSockets = 100;
 
 const app = express();
 const clientConfig = getClientConfig();
+const clientConfigObject = JSON.parse(clientConfig);
 
 // database cleanup task
 // removes actions and completed requests older than 60 days
@@ -98,6 +99,19 @@ hbs.registerHelper('clientConfig', () => clientConfig);
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
 hbs.registerHelper('baseJs', () => new hbs.SafeString(`<script type="text/javascript" src="/js/${baseJsFile}"></script>`));
 hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(process.env.RECAPTCHA_SWITCH !== 'OFF' ? '<script src="//www.google.com/recaptcha/api.js"></script>' : ''));
+hbs.registerHelper('gaCode', () => {
+  let gaCode = '';
+  if (clientConfigObject) {
+    gaCode = `<script async src="https://www.googletagmanager.com/gtag/js?id=${clientConfigObject.GOOGLE_ANALYTICS_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${clientConfigObject.GOOGLE_ANALYTICS_ID}');
+  </script>`;
+  }
+  return new hbs.SafeString(gaCode);
+});
 hbs.registerPartials(`${__dirname}/views/partials`);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
