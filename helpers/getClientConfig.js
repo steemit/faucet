@@ -14,6 +14,7 @@ function getClientConfig() {
         'RECAPTCHA_SWITCH',
         'PENDING_CLAIMED_ACCOUNTS_THRESHOLD',
         'CREATOR_INFO',
+        'GOOGLE_ANALYTICS_ID',
     ];
 
     return JSON.stringify(
