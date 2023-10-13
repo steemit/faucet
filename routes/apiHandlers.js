@@ -1245,8 +1245,7 @@ async function handleRequestSmsNew(req) {
     }
 
     const hitNumbers = await database.findLastSendSmsByCountryNumber(
-        countryNumber,
-        phoneNumber
+        countryNumber
     );
     let lastPhoneCodeRecord = null;
     // high frequency policy for all countries (hfp)
