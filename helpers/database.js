@@ -140,6 +140,33 @@ async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
 }
 
 /**
+ * protect email or sms api
+ * in {timeWindow}, only {limitCount} are allowed.
+ * -- action = 'request_email_code' | 'send_sms'
+ * -- timeWindow
+ * -- limitCount
+ */
+async function emailOrSmsActionLimit(action, timeWindow = 300, limitCount = 1) {
+    const created_at = {
+        [Op.gte]: moment()
+            .subtract(timeWindow, 's')
+            .toDate(),
+    };
+    const promises = [
+        db.actions.count({
+            where: { created_at, action: { [Op.eq]: action } },
+        }),
+    ];
+    const [actions] = await Promise.all(promises);
+    if (actions > limitCount) {
+        throw new ApiError({
+            type: 'error_api_auth_code_request_frequently',
+            field: { action },
+        });
+    }
+}
+
+/**
  * find last send sms action by country number
  */
 async function findLastSendSmsByCountryNumber(countryNumber, phoneNumber) {
@@ -209,4 +236,5 @@ module.exports = {
     deleteEmailRecord,
     findLastSendSmsByCountryNumber,
     countTryNumber,
+    emailOrSmsActionLimit,
 };

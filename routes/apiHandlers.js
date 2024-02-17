@@ -917,6 +917,18 @@ async function handleRequestEmailCode(ip, email, log, locale) {
 
     await database.actionLimitNew(ip, 'request_email_code');
 
+    const timeWindow = process.env.EMAIL_SEND_TIME_WINDOW
+        ? parseInt(process.env.EMAIL_SEND_TIME_WINDOW, 10)
+        : 300;
+    const limitCount = process.env.EMAIL_SEND_THRESHOLD_IN_TIME_WINDOW
+        ? parseInt(process.env.EMAIL_SEND_THRESHOLD_IN_TIME_WINDOW, 10)
+        : 1;
+    await database.emailOrSmsActionLimit(
+        'request_email_code',
+        timeWindow,
+        limitCount
+    );
+
     await database.logAction({
         action: 'request_email_code',
         ip,
@@ -1361,6 +1373,14 @@ async function handleRequestSmsNew(req) {
         }
     }
 
+    const timeWindow = process.env.SMS_SEND_TIME_WINDOW
+        ? parseInt(process.env.SMS_SEND_TIME_WINDOW, 10)
+        : 300;
+    const limitCount = process.env.SMS_SEND_THRESHOLD_IN_TIME_WINDOW
+        ? parseInt(process.env.SMS_SEND_THRESHOLD_IN_TIME_WINDOW, 10)
+        : 1;
+    await database.emailOrSmsActionLimit('send_sms', timeWindow, limitCount);
+
     await database.logAction({
         action: 'send_sms',
         ip: req.ip,
@@ -1369,6 +1389,7 @@ async function handleRequestSmsNew(req) {
             countryNumber,
         },
     });
+
     services.recordSmsTracker({
         sendType: 'before_send_sms',
         countryCode: req.body.prefix,
