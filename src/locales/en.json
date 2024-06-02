@@ -122,7 +122,8 @@
     "resend": "Resend",
     "save_password": "Save password",
     "save_password_text":
-        "If you ever lose your password, your account will be irretrievably lost. We do not have your password, and we cannot help you recover it.",
+        "Please copy and save this master password for future login.Please note: Steemit does not keep records of anyone's password. Lost passwords cannot be retrieved. Please save your password properly.",
+    "save_continue": "I've copied the password. Continue.",
     "send_sms": "We need to send you a quick text.",
     "sign_in": "Sign in",
     "signup_options": "Sign up options",
@@ -181,7 +182,8 @@
         "Your email and phone number are needed to check that you're a real person.",
     "signup_free_tip3": "Insufficient places，please try again later.",
     "confirmPassword": "Confirm password",
-    "create_account_and_download_pdf": "Create the account and download the private key file.",
+    "create_account_and_download_pdf":
+        "Create the account and download the private key file.",
     "create_account_tip1":
         "Click the button below and wait for about 10 seconds. Do not quit the page. Make sure you have internet access.",
     "create_account_tip2":
@@ -204,8 +206,7 @@
     "error_api_user_exist": "User existed",
     "welcome_page_title": "Welcome",
     "click_here_to_download": "Click here",
-    "welcome_page_message_1":
-        " to download the PDF with your private key.",
+    "welcome_page_message_1": " to download the PDF with your private key.",
     "welcome_page_message_2":
         "Please keep it safe, otherwise we cannot recover it for you.Please do not share the file with anyone else.",
     "welcome_page_message_3":
