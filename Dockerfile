@@ -1,4 +1,4 @@
-FROM node:10-alpine as build-stage
+FROM node:20-alpine as build-stage
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN yarn build
 RUN yarn install --non-interactive --frozen-lockfile --production
 
 # build and test admin interface
-FROM node:10-alpine as admin-stage
+FROM node:20-alpine as admin-stage
 COPY admin /app/admin
 WORKDIR /app/admin
 ENV REACT_APP_SERVER_ADDRESS /admin
@@ -35,7 +35,7 @@ RUN JOBS=max yarn install --non-interactive --frozen-lockfile && \
     yarn build
 
 # copy built application to runtime image
-FROM node:10-alpine
+FROM node:20-alpine
 WORKDIR /app
 COPY --from=build-stage /app/app.js app.js
 COPY --from=build-stage /app/constants.js constants.js
