@@ -65,12 +65,13 @@ async function sendSMS(to, body) {
 /**
  * Send a SMS Code.
  * @param to Message recipient, e.g. +1234567890.
+ * @param client_ip the client ip, e.g. 1.1.1.1
  */
-async function sendSMSCode(to) {
+async function sendSMSCode(to, client_ip) {
     if (DEBUG_MODE) {
-        logger.warn('Send SMS to %s', to);
+        logger.warn('Send SMS to %s, client_ip: %s', to, client_ip);
     } else {
-        return twilio.sendAuthCode(to);
+        return twilio.sendAuthCode(to, client_ip);
     }
 }
 
@@ -571,6 +572,30 @@ async function getPendingClaimedAccountsAsync() {
     });
 }
 
+async function createTwilioRateLimit() {
+    if (DEBUG_MODE) {
+        twilio = require('./twilio');
+        return twilio.createTwilioRateLimit();
+    }
+    return {};
+}
+
+async function createTwilioRateLimitBucket() {
+    if (DEBUG_MODE) {
+        twilio = require('./twilio');
+        return twilio.createTwilioRateLimitBucket();
+    }
+    return {};
+}
+
+async function updateTwilioRateLimitBucket() {
+    if (DEBUG_MODE) {
+        twilio = require('./twilio');
+        return twilio.updateTwilioRateLimitBucket();
+    }
+    return {};
+}
+
 module.exports = {
     checkUsername,
     condenserTransfer,
@@ -596,4 +621,7 @@ module.exports = {
     recordSmsTracker,
     recordSource,
     getPendingClaimedAccountsAsync,
+    createTwilioRateLimit,
+    createTwilioRateLimitBucket,
+    updateTwilioRateLimitBucket,
 };
