@@ -121,4 +121,19 @@ router.get(
     apiMiddleware(apiHandlers.handleCreateTronAddr)
 );
 
+router.get(
+    '/create_twilio_rate_limit',
+    apiMiddleware(apiHandlers.handleCreateTwilioRateLimit)
+);
+
+router.get(
+    '/create_twilio_rate_limit_bucket',
+    apiMiddleware(apiHandlers.handleCreateTwilioRateLimitBucket)
+);
+
+router.get(
+    '/update_twilio_rate_limit_bucket',
+    apiMiddleware(apiHandlers.handleUpdateTwilioRateLimitBucket)
+);
+
 module.exports = router;

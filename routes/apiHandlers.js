@@ -1396,7 +1396,7 @@ async function handleRequestSmsNew(req) {
             });
             req.log.info(
                 { response, ip: req.ip, req: req.body },
-                'sms_response_info_in_country_code_list'
+                'sms_message_send_in_country_code_list'
             );
             if (response && response.status !== 'pending') {
                 throw new ApiError({
@@ -1406,7 +1406,7 @@ async function handleRequestSmsNew(req) {
                 });
             }
         } else {
-            const response = await services.sendSMSCode(phoneNumber);
+            const response = await services.sendSMSCode(phoneNumber, req.ip);
             services.recordSmsTracker({
                 sendType: 'after_send_sms_2',
                 countryCode: req.body.prefix,
@@ -1414,7 +1414,7 @@ async function handleRequestSmsNew(req) {
             });
             req.log.info(
                 { response, ip: req.ip, req: req.body },
-                'sms_response_info'
+                'sms_verify_sent'
             );
             if (response && response.status !== 'pending') {
                 throw new ApiError({
@@ -1599,6 +1599,10 @@ async function handleConfirmSmsNew(req) {
         const response = await services.authSMSCode(
             req.body.phoneNumber,
             req.body.code
+        );
+        req.log.info(
+            { response, ip: req.ip, req: req.body },
+            'sms_verify_apply'
         );
         if (response === true) {
             record.phone_code = req.body.code;
@@ -2099,6 +2103,24 @@ async function handleCreateTronAddr() {
     return tronUser;
 }
 
+async function handleCreateTwilioRateLimit() {
+    if (process.env.DEBUG_MODE) {
+        return services.createTwilioRateLimit();
+    }
+}
+
+async function handleCreateTwilioRateLimitBucket() {
+    if (process.env.DEBUG_MODE) {
+        return services.createTwilioRateLimitBucket();
+    }
+}
+
+async function handleUpdateTwilioRateLimitBucket() {
+    if (process.env.DEBUG_MODE) {
+        return services.updateTwilioRateLimitBucket();
+    }
+}
+
 module.exports = {
     handleRequestEmail,
     handleRequestSms,
@@ -2116,4 +2138,7 @@ module.exports = {
     handleConfirmEmailCode,
     handleCreateAccountNew,
     handleCreateTronAddr,
+    handleCreateTwilioRateLimit,
+    handleCreateTwilioRateLimitBucket,
+    handleUpdateTwilioRateLimitBucket,
 };
