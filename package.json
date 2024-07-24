@@ -1,0 +1,36 @@
+{
+  "name": "faucet",
+  "type": "module",
+  "version": "1.0.1",
+  "description": "Steemit Register Program",
+  "main": "./bin/www",
+  "scripts": {
+    "start": "./bin/www",
+    "start-dev": "nodemon --ignore src ./bin/www | pino-pretty",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steemit/faucet.git"
+  },
+  "keywords": [
+    "steem",
+    "register"
+  ],
+  "author": "ety001",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/steemit/faucet/issues"
+  },
+  "homepage": "https://github.com/steemit/faucet#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "pino-pretty": "^11.2.1",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pino": "^9.3.1"
+  }
+}
