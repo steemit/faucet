@@ -7,15 +7,17 @@
   "scripts": {
     "start": "./bin/www",
     "start-dev": "nodemon --ignore src ./bin/www | pino-pretty",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "jest": "env $(tr \"\\\\n\" \" \" < .env.example) jest",
+    "lint": "eslint \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
+    "lint-fix": "eslint --fix \"src/**/*.js\" \"routes/**/*.js\" \"helpers/**/*.js\"",
+    "test": "yarn run lint && yarn run jest"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/steemit/faucet.git"
   },
   "keywords": [
-    "steem",
-    "register"
+    "steem"
   ],
   "author": "ety001",
   "license": "MIT",
@@ -24,6 +26,7 @@
   },
   "homepage": "https://github.com/steemit/faucet#readme",
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.4",
     "pino-pretty": "^11.2.1",
     "webpack": "^5.93.0",
