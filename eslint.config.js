@@ -1,26 +1,40 @@
-import js from "@eslint/js";
+import js from '@eslint/js';
+import globals from "globals";
+
+const customGlobals = {
+};
 
 export default [
-  js.configs.recommended,
   {
+    // global ignore
+    ignores: [
+      '**/node_modules',
+      '**/dist',
+      '**/*.config.js',
+      '**/webpack',
+    ],
+  },
+  {
+    files: ['**/*.test.js'],
     languageOptions: {
-      parser: 'babel-eslint',
-      parserOptions: {
-        ecmaVersion: 7,
-        sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-          experimentalObjectRestSpread: true,
-        },
+      globals: {
+        ...globals.jest,
       },
     },
-    env: {
-      node: true,
-      browser: true,
-      jest: true,
+  },
+  {
+    files: ['src/**/*.js', 'routes/**/*.js', 'helpers/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 12,
+      sourceType: 'module',
+      globals: {
+        ...customGlobals,
+        ...globals.node,
+      },
     },
     rules: {
-      'camelcase': 0,
-    }
-  }
+      camelcase: 0,
+    },
+  },
+  js.configs.recommended,
 ];
