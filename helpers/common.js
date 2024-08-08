@@ -1,4 +1,4 @@
-function _defaults(obj, ...sources) {
+export function _defaults(obj, ...sources) {
   sources.forEach((source) => {
     Object.keys(source).forEach((key) => {
       if (obj[key] === undefined) {

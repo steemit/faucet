@@ -3,15 +3,22 @@ import globals from "globals";
 
 const customGlobals = {
 };
+const shareLanguageOptions = {
+  ecmaVersion: 12,
+  sourceType: 'module',
+};
+const shareRules = {
+  camelcase: 0,
+  semi: 'error',
+};
 
 export default [
   {
     // global ignore
     ignores: [
       '**/node_modules',
-      '**/dist',
+      '**/public',
       '**/*.config.js',
-      '**/webpack',
     ],
   },
   {
@@ -23,17 +30,35 @@ export default [
     },
   },
   {
-    files: ['src/**/*.js', 'routes/**/*.js', 'helpers/**/*.js'],
+    files: ['webpack/*.js'],
     languageOptions: {
-      ecmaVersion: 12,
-      sourceType: 'module',
       globals: {
-        ...customGlobals,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ['routes/**/*.js', 'helpers/**/*.js'],
+    languageOptions: {
+      ...shareLanguageOptions,
+      globals: {
         ...globals.node,
       },
     },
     rules: {
-      camelcase: 0,
+      ...shareRules,
+    },
+  },
+  {
+    files: ['src/**/*.js'],
+    languageOptions: {
+      ...shareLanguageOptions,
+      globals: {
+        ...customGlobals,
+      },
+    },
+    rules: {
+      ...shareRules,
     },
   },
   js.configs.recommended,
