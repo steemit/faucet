@@ -53,7 +53,15 @@ export default [
     files: ['src/**/*.js'],
     languageOptions: {
       ...shareLanguageOptions,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
       globals: {
+        ...globals.browser,
         ...customGlobals,
       },
     },
