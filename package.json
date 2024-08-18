@@ -13,7 +13,8 @@
     "test": "yarn run lint && yarn run jest",
     "build": "webpack --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress --config webpack/webpack.config.js",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "db:migrate": "env $(tr \"\\\\n\" \" \" < .env) sequelize-cli db:migrate --config db/config/config.json --migrations-path db/migrations --seeders-path db/seeders --models-path db/models"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,6 @@
     "babel-loader": "^9.1.3",
     "css-loader": "^7.1.2",
     "eslint": "^9.9.0",
-    "eslint-define-config": "^2.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.9.0",
     "eslint-plugin-react": "^7.35.0",
@@ -51,6 +51,7 @@
     "nodemon": "^3.1.4",
     "pino-pretty": "^11.2.1",
     "prettier": "^3.3.3",
+    "sequelize-cli": "^6.6.2",
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.93.0",
@@ -59,8 +60,11 @@
   "dependencies": {
     "@babel/runtime": "^7.25.0",
     "express": "^4.19.2",
+    "moment": "^2.30.1",
+    "mysql2": "^3.11.0",
     "pino": "^9.3.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "sequelize": "^6.37.3"
   }
 }

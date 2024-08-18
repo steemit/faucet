@@ -1,18 +1,20 @@
 import js from '@eslint/js';
-import globals from "globals";
+import globals from 'globals';
 
 const customGlobals = {
 };
 const shareLanguageOptions = {
-  ecmaVersion: 12,
+  ecmaVersion: 2022,
   sourceType: 'module',
+};
+const sharePlugins = {
 };
 const shareRules = {
   camelcase: 0,
   semi: 'error',
 };
 
-export default [
+const config = [
   {
     // global ignore
     ignores: [
@@ -30,6 +32,21 @@ export default [
     },
   },
   {
+    files: ['db/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    plugins: {
+      ...sharePlugins,
+    },
+    rules: {
+      ...shareRules,
+      'no-unused-vars': 'warn',
+    },
+  },
+  {
     files: ['webpack/*.js'],
     languageOptions: {
       globals: {
@@ -38,12 +55,15 @@ export default [
     },
   },
   {
-    files: ['routes/**/*.js', 'helpers/**/*.js'],
+    files: ['app.js', 'routes/**/*.js', 'helpers/**/*.js'],
     languageOptions: {
       ...shareLanguageOptions,
       globals: {
         ...globals.node,
       },
+    },
+    plugins: {
+      ...sharePlugins,
     },
     rules: {
       ...shareRules,
@@ -65,9 +85,14 @@ export default [
         ...customGlobals,
       },
     },
+    plugins: {
+      ...sharePlugins,
+    },
     rules: {
       ...shareRules,
     },
   },
   js.configs.recommended,
 ];
+
+export default config;

@@ -1,0 +1,33 @@
+{
+  "development": {
+    "use_env_variable": "DATABASE_URL",
+    "operatorsAliases": "0",
+    "dialectOptions": {
+      "ssl" : {
+        "rejectUnauthorized": false
+      }
+    }
+  },
+  "staging": {
+    "use_env_variable": "DATABASE_URL",
+    "operatorsAliases": "0",
+    "dialectOptions": {
+      "ssl" : {
+        "rejectUnauthorized": false
+      }
+    }
+  },
+  "production": {
+    "use_env_variable": "DATABASE_URL",
+    "operatorsAliases": "0",
+    "dialectOptions": {
+      "ssl" : {
+        "rejectUnauthorized": false
+      }
+    }
+  },
+  "local": {
+    "use_env_variable": "DATABASE_URL",
+    "operatorsAliases": "0"
+  }
+}
