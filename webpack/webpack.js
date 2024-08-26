@@ -1,13 +1,12 @@
 import webpack from 'webpack';
 import webpackMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
-import webpackConfig, { output } from './webpack.config.js';
+import webpackConfig from './webpack.config.js';
 
 export default function (app) {
   const compiler = webpack(webpackConfig)
   const middleware = webpackMiddleware(compiler, {
-    publicPath: output.publicPath,
-    contentBase: 'src',
+    publicPath: webpackConfig.output.publicPath,
     stats: {
       colors: true,
       hash: false,

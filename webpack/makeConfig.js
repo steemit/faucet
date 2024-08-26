@@ -3,13 +3,13 @@ import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import webpack from 'webpack';
 import TerserPlugin from 'terser-webpack-plugin';
-import { _defaults } from '../helpers/common.js';
+import { _defaults, getEnv } from '../helpers/common.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const DEFAULTS = {
-  isDevelopment: process.env.NODE_ENV !== 'production',
+  isDevelopment: getEnv('NODE_ENV') !== 'production',
   baseDir: join(__dirname, '..'),
 };
 
@@ -86,15 +86,18 @@ function makeConfig(options) {
   const isDevelopment = options.isDevelopment;
 
   return {
-    devtool: isDevelopment ? 'cheap-eval-source-map' : 'source-map',
+    devtool: isDevelopment ? 'cheap-module-source-map' : 'source-map',
     mode: isDevelopment ? 'development' : 'production',
-    entry: (
-      isDevelopment ? ['webpack-hot-middleware/client?reload=true'] : []
-    ).concat([join(options.baseDir, 'src/index.js')]),
+    entry: {
+      app: (
+        isDevelopment ? ['webpack-hot-middleware/client?reload=true'] : []
+      ).concat([join(options.baseDir, 'src/index.js')]),
+    },
     output: {
       path: join(options.baseDir, '/public/js'),
-      filename: isDevelopment ? 'app.min.js' : 'app.min.[chunkhash:5].js',
+      filename: isDevelopment ? '[name].js' : '[name].min.[chunkhash:5].js',
       publicPath: '/js/',
+      clean: true,
     },
     plugins: makePlugins(options),
     optimization: makeOptimization(options),
@@ -103,7 +106,10 @@ function makeConfig(options) {
         {
           test: /\.js?$/,
           exclude: /node_modules/,
-          loader: 'babel-loader',
+          use: {
+            loader: 'babel-loader',
+            options: {},
+          },
         },
         {
           test: /\.json?$/,
@@ -114,21 +120,13 @@ function makeConfig(options) {
           use: {
             loader: 'file-loader',
             options: {
-              name: '[name].[chunkhash].[ext]',
+              name: '[name].[chunkhash:5].[ext]',
             },
           },
         },
       ].concat(makeStyleLoaders(options)),
     },
   };
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log(
-    makeConfig({
-      isDevelopment: process.env.NODE_ENV !== 'production',
-    })
-  );
 }
 
 export default makeConfig;

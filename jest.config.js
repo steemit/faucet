@@ -1,9 +1,7 @@
 export default {
   "bail": 0,
   "verbose": true,
-  transform: {
-    '^.+\\.jsx?$': 'babel-jest',
-  },
+  transform: {},
   testEnvironment: 'node',
   "testEnvironmentOptions": {
     "url": "http://localhost/"

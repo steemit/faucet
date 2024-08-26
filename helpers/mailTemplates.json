@@ -1,0 +1,42 @@
+{
+  "confirm_email": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "Please confirm your email",
+    "text": "On Steemit, you get paid to post and share good content. But first, let's finish setting up your account.\n\nPlease confirm your email address by clicking on this link:\n\n{url}\n\nCheers\n\nYour friends at Steemit"
+  },
+  "confirm_again_email": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "Your Steemit account is waiting...",
+    "text": "You recently tried signing up for Steemit — a place to get paid for posting and sharing good content.\nWe weren't able to confirm your email address. Click this new email confirmation link to finish setting up your account:\n\n{url}\n\nCheers\n\nYour friends at Steemit."
+  },
+  "create_account": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "One last step to set up your account",
+    "text": "Hi again,\n\nGood news! Your account information has been verified.\n\nClick on this link to finish setting up your account.\n\n{url}\n\n Cheers,\nYour friends at Steemit"
+  },
+  "reject_account": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "Your account is under review",
+    "text": "Thanks for signing up to Steemit. Your request to create an account is currently under review. We'll get back to you as soon as possible.\n\n Cheers,\nYour friends at Steemit"
+  },
+  "email_code": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "Your Steemit Email Code",
+    "text": "Dear user:\n\n[Steemit] Sign up for free - your verification code via email: {code}.\n\nFor safety reasons, this verification code will expire in 30 minutes. Please do not disclose your code to others."
+  },
+  "email_code_zh": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "你的【Steemit】邮箱验证码",
+    "text": "您好：\n\n【Steemit】免费注册-邮箱验证码: {code}。\n\n出于安全原因，该邮箱验证码将于30分钟后失效。请勿将验证码透露给他人。"
+  },
+  "register_success": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "Welcome to Steemit",
+    "html": "<p style=\"margin:0;padding:0;\">Hi,</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">Good news! You have successfully created the account.</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">Username: {username}</p><p style=\"margin:0;padding:0;\">E-mail: {email}</p><p style=\"margin:0;padding:0;\">Phone number: {phoneNumber}</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">To get your login details and Keys for Steemit.com, go and sign in to the Steemit wallet at </p><p style=\"margin:0;padding:0;\"><a href=\"https://steemitwallet.com\">https://steemitwallet.com</a></p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">Cheers,</p><p style=\"margin:0;padding:0;\">Your friends at Steemit</p><p style=\"margin:0;padding:0;line-height: 1;\">&nbsp;</p>"
+  },
+  "register_success_zh": {
+    "from": "Steemit <noreply@steemit.com>",
+    "subject": "欢迎来到【Steemit】",
+    "html": "<p style=\"margin:0;padding:0;\">您好，</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">好消息！您的账户已创建成功。</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">用户名：{username}</p><p style=\"margin:0;padding:0;\">邮箱：{email}</p><p style=\"margin:0;padding:0;\">手机：{phoneNumber}</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">请前往 <a href=\"https://steemitwallet.com\">https://steemitwallet.com</a> 登录Steemit 钱包，获取 Steemit.com 登录详情和秘钥。</p><p style=\"margin:0;padding:0;line-height: 2;\">&nbsp;</p><p style=\"margin:0;padding:0;\">非常感谢。</p><p style=\"margin:0;padding:0;\">您在 Steemit 的伙伴</p><p style=\"margin:0;padding:0;line-height: 1;\">&nbsp;</p>"
+  }
+}

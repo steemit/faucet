@@ -1,0 +1,205 @@
+import moment from 'moment';
+import db from '../db/models/index.js';
+import { ApiError } from './errortypes.js';
+import { normalizeEmail } from './validator';
+
+const { Sequelize, sequelize } = db;
+const { Op } = Sequelize;
+
+/**
+ * Throws if user or ip exceeds number of allowed actions within time period.
+ */
+export async function actionLimit(
+  ip,
+  user_id = null,
+  ipLimit = 32,
+  userActionLimit = 4
+) {
+  const created_at = {
+    [Op.gte]: moment().subtract(20, 'hours').toDate(),
+  };
+  const promises = [
+    db.actions.count({
+      where: { ip, created_at, action: { [Op.ne]: 'check_username' } },
+    }),
+  ];
+  if (user_id) {
+    promises.push(db.actions.count({ where: { user_id, created_at } }));
+  }
+  const [ipActions, userActions] = await Promise.all(promises);
+  if (userActions > userActionLimit || ipActions > ipLimit) {
+    throw new ApiError({ type: 'error_api_actionlimit' });
+  }
+}
+
+export async function emailIsInUse(email) {
+  // Normalize email
+  const normalized = normalizeEmail(email);
+  const userCount = await db.users.count({
+    where: {
+      email_normalized: normalized,
+      // email_is_verified: true,
+    },
+  });
+  return userCount > 0;
+}
+
+export const logAction = async (data) => db.actions.create(data);
+
+export const findUser = async (where) => db.users.findOne(where);
+export const findUsers = async (query) => db.users.findAll(query);
+export const countUsers = async (where) => db.users.count({ where });
+
+export const usernameIsBooked = async (username) => {
+  const user = await findUser({
+    where: {
+      username,
+      email_is_verified: true,
+    },
+    order: [['username_booked_at', 'DESC']],
+  });
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  return (
+    user && user.username_booked_at.getTime() + oneWeek >= new Date().getTime()
+  );
+};
+
+export const createUser = async (data) => db.users.create(data);
+
+export async function phoneIsInUse(phone_number) {
+  const userCount = await db.users.count({
+    where: {
+      phone_number,
+      // phone_number_is_verified: true,
+    },
+  });
+  return userCount > 0;
+}
+
+export const updateUsers = async (data, where) => db.users.update(data, where);
+
+export const query = async (q, options) => db.sequelize.query(q, options);
+
+export const findAnalyticsLog = async (where) => db.analytics.findAll(where);
+export const createAnalyticsLog = async (where, data) =>
+  db.analytics.findOrCreate({ where, defaults: data });
+
+export const updateAnalytics = async (where, data, increase = false) => {
+  const result = await createAnalyticsLog(where, data);
+  if (result[1] === false) {
+    // find exist data
+    if (increase === true) {
+      result[0].total += 1;
+      await result[0].save();
+    } else {
+      result[0].total = data.total;
+      await result[0].save();
+    }
+  }
+  return true;
+};
+
+export const createEmailRecord = async (data) => db.emailcode.create(data);
+export const findEmailRecord = async (where) => db.emailcode.findOne(where);
+export const createPhoneRecord = async (data) => db.phonecode.create(data);
+export const findPhoneRecord = async (where) => db.phonecode.findOne(where);
+export const updatePhoneRecord = async (data, where) =>
+  db.phonecode.update(data, where);
+export const deletePhoneRecord = async (where) =>
+  db.phonecode.destroy({ where });
+export const deleteEmailRecord = async (where) =>
+  db.emailcode.destroy({ where });
+
+/**
+ * remove user id references
+ * to remove username reserve mechanism
+ */
+export async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
+  const created_at = {
+    [Op.gte]: moment().subtract(20, 'hours').toDate(),
+  };
+  const promises = [
+    db.actions.count({
+      where: { ip, created_at, action: { [Op.eq]: action } },
+    }),
+  ];
+  const [ipActions] = await Promise.all(promises);
+  if (ipActions > ipLimit) {
+    throw new ApiError({ type: 'error_api_actionlimit' });
+  }
+}
+
+/**
+ * find last send sms action by country number
+ */
+export async function findLastSendSmsByCountryNumber(
+  countryNumber,
+  phoneNumber
+) {
+  let where = `where action = 'send_sms' and metadata->'$.countryNumber' = :countryNumber`;
+  const replacements = {
+    countryNumber,
+  };
+  if (phoneNumber) {
+    where = `${where} and metadata->'$.phoneNumber' != :phoneNumber`;
+    replacements.phoneNumber = phoneNumber;
+  }
+  const actions = await sequelize.query(
+    `select * from actions ${where} order by id desc limit 1`,
+    {
+      replacements,
+      type: Sequelize.QueryTypes.SELECT,
+    }
+  );
+  return actions;
+}
+
+/**
+ * find number of try_number actions in last X hours with same country number
+ */
+export async function countTryNumber(countryNumber, hours) {
+  let where = `where action = 'try_number' and metadata->'$.countryNumber' = :countryNumber`;
+  where = `${where} and now() - created_at <= :hours * 3600`;
+  const replacements = {
+    countryNumber,
+    hours,
+  };
+  const records = await sequelize.query(
+    `select count(*) as total from actions ${where}`,
+    {
+      replacements,
+      type: Sequelize.QueryTypes.SELECT,
+    }
+  );
+  if (records.length > 0) {
+    return records[0].total;
+  }
+  return 0;
+}
+
+export default {
+  Sequelize,
+  actionLimit,
+  emailIsInUse,
+  logAction,
+  findUser,
+  findUsers,
+  countUsers,
+  usernameIsBooked,
+  createUser,
+  phoneIsInUse,
+  updateUsers,
+  query,
+  findAnalyticsLog,
+  updateAnalytics,
+  createEmailRecord,
+  findEmailRecord,
+  actionLimitNew,
+  createPhoneRecord,
+  findPhoneRecord,
+  updatePhoneRecord,
+  deletePhoneRecord,
+  deleteEmailRecord,
+  findLastSendSmsByCountryNumber,
+  countTryNumber,
+};

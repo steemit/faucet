@@ -14,4 +14,8 @@ const logger = pino(
   pino.multistream(streams)
 );
 
+export function getLogChild(childSettings) {
+  return logger.child(childSettings);
+}
+
 export default logger;

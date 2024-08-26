@@ -4,18 +4,19 @@
  * Module dependencies.
  */
 import logger from '../helpers/logger.js';
+import { getEnv } from '../helpers/common.js';
 import { createServer } from 'http';
 import app from '../app.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-logger.info('starting faucet');
+logger.info('Starting faucet');
 
 /**
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || '3001');
+const port = normalizePort(getEnv('PORT') || '3001');
 app.set('port', port);
 
 /**
@@ -93,5 +94,5 @@ function onListening() {
   const bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  logger.info('listening on %s', bind);
+  logger.info('Listening on %s', bind);
 }

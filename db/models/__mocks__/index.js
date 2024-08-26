@@ -1,7 +1,7 @@
-const Sequelize = require('sequelize');
+import Sequelize from 'sequelize';
 
 const db = {};
 
 db.Sequelize = Sequelize;
 
-module.exports = db;
+export default db;
