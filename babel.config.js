@@ -1,5 +1,4 @@
 export default {
-  parallel: true,
   presets: [
     [
       '@babel/preset-env',
