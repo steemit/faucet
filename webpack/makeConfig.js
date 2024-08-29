@@ -1,8 +1,10 @@
 // import ExtractTextPlugin, { extract } from 'extract-text-webpack-plugin';
 import { fileURLToPath } from 'url';
-import { join, dirname } from 'path';
+import { join, dirname, resolve } from 'path';
 import webpack from 'webpack';
 import TerserPlugin from 'terser-webpack-plugin';
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 import { _defaults, getEnv } from '../helpers/common.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,12 +25,18 @@ function makePlugins(options) {
           ? JSON.stringify('development')
           : JSON.stringify('production'),
     }),
+    new WebpackManifestPlugin({
+      fileName: '../manifest.json',
+      publicPath: '/js/',
+      writeToFileEmit: true, // make sure it effect under dev env.
+    }),
   ];
 
   if (isDevelopment) {
     plugins = plugins.concat([
       new webpack.HotModuleReplacementPlugin(),
       new webpack.NoEmitOnErrorsPlugin(),
+      new ReactRefreshWebpackPlugin(),
     ]);
   } else {
     plugins = plugins.concat([
@@ -87,6 +95,10 @@ function makeConfig(options) {
 
   return {
     devtool: isDevelopment ? 'cheap-module-source-map' : 'source-map',
+    devServer: {
+      contentBase: resolve(__dirname, 'public'),
+      hot: true,
+    },
     mode: isDevelopment ? 'development' : 'production',
     entry: {
       app: (
@@ -95,8 +107,9 @@ function makeConfig(options) {
     },
     output: {
       path: join(options.baseDir, '/public/js'),
-      filename: isDevelopment ? '[name].js' : '[name].min.[chunkhash:5].js',
-      publicPath: '/js/',
+      publicPath: '/js',
+      filename: isDevelopment ? '[name].js' : '[name].[chunkhash:5].js',
+      chunkFilename: isDevelopment ? '[id].chunk.js' : '[id].chunk.[chunkhash:5].js',
       clean: true,
     },
     plugins: makePlugins(options),

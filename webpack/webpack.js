@@ -4,18 +4,14 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpackConfig from './webpack.config.js';
 
 export default function (app) {
-  const compiler = webpack(webpackConfig)
-  const middleware = webpackMiddleware(compiler, {
+  const compiler = webpack(webpackConfig);
+  app.use(webpackMiddleware(compiler, {
     publicPath: webpackConfig.output.publicPath,
+    writeToDisk: true,
     stats: {
       colors: true,
-      hash: false,
       timings: true,
-      chunks: false,
-      chunkModules: false,
-      modules: false,
     },
-  })
-  app.use(middleware)
-  app.use(webpackHotMiddleware(compiler))
+  }));
+  app.use(webpackHotMiddleware(compiler));
 };

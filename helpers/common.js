@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import fs from 'fs';
 import { getLogChild } from './logger.js';
 const logger = getLogChild({ module: 'helper_common' });
 
@@ -63,6 +64,10 @@ export function generateCode(size) {
   return v;
 }
 
+export function getManifest(manifestPath) {
+  return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+}
+
 const common = {
   _defaults,
   getFilename,
@@ -73,6 +78,7 @@ const common = {
   getEnv,
   generateTrackingId,
   generateCode,
+  getManifest,
 };
 
 export default common;

@@ -1,5 +1,5 @@
 import express from 'express';
-import { ApiError } from '../helpers/errortypes.js';
+import ApiError from '../helpers/errortypes.js';
 import apiHandlers from './apiHandlers.js';
 
 function apiMiddleware(handler) {

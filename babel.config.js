@@ -6,7 +6,12 @@ export default {
         targets: {node: 'current'},
       },
     ],
-    '@babel/preset-react',
+    [
+      '@babel/preset-react',
+      {
+        runtime: 'automatic',
+      },
+    ],
   ],
   plugins: [
     // When @babel/plugin-transform-runtime plugin is enabled, 

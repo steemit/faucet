@@ -11,7 +11,7 @@ import { getLogChild } from './logger.js';
 import mail from './mail.js';
 import twilio from './twilio.js';
 import { getEnv } from './common.js';
-import { geoip } from './maxmind.js';
+import geoip from './maxmind.js';
 
 const logger = getLogChild({ module: 'helper_services' });
 

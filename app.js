@@ -1,6 +1,5 @@
 import http from 'http';
 import https from 'https';
-import fs from 'fs';
 import path from 'path';
 import express from 'express';
 import hbs from 'hbs';
@@ -12,14 +11,15 @@ import getClientConfig from './helpers/getClientConfig.js';
 import { getEnv } from './helpers/common.js';
 import webpack from './webpack/webpack.js';
 import { getDirnameByUrl, outputReq, outputRes } from './helpers/common.js';
-import routes from './routes/index.js';
+import genRoutes from './routes/index.js';
+import apiRoutes from './routes/api.js';
 
 // config server
 http.globalAgent.maxSockets = 100;
 https.globalAgent.maxSockets = 100;
 
 // some var
-const __dirname = getDirnameByUrl(import.meta.url);
+const baseDir = getDirnameByUrl(import.meta.url);
 
 // database cleanup task
 // removes actions and completed requests older than 60 days
@@ -61,6 +61,13 @@ const clientConfigObject = JSON.parse(clientConfig);
 // init server framework
 const app = express();
 
+// when is in dev environment
+// start webpackMiddleware
+if (getEnv('NODE_ENV') !== 'production') {
+  logger.info('Running in development mode');
+  webpack(app);
+}
+
 // logging middleware
 app.use((req, res, next) => {
   const start = process.hrtime();
@@ -86,36 +93,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// when is in dev environment
-// start webpackMiddleware
-if (getEnv('NODE_ENV') !== 'production') {
-  logger.info('Running in development mode');
-  webpack(app);
-}
-
-// get the entry js filename
-const publicJsPath = `${__dirname}/public/js`;
-let entryJsFile;
-if (getEnv('NODE_ENV') === 'production') {
-  const files = fs.readdirSync(publicJsPath);
-  files.sort((val1, val2) => {
-    const stat1 = fs.statSync(`${publicJsPath}/${val1}`);
-    const stat2 = fs.statSync(`${publicJsPath}/${val2}`);
-    return stat2.mtime - stat1.mtime;
-  });
-  const reg = /^app.min.[\w]+.js$/;
-  entryJsFile = files.find(f => reg.test(f));
-}
-if (entryJsFile === undefined) {
-  entryJsFile = 'app.js';
-}
-logger.info(`The latest entry js file is: ${entryJsFile}`);
-
 // set hbs viewer
+hbs.registerHelper('endsWith', (str, suffix) => {
+  return str.endsWith(suffix);
+});
 hbs.registerHelper('clientConfig', () => clientConfig);
-hbs.registerHelper('baseCss', () => new hbs.SafeString(getEnv('NODE_ENV') !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
-hbs.registerHelper('baseJs', () => new hbs.SafeString(`<script type="text/javascript" src="/js/${entryJsFile}"></script>`));
-hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(getEnv('RECAPTCHA_SWITCH') !== 'OFF' ? '<script src="//www.google.com/recaptcha/api.js"></script>' : ''));
+hbs.registerHelper('baseCss', () => new hbs.SafeString(
+  getEnv('NODE_ENV') !== 'production'
+    ? ''
+    : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'
+  )
+);
+hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(
+  getEnv('RECAPTCHA_SWITCH') !== 'OFF'
+    ? '<script src="//www.google.com/recaptcha/api.js"></script>'
+    : ''
+  )
+);
 hbs.registerHelper('gaCode', () => {
   let gaCode = '';
   if (clientConfigObject) {
@@ -129,20 +123,22 @@ hbs.registerHelper('gaCode', () => {
   }
   return new hbs.SafeString(gaCode);
 });
-hbs.registerPartials(`${__dirname}/views/partials`);
-app.set('views', path.join(__dirname, 'views'));
+hbs.registerPartials(`${baseDir}/views/partials`);
+app.set('views', path.join(baseDir, 'views'));
 app.set('view engine', 'hbs');
 
 // set route
-// app.use('/api', require('./routes/api'));
-app.use('/', routes);
+app.use('/', genRoutes({
+  baseDir,
+}));
+app.use('/api', apiRoutes);
 
 // other settings
 app.enable('trust proxy');
 app.disable('x-powered-by');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(baseDir, 'public')));
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

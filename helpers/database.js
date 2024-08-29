@@ -1,7 +1,7 @@
 import moment from 'moment';
 import db from '../db/models/index.js';
-import { ApiError } from './errortypes.js';
-import { normalizeEmail } from './validator';
+import ApiError from './errortypes.js';
+import { normalizeEmail } from './validator.js';
 
 const { Sequelize, sequelize } = db;
 const { Op } = Sequelize;

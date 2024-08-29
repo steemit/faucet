@@ -4,7 +4,7 @@ import mail from '../helpers/mail.js';
 import { getLogChild } from '../helpers/logger.js';
 import services from '../helpers/services.js';
 import database from '../helpers/database.js';
-import { ApiError } from '../helpers/errortypes.js';
+import ApiError from '../helpers/errortypes.js';
 import badDomains from '../helpers/badDomains.js';
 import {
   accountNameIsValid,
