@@ -4,6 +4,7 @@ import { join, dirname, resolve } from 'path';
 import webpack from 'webpack';
 import TerserPlugin from 'terser-webpack-plugin';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import ReactRefreshBabel from 'react-refresh/babel';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 import { _defaults, getEnv } from '../helpers/common.js';
 
@@ -121,7 +122,11 @@ function makeConfig(options) {
           exclude: /node_modules/,
           use: {
             loader: 'babel-loader',
-            options: {},
+            options: {
+              plugins: [
+                isDevelopment && ReactRefreshBabel,
+              ].filter(Boolean),
+            },
           },
         },
         {

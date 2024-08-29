@@ -1,5 +1,7 @@
 import js from '@eslint/js';
 import globals from 'globals';
+import hooksPlugin from 'eslint-plugin-react-hooks';
+import react from 'eslint-plugin-react';
 
 const customGlobals = {
 };
@@ -87,9 +89,14 @@ const config = [
     },
     plugins: {
       ...sharePlugins,
+      react,
+      'react-hooks': hooksPlugin,
     },
     rules: {
       ...shareRules,
+      'react/jsx-uses-react': 'error',
+      'react/jsx-uses-vars': 'error',
+      ...hooksPlugin.configs.recommended.rules,
     },
   },
   js.configs.recommended,
