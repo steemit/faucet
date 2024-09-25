@@ -1,22 +1,23 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import hooksPlugin from 'eslint-plugin-react-hooks';
-import react from 'eslint-plugin-react';
+import reactPlugin from 'eslint-plugin-react';
+import babelParser from "@babel/eslint-parser";
 
 const customGlobals = {
 };
 const shareLanguageOptions = {
-  ecmaVersion: 2022,
-  sourceType: 'module',
 };
 const sharePlugins = {
 };
 const shareRules = {
   camelcase: 0,
   semi: 'error',
+  '@typescript-eslint/no-explicit-any': 'off',
 };
 
 const config = [
+  js.configs.recommended,
   {
     // global ignore
     ignores: [
@@ -36,6 +37,7 @@ const config = [
   {
     files: ['db/**/*.js'],
     languageOptions: {
+      ...shareLanguageOptions,
       globals: {
         ...globals.node,
       },
@@ -77,7 +79,13 @@ const config = [
       ...shareLanguageOptions,
       ecmaVersion: 'latest',
       sourceType: 'module',
+      parser: babelParser,
       parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          babelrc: false,
+          configFile: './babel.config.js',
+        },
         ecmaFeatures: {
           jsx: true,
         },
@@ -89,7 +97,7 @@ const config = [
     },
     plugins: {
       ...sharePlugins,
-      react,
+      reactPlugin,
       'react-hooks': hooksPlugin,
     },
     rules: {
@@ -99,7 +107,6 @@ const config = [
       ...hooksPlugin.configs.recommended.rules,
     },
   },
-  js.configs.recommended,
 ];
 
 export default config;
