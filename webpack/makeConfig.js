@@ -115,6 +115,9 @@ function makeConfig(options) {
     },
     plugins: makePlugins(options),
     optimization: makeOptimization(options),
+    experiments: {
+      topLevelAwait: true,
+    },
     module: {
       rules: [
         {
@@ -130,8 +133,10 @@ function makeConfig(options) {
           },
         },
         {
-          test: /\.json?$/,
-          loader: 'json-loader',
+          test: /\.json$/,
+          type: 'json',
+          parser: {
+          },
         },
         {
           test: /\.(eot|ttf|woff|woff2)(\?.+)?$/,
