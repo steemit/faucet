@@ -1,0 +1,235 @@
+@import "~antd/dist/antd.less";
+@import "./custom.less";
+@import "./theme.less";
+
+@font-family-secondary: Whitney,"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
+
+@font-face {
+  font-family: Whitney;
+  font-style: normal;
+  font-weight: 500;
+  src: url(/fonts/Whitney.woff) format('woff')
+}
+
+@font-face {
+  font-family: Whitney;
+  font-style: medium;
+  font-weight: 600;
+  src: url(/fonts/WhitneyMedium.woff) format('woff')
+}
+
+ #app, .main {
+  height: 100%;
+}
+
+h1, h2, h3, h4 {
+  font-family: @font-family-secondary;
+  font-weight: 700;
+  padding-bottom: 0.6em;
+  color: #202020;
+}
+
+p {
+  font-weight: 500;
+  color: #333333;
+  padding-bottom: 1em;
+}
+
+blockquote {
+  display: inline-block;
+  border-left: 6px solid lighten(black, 60%);
+  color: lighten(black, 60%);
+  padding-left: 1em;
+  font-size: 1.25em;
+  font-style: italic;
+}
+
+b {
+  color: black;
+}
+
+.btn {
+  outline: 0 !important;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-family: @font-family-secondary;
+  border-radius: 0.25em;
+
+  &:hover, &:focus, &:active {
+    box-shadow: none !important;
+  }
+}
+
+.btn-success {
+  background-color: #02d895;
+
+  &:hover, &:focus, &:active {
+    background-color: #02a572 !important;
+  }
+}
+
+.btn:disabled,
+.btn:disabled:hover {
+  background-color: #8c8c8c !important;
+}
+
+.btn-outline-success {
+  color: #02d895 !important;
+  box-shadow: inset 0 0 0 2px #02d895;
+
+  &:hover, &:focus, &:active {
+    color: #ffffff !important;
+    background-color: #02a572;
+    box-shadow: none;
+  }
+}
+
+.btn-sm {
+  font-size: 15px;
+  padding: 0.5em 1em;
+}
+
+.btn-secondary {
+  background-color: #f3f3f3;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.btn-caveat {
+  font-size: 0.75em;
+  font-size: .75em;
+  font-weight: normal;
+  letter-spacing: 0px;
+}
+
+.form-control {
+  font-size: 18px;
+  padding: 0.75em;
+  border-radius: 0.25em;
+
+  &:hover, &:focus, &:active {
+    box-shadow: none !important;
+  }
+}
+
+.input-group-addon {
+  border-radius: 0.25em;
+}
+
+input, textarea {
+  font-family: @font-family;
+}
+
+a, button {
+  cursor: pointer;
+}
+
+.label {
+  font-weight: bold;
+  width: 140px;
+}
+
+li {
+  word-break: break-all;
+  text-align: left;
+}
+
+.table {
+  white-space: pre-line;
+}
+
+.container {
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+.block {
+  background-color: #ffffff;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  padding: 0.75rem 1.25rem;
+}
+
+.ant-radio {
+  vertical-align: baseline;
+}
+
+.ant-input-affix-wrapper .ant-input:not(:first-child) {
+  padding-left: 40px;
+}
+
+.ant-form-explain {
+  margin: 0.2em 0 0.8em;
+}
+
+.ant-form-item-required:before {
+  display: none;
+}
+
+pre {
+  font-size: 14px;
+  background-color: #f3f5f6;
+  padding: 1em;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.language-select {
+  right: 40px;
+  position: absolute;
+  top: 10px;
+  button {
+    border: none;
+  }
+  @media (max-width: @screen-md) {
+    z-index: 1;
+    right: 10px;
+  }
+
+  button {
+    color: @primary-color;
+    padding: 10px 10px 25px 10px;
+    background: none;
+
+    &:active, &:hover, &:focus {
+      background: none;
+      border: none;
+    }
+  }
+  .ant-btn-clicked:after {
+    border: none !important;
+  }
+}
+
+.lp-language-select {
+  button {
+    font-size: 16px;
+    background: none;
+    border:none;
+    color: @primary-color;
+    padding: 0;
+    border: none;
+    &:hover {
+      color: #4eacff;
+    }
+  }
+}
+
+.signup-form {
+  .ant-form-item {
+    margin-bottom: 12px !important;
+  }
+}
+
+.Signup__container {
+  .Signup__form {
+    .ant-btn-primary[disabled] {
+      background-color: #f7f7f7 !important;
+      border-color: #d9d9d9 !important;
+      box-shadow: none !important;
+      color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+}

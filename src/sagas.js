@@ -1,9 +1,9 @@
 import { call, put, takeEvery, all, select } from 'redux-saga/effects';
-import * as userActions from './features/user';
-import * as appActions from './features/app';
-import * as trackingActions from './features/tracking';
-import apiCall from './utils/api';
-import logStep from '../helpers/stepLogger';
+import * as userActions from './features/user.js';
+import * as appActions from './features/app.js';
+import * as trackingActions from './features/tracking.js';
+import apiCall from './utils/api.js';
+import { logStep } from '../helpers/stepLogger.js';
 
 function* guessCountryCodeSaga() {
   try {

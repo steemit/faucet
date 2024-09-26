@@ -1,0 +1,92 @@
+@import '../../../styles/common';
+@import '../../../styles/custom';
+
+// Signup Options
+.signup-options__buttons {
+  button {
+    height: 3rem;
+    // margin-right: 1rem;
+    // margin-bottom: 1rem;
+    // letter-spacing: 0;
+  }
+  button.pay {
+    color: @primary-color;
+    border-color: @primary-color;
+    box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+  }
+  .wrapper {
+    margin-right: 0;
+    padding-right: 50px !important;
+    padding-left: 50px !important;
+
+    .get-in-register__button {
+      color: #ffffff;
+      font-family: HelveticaNeue-Bold;
+      background-color: @primary-color;
+    }
+
+    .get-in-register__button:active {
+      opacity: 0.5;
+    }
+
+    .special-tip {
+      color: #1720c9 !important;
+    }
+  }
+}
+
+.signup-options__buttons.claim-account-active {
+  .wrapper {
+    border: 1px solid rgba(23, 32, 201, 0.6) !important;
+    box-shadow: 0 10px 30px 0 rgba(47, 47, 47, 0.19) !important;
+    border-radius: 10px !important;
+
+    div > p {
+      color: #1720c9 !important;
+    }
+
+    /*.get-in-register__button {
+      color: #FFFFFF;
+      font-family: HelveticaNeue-Bold;
+      background-color: @primary-color;
+      border-color: @primary-color;
+      box-shadow: 0 3px 8px 0 rgba(26, 80, 153, 0.3);
+    }*/
+  }
+}
+
+.signup_options_wrap {
+  p {
+    opacity: 0.6;
+    font-family: HelveticaNeue;
+    font-size: 18px;
+    color: #2f2f2f;
+    letter-spacing: 0;
+    line-height: 24px;
+    font-weight: 400;
+  }
+}
+
+// Signup Options modal
+
+.ant-modal-header {
+  padding: 1.5rem 1rem;
+}
+
+.ant-modal-close {
+  padding: 0.75rem;
+}
+
+a.external-link {
+  .ant-btn-background-ghost.ant-btn-primary {
+    padding: 0px;
+    border: none;
+  }
+}
+
+.modal-disclaimer {
+  font-family: @font-family-secondary;
+  padding-top: 1rem;
+  font-size: 1rem;
+  color: #788187;
+}

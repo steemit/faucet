@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { generateTrackingId } from '../../helpers/stepLogger';
+import { generateTrackingId } from '../../helpers/stepLogger.js';
 
 // Provide the referrer based on whatever our ref is set to at page load.
 const referrerMatch = window.location.search.match(/\?ref=([a-zA-Z]*)/);
