@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setLocale,
@@ -25,10 +26,11 @@ const SignupWrapper = (props) => {
   const dispatch = useDispatch();
   const app = useSelector((state) => state.app);
   const user = useSelector((state) => state.user);
-  const { location } = props;
+  // const { location } = props;
+  console.log(props, app, user);
 
   const signupProps = {
-    queryParams: location.query,
+    // queryParams: location.query,
     app,
     user,
     setLocale: (locale) => dispatch(setLocale(locale)),
@@ -50,7 +52,7 @@ const SignupWrapper = (props) => {
     logCheckpoint: (checkpoint) => dispatch(logCheckpoint(checkpoint)),
   };
 
-  return <>hi</>;
+  return <div>hi</div>;
   // return <Signup {...signupProps} />;
 };
 
