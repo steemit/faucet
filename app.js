@@ -85,7 +85,7 @@ app.use((req, res, next) => {
       ms: delta[0] * 1e3 + delta[1] / 1e6,
       code: res.statusCode,
     };
-    req.log.info(info, '%s %s%s', req.method, req.baseUrl, req.url);
+    req.log.info(info, '%s %s', req.method, req.url);
     req.log.debug(outputRes(res), '--> response');
   };
   res.once('finish', logOut);
@@ -99,15 +99,15 @@ hbs.registerHelper('endsWith', (str, suffix) => {
 });
 hbs.registerHelper('clientConfig', () => clientConfig);
 hbs.registerHelper('baseCss', () => new hbs.SafeString(
-  getEnv('NODE_ENV') !== 'production'
-    ? ''
-    : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'
+    getEnv('NODE_ENV') !== 'production'
+      ? ''
+      : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'
   )
 );
 hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(
-  getEnv('RECAPTCHA_SWITCH') !== 'OFF'
-    ? '<script src="//www.google.com/recaptcha/api.js"></script>'
-    : ''
+    getEnv('RECAPTCHA_SWITCH') !== 'OFF'
+      ? '<script src="//www.google.com/recaptcha/api.js"></script>'
+      : ''
   )
 );
 hbs.registerHelper('gaCode', () => {
