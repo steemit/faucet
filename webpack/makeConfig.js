@@ -134,6 +134,7 @@ function makeConfig(options) {
           use: {
             loader: 'babel-loader',
             options: {
+              configFile: join(__dirname, '..', 'babel.config.js'),
               plugins: [
                 isDevelopment && ReactRefreshBabel,
               ].filter(Boolean),

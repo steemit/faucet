@@ -1,7 +1,13 @@
 export default {
   presets: [
     '@babel/preset-env',
-    '@babel/preset-react',
+    [
+      '@babel/preset-react',
+      {
+        development: process.env.NODE_ENV === 'development',
+        runtime: 'automatic',
+      },
+    ],
   ],
   plugins: [
     // When @babel/plugin-transform-runtime plugin is enabled, 

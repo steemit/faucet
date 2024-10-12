@@ -7,7 +7,6 @@ export default function (app) {
   const compiler = webpack(webpackConfig);
   app.use(webpackMiddleware(compiler, {
     publicPath: webpackConfig.output.publicPath,
-    writeToDisk: true,
     stats: {
       colors: true,
       timings: true,
