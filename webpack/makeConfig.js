@@ -1,8 +1,8 @@
-// import ExtractTextPlugin, { extract } from 'extract-text-webpack-plugin';
 import { fileURLToPath } from 'url';
 import { join, dirname, resolve } from 'path';
 import webpack from 'webpack';
 import TerserPlugin from 'terser-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import ReactRefreshBabel from 'react-refresh/babel';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
@@ -30,6 +30,14 @@ function makePlugins(options) {
       fileName: '../manifest.json',
       publicPath: '/js/',
       writeToFileEmit: true, // make sure it effect under dev env.
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'src/assets/favicon.ico',
+          to: '../favicon.ico',
+        },
+      ],
     }),
   ];
 
@@ -121,7 +129,7 @@ function makeConfig(options) {
     module: {
       rules: [
         {
-          test: /\.js?$/,
+          test: /\.(js|jsx)$/,
           exclude: /node_modules/,
           use: {
             loader: 'babel-loader',
