@@ -1,18 +1,12 @@
-import availableLocales from '../../helpers/locales.json';
-import defaultLocale from '../locales/en.json' with { type: 'json' };
+import enLocale from '../locales/en.json';
+import frLocale from '../locales/fr.json';
+import zhLocale from '../locales/zh.json';
 
-export const translations = {};
-
-Object.keys(availableLocales).forEach((key) => {
-  import(`../locales/${key}.json`, { with: { type: 'json' } }).then(
-    (localeImport) => {
-      translations[key] = {
-        ...defaultLocale,
-        ...localeImport.default,
-      };
-    }
-  );
-});
+export const translations = {
+  en: enLocale,
+  fr: frLocale,
+  zh: zhLocale,
+};
 
 export const getAvailableLocale = (app) => {
   let locale = app || 'auto';
@@ -31,6 +25,4 @@ export const getAvailableLocale = (app) => {
   return 'en';
 };
 
-const getTranslations = (app) => translations[getAvailableLocale(app)];
-
-export default getTranslations;
+export const getTranslations = (app) => translations[getAvailableLocale(app)];

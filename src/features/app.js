@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import enUS from 'antd/es/locale/en_US.js';
 import frFR from 'antd/es/locale/fr_FR.js';
-import getTranslations, { getAvailableLocale } from '../utils/locales.js';
+import { getAvailableLocale, getTranslations } from '../utils/locales.js';
 
 const locale = getAvailableLocale('auto');
 const translations = getTranslations(locale);
