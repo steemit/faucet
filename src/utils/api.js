@@ -1,5 +1,8 @@
-/* eslint-disable no-console */
-import { api } from '@steemit/steem-js';
+// import { api } from '@steemit/steem-js';
+// TODO: for now, we don't need steem-js
+const api = {
+  call: () => {},
+};
 
 export default async function apiCall(path, payload, reqType = 'POST') {
   const reqObjs = {

@@ -5,13 +5,23 @@
  * All service helpers should use a mock variant if the DEBUG_MODE env var is set.
  */
 
-import steem from '@steemit/steem-js';
+// import steem from '@steemit/steem-js';
 import jwt from 'jsonwebtoken';
 import { getLogChild } from './logger.js';
 import mail from './mail.js';
 import twilio from './twilio.js';
 import { getEnv } from './common.js';
 import geoip from './maxmind.js';
+
+// TODO: for now, we don't need steem-js
+const steem = {
+  api: {
+    setOptions: () => {},
+    call: () => {},
+    getAccountsAsync: () => [],
+    signedCallAsync: () => {},
+  },
+};
 
 const logger = getLogChild({ module: 'helper_services' });
 
