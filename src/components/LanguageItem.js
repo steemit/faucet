@@ -1,5 +1,5 @@
 import React from 'react';
-import locales from '../../helpers/locales.json';
+import { locales } from '../utils/locales.js';
 
 const LanguageItem = ({ setLocale, locale, onClick }) => (
   <li>

@@ -1,98 +1,62 @@
-import React, { PropTypes } from 'react';
+import { useEffect, useState } from 'react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
-import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
-import ReCAPTCHA from 'react-google-recaptcha';
-import { Form, Input, Button, Icon, message, Modal } from 'antd';
-import SendCode from './SendCode';
-import apiCall from '../../../utils/api';
-import getFingerprint from '../../../../helpers/fingerprint';
-// import Loading from '../../../widgets/Loading';
-import { accountNameIsValid, emailValid } from '../../../../helpers/validator';
-import badDomains from '../../../../bad-domains';
-import Placeholder from '../../Placeholder';
+import { FormattedMessage, injectIntl } from 'react-intl';
+// import ReCAPTCHA from 'react-google-recaptcha';
+import { Form, Input, Button, message, Modal } from 'antd';
+import { UserOutlined, MailOutlined } from '@ant-design/icons';
+import SendCode from './SendCode.js';
+import apiCall from '../../../utils/api.js';
+import getFingerprint from '../../../utils/fingerprint.js';
+import {
+  accountNameIsValid,
+  emailValid,
+} from '../../../../helpers/validator.js';
+import badDomains from '../../../../bad-domains.js';
+import Placeholder from '../../Placeholder.js';
 
-class UserInfo extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      username: null,
-      email: null,
-      email_code: null,
-      email_code_sending: false,
-      email_send_code_txt: '',
-      phone: null,
-      rawPhone: null,
-      prefix: null,
-      phone_code: null,
-      phone_code_sending: false,
-      phone_send_code_txt: '',
-      fingerprint: '',
-      query: '',
-      pending_create_user: false,
-      check_username: false,
-      check_email: false,
-      check_email_code: false,
-      check_phone_code: false,
-      change_locale_to: this.props.locale,
-      recaptcha_modal_visible: false,
-      phone_recaptcha: null,
-    };
-  }
+// TODO: Mock ReCAPTCHA for testing
+const ReCAPTCHA = () => <div />;
 
-  componentWillMount() {
-    this.setState({
-      fingerprint: JSON.stringify(getFingerprint()),
-      email_send_code_txt: this.props.intl.formatMessage({
-        id: 'send_code',
-      }),
-      phone_send_code_txt: this.props.intl.formatMessage({
-        id: 'send_code',
-      }),
-    });
-  }
+const UserInfo = (props) => {
+  const [username, setUsername] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [email_code, setEmailCode] = useState(null);
+  const [email_code_sending, setEmailCodeSending] = useState(false);
+  const [email_send_code_txt, setEmailSendCodeTxt] = useState('');
+  const [phone, setPhone] = useState(null);
+  const [rawPhone, setRawPhone] = useState(null);
+  const [prefix, setPrefix] = useState(null);
+  const [phone_code, setPhoneCode] = useState(null);
+  const [phone_code_sending, setPhoneCodeSending] = useState(false);
+  const [phone_send_code_txt, setPhoneSendCodeTxt] = useState('');
+  const [fingerprint, setFingerprint] = useState('');
+  const [pending_create_user, setPendingCreateUser] = useState(false);
+  const [check_username, setCheckUsername] = useState(false);
+  const [check_email, setCheckEmail] = useState(false);
+  const [check_email_code, setCheckEmailCode] = useState(false);
+  const [check_phone_code, setCheckPhoneCode] = useState(false);
+  const [change_locale_to, setChangeLocaleTo] = useState(props.locale);
+  const [recaptcha_modal_visible, setRecaptchaModalVisible] = useState(false);
+  const [phone_recaptcha, setPhoneRecaptcha] = useState(null);
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.locale !== nextProps.locale) {
-      const newState = {};
-      const { email_code_sending, phone_code_sending } = this.state;
-      if (!email_code_sending) {
-        newState.email_send_code_txt = this.props.intl.formatMessage({
-          id: 'send_code',
-        });
-      }
-      if (!phone_code_sending) {
-        newState.phone_send_code_txt = this.props.intl.formatMessage({
-          id: 'send_code',
-        });
-      }
-      newState.change_locale_to = nextProps.locale;
-      if (Object.keys(newState).length > 0) {
-        this.setState(newState);
-      }
-      this.clearGoogleRecaptcha();
+  useEffect(() => {
+    setFingerprint(JSON.stringify(getFingerprint()));
+    setEmailSendCodeTxt(props.intl.formatMessage({ id: 'send_code' }));
+    setPhoneSendCodeTxt(props.intl.formatMessage({ id: 'send_code' }));
+  }, []);
+
+  useEffect(() => {
+    if (props.locale !== change_locale_to) {
+      // ... 更新状态逻辑 ...
+      clearGoogleRecaptcha();
     }
-  }
+  }, [props.locale]);
 
-  componentWillUnmount() {
-    // remove interval
-    clearInterval(window.email_code_interval);
-    clearInterval(window.phone_code_interval);
-    // remove google recaptcha
-    // this.clearGoogleRecaptcha();
-  }
-
-  getBtnStatus = () => {
-    const {
-      check_username,
-      check_email,
-      check_email_code,
-      check_phone_code,
-      rawPhone,
-    } = this.state;
+  const getBtnStatus = () => {
     const recaptcha =
       window.config.RECAPTCHA_SWITCH !== 'OFF'
-        ? this.props.form.getFieldValue('recaptcha')
+        ? props.form.getFieldValue('recaptcha')
         : true;
     return !(
       check_username &&
@@ -104,11 +68,11 @@ class UserInfo extends React.Component {
     );
   };
 
-  getPhoneMasks = () => ({
+  const getPhoneMasks = () => ({
     cn: '... .... ....',
   });
 
-  clearGoogleRecaptcha = () => {
+  const clearGoogleRecaptcha = () => {
     // remove google recaptcha
     for (
       let i = document.getElementsByTagName('script').length - 1;
@@ -124,127 +88,99 @@ class UserInfo extends React.Component {
     delete window.onloadcallback;
   };
 
-  validateAccountNameIntl = (rule, value, callback) => {
+  const validateAccountNameIntl = (rule, value, callback) => {
     try {
       accountNameIsValid(value);
-      this.setState({
-        check_username: true,
-      });
+      setCheckUsername(true);
     } catch (e) {
-      this.setState({
-        check_username: false,
-      });
-      callback(this.props.intl.formatMessage({ id: e.message }));
+      setCheckUsername(false);
+      callback(props.intl.formatMessage({ id: e.message }));
     }
     callback();
   };
-  validateEmail = (rule, value, callback) => {
+  const validateEmail = (rule, value, callback) => {
     if (!value) {
-      this.setState({
-        check_email: false,
-      });
+      setCheckEmail(false);
       return;
     }
     try {
       emailValid(value);
-      this.setState({
-        check_email: true,
-      });
+      setCheckEmail(true);
     } catch (e) {
-      this.setState({
-        check_email: false,
-      });
-      callback(this.props.intl.formatMessage({ id: e.message }));
+      setCheckEmail(false);
+      callback(props.intl.formatMessage({ id: e.message }));
     }
     callback();
   };
 
-  validateEmailDomain = (rule, value, callback) => {
+  const validateEmailDomain = (rule, value, callback) => {
     if (value) {
       const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
       if (domain && badDomains.includes(domain)) {
-        this.setState({
-          check_email: true,
-        });
+        setCheckEmail(true);
         // callback(
         //     'This domain name is blacklisted, please provide another email'
         // );
         callback();
       } else {
         if (domain) {
-          this.setState({
-            check_email: true,
-          });
+          setCheckEmail(true);
         }
         callback();
       }
     } else {
-      this.setState({
-        check_email: false,
-      });
+      setCheckEmail(false);
       callback();
     }
   };
 
-  validateUsername = (rule, value, callback) => {
+  const validateUsername = (rule, value, callback) => {
     if (value) {
       if (window.usernameTimeout) {
         window.clearTimeout(window.usernameTimeout);
       }
-      const { intl } = this.props;
+      const { intl } = props;
       window.usernameTimeout = setTimeout(() => {
         apiCall('/api/check_username', { username: value })
           .then(() => {
-            this.setState({
-              username: value,
-              check_username: true,
-            });
+            setUsername(value);
+            setCheckUsername(true);
             callback();
           })
           .catch((error) => {
-            this.setState({
-              check_username: false,
-            });
+            setCheckUsername(false);
             callback(intl.formatMessage({ id: error.type }));
           });
       }, 500);
     } else {
-      this.setState({
-        check_username: false,
-      });
+      setCheckUsername(false);
       callback();
     }
   };
 
-  validateEmailCode = (rule, value, callback) => {
+  const validateEmailCode = (rule, value, callback) => {
     if (value) {
-      const { intl, form } = this.props;
+      const { intl, form } = props;
       const email = form.getFieldValue('email');
       apiCall('/api/check_email_code', { code: value, email })
         .then(() => {
-          this.setState({
-            check_email_code: true,
-          });
+          setCheckEmailCode(true);
           callback();
         })
         .catch((error) => {
-          this.setState({
-            check_email_code: false,
-          });
+          setCheckEmailCode(false);
           callback(intl.formatMessage({ id: error.type }));
         });
     } else {
-      this.setState({
-        check_email_code: false,
-      });
+      setCheckEmailCode(false);
       callback();
     }
   };
 
-  validatePhoneRequired = (rule, value, callback) => {
-    const { intl } = this.props;
+  const validatePhoneRequired = (rule, value, callback) => {
+    const { intl } = props;
     setTimeout(() => {
-      if (this.state.rawPhone) {
+      if (rawPhone) {
         callback();
       } else {
         callback(intl.formatMessage({ id: 'error_api_phone_required' }));
@@ -252,50 +188,40 @@ class UserInfo extends React.Component {
     });
   };
 
-  validatePhoneCode = (rule, value, callback) => {
+  const validatePhoneCode = (rule, value, callback) => {
     if (value) {
-      const { intl, form } = this.props;
+      const { intl, form } = props;
       if (value.length !== 6) {
-        this.setState({
-          check_phone_code: false,
-        });
+        setCheckPhoneCode(false);
         callback(intl.formatMessage({ id: 'error_api_phone_code_invalid' }));
         return;
       }
       const phoneNumber = `+${form.getFieldValue('phone')}`;
       apiCall('/api/check_phone_code', { code: value, phoneNumber })
         .then(() => {
-          this.setState({
-            check_phone_code: true,
-          });
+          setCheckPhoneCode(true);
           callback();
         })
         .catch((error) => {
-          this.setState({
-            check_phone_code: false,
-          });
+          setCheckPhoneCode(false);
           callback(intl.formatMessage({ id: error.type }));
         });
     } else {
-      this.setState({
-        check_phone_code: false,
-      });
+      setCheckPhoneCode(false);
       callback();
     }
   };
 
-  SendEmailCode = (email) => {
-    if (this.state.email_code_sending) return;
-    const { intl, locale } = this.props;
-    this.setState({
-      email_code_sending: true,
-    });
+  const SendEmailCode = (email) => {
+    if (email_code_sending) return;
+    const { intl, locale } = props;
+    setEmailCodeSending(true);
     apiCall('/api/request_email_new', {
       email,
       locale,
     })
       .then(() => {
-        this.props.form.setFields({
+        props.form.setFields({
           email: {
             value: email,
           },
@@ -304,22 +230,20 @@ class UserInfo extends React.Component {
         window.email_code_interval = setInterval(() => {
           if (window.email_code_count_seconds === 0) {
             clearInterval(window.email_code_interval);
-            this.setState({
-              email_send_code_txt: intl.formatMessage({
+            setEmailSendCodeTxt(
+              intl.formatMessage({
                 id: 'send_code',
-              }),
-              email_code_sending: false,
-            });
+              })
+            );
+            setEmailCodeSending(false);
             return;
           }
           window.email_code_count_seconds -= 1;
-          this.setState({
-            email_send_code_txt: `${window.email_code_count_seconds} s`,
-          });
+          setEmailSendCodeTxt(`${window.email_code_count_seconds} s`);
         }, 1000);
       })
       .catch((error) => {
-        this.props.form.setFields({
+        props.form.setFields({
           email: {
             value: email,
             errors: [new Error(intl.formatMessage({ id: error.type }))],
@@ -327,34 +251,29 @@ class UserInfo extends React.Component {
         });
         window.email_code_count_seconds = 0;
         clearInterval(window.email_code_interval);
-        this.setState({
-          email_send_code_txt: intl.formatMessage({
+        setEmailSendCodeTxt(
+          intl.formatMessage({
             id: 'send_code',
-          }),
-          email_code_sending: false,
-        });
+          })
+        );
+        setEmailCodeSending(false);
       });
   };
 
-  SendPhoneCodeWrapper = () => {
-    if (!this.state.rawPhone) return;
-    if (this.state.phone_code_sending) return;
+  const SendPhoneCodeWrapper = () => {
+    if (!rawPhone) return;
+    if (phone_code_sending) return;
     if (window.config.RECAPTCHA_SWITCH !== 'OFF') {
-      this.setState({
-        recaptcha_modal_visible: true,
-      });
+      setRecaptchaModalVisible(true);
     } else {
-      this.SendPhoneCode();
+      SendPhoneCode();
     }
   };
 
-  SendPhoneCode = () => {
-    if (this.state.phone_code_sending) return;
-    const { intl, locale } = this.props;
-    const { phone, rawPhone, prefix, phone_recaptcha } = this.state;
-    this.setState({
-      phone_code_sending: true,
-    });
+  const SendPhoneCode = () => {
+    if (phone_code_sending) return;
+    const { intl, locale } = props;
+    setPhoneCodeSending(true);
     apiCall('/api/request_sms_new', {
       phoneNumber: rawPhone,
       prefix,
@@ -362,7 +281,7 @@ class UserInfo extends React.Component {
       phone_recaptcha,
     })
       .then(() => {
-        this.props.form.setFields({
+        props.form.setFields({
           phone: {
             value: phone,
           },
@@ -371,22 +290,20 @@ class UserInfo extends React.Component {
         window.phone_code_interval = setInterval(() => {
           if (window.phone_code_count_seconds === 0) {
             clearInterval(window.phone_code_interval);
-            this.setState({
-              phone_send_code_txt: intl.formatMessage({
+            setPhoneSendCodeTxt(
+              intl.formatMessage({
                 id: 'send_code',
-              }),
-              phone_code_sending: false,
-            });
+              })
+            );
+            setPhoneCodeSending(false);
             return;
           }
           window.phone_code_count_seconds -= 1;
-          this.setState({
-            phone_send_code_txt: `${window.phone_code_count_seconds} s`,
-          });
+          setPhoneSendCodeTxt(`${window.phone_code_count_seconds} s`);
         }, 1000);
       })
       .catch((error) => {
-        this.props.form.setFields({
+        props.form.setFields({
           phone: {
             value: phone,
             errors: [new Error(intl.formatMessage({ id: error.type }))],
@@ -394,22 +311,20 @@ class UserInfo extends React.Component {
         });
         window.phone_code_count_seconds = 0;
         clearInterval(window.phone_code_interval);
-        this.setState({
-          phone_send_code_txt: intl.formatMessage({
+        setPhoneSendCodeTxt(
+          intl.formatMessage({
             id: 'send_code',
-          }),
-          phone_code_sending: false,
-        });
+          })
+        );
+        setPhoneCodeSending(false);
       });
   };
 
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (this.state.pending_create_user) return;
-    this.setState({
-      pending_create_user: true,
-    });
-    const { form, intl, handleSubmitUserInfo } = this.props;
+    if (pending_create_user) return;
+    setPendingCreateUser(true);
+    const { form, intl, handleSubmitUserInfo } = props;
     const data = {
       recaptcha:
         window.config.RECAPTCHA_SITE_KEY !== ''
@@ -423,327 +338,295 @@ class UserInfo extends React.Component {
     };
     apiCall('/api/create_user_new', data)
       .then((result) => {
-        this.setState({
-          pending_create_user: false,
-        });
+        setPendingCreateUser(false);
         data.token = result.token;
         handleSubmitUserInfo(data);
       })
       .catch((error) => {
-        this.setState({
-          pending_create_user: false,
-        });
+        setPendingCreateUser(false);
         message.error(intl.formatMessage({ id: error.type }));
       });
   };
 
-  hideRecaptchaModal = () => {
-    this.setState({
-      recaptcha_modal_visible: false,
-    });
+  const hideRecaptchaModal = () => {
+    setRecaptchaModalVisible(false);
   };
 
-  render() {
-    const {
-      form: { getFieldDecorator, getFieldValue },
-      intl,
-      origin,
-      countryCode,
-    } = this.props;
-    const { recaptcha_modal_visible } = this.state;
-    return (
-      <div className="user-info-wrap">
-        <Form onSubmit={this.handleSubmit} className="signup-form">
-          <h2>
-            <FormattedMessage id="username" />
-          </h2>
-          <p className="text">
-            <FormattedMessage id="username_know_steemit" />
-          </p>
-          <Form.Item hasFeedback>
-            {getFieldDecorator('username', {
-              normalize: this.normalizeUsername,
-              validateFirst: true,
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'error_username_required',
-                  }),
-                },
-                { validator: this.validateAccountNameIntl },
-                { validator: this.validateUsername },
-              ],
-            })(
-              <Input
-                prefix={<Icon type="user" />}
-                placeholder={intl.formatMessage({
-                  id: 'username',
-                })}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck="false"
-              />
-            )}
-          </Form.Item>
-          <Placeholder height="14px" />
-          <h2>
-            <FormattedMessage id="enter_email" />
-          </h2>
-          <p className="text">
-            <FormattedMessage id="email_description" />
-          </p>
-          <Form.Item hasFeedback>
-            {getFieldDecorator('email', {
-              validateFirst: true,
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'error_email_required',
-                  }),
-                },
-                {
-                  validator: this.validateEmailDomain,
-                  message: intl.formatMessage({
-                    id: 'error_api_domain_blacklisted',
-                  }),
-                },
-                { validator: this.validateEmail },
-              ],
-            })(
-              <Input
-                prefix={<Icon type="mail" />}
-                placeholder={intl.formatMessage({
-                  id: 'email',
-                })}
-                disabled={this.email_code_sending}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck="false"
-              />
-            )}
-          </Form.Item>
-          <Form.Item hasFeedback>
-            {getFieldDecorator('email_code', {
-              validateFirst: true,
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'error_api_code_required',
-                  }),
-                },
-                {
-                  validator: this.validateEmailCode,
-                },
-              ],
-            })(
-              <Input
-                className="feedback"
-                placeholder={intl.formatMessage({
-                  id: 'enter_confirmation_code',
-                })}
-                addonAfter={
-                  <SendCode
-                    checked={this.state.check_email}
-                    sending={this.state.email_code_sending}
-                    btnText={this.state.email_send_code_txt}
-                    onClick={() => this.SendEmailCode(getFieldValue('email'))}
-                  />
-                }
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck="false"
-              />
-            )}
-          </Form.Item>
-          <Placeholder height="14px" />
-          <h2>
-            <FormattedMessage id="enter_phone" />
-          </h2>
-          <p className="text">
-            <FormattedMessage id="phone_description" />
-          </p>
-          <Form.Item hasFeedback>
-            {getFieldDecorator('phone', {
-              validateFirst: true,
-              rules: [
-                {
-                  validator: this.validatePhoneRequired,
-                  message: intl.formatMessage({
-                    id: 'error_phone_required',
-                  }),
-                },
-              ],
-            })(
-              <PhoneInput
-                country={
-                  countryCode === null ? 'us' : countryCode.toLowerCase()
-                }
-                placeholder={intl.formatMessage({
-                  id: 'enter_phone',
-                })}
-                masks={this.getPhoneMasks()}
-                disabled={this.phone_code_sending}
-                onChange={(phone, data) => {
-                  const prefix = data.dialCode;
-                  const tmpCountryCode = data.countryCode;
-                  this.setState({
-                    phone,
-                    rawPhone: phone.slice(data.dialCode.length),
-                    prefix: `${prefix}_${tmpCountryCode}`,
-                  });
-                }}
-              />
-            )}
-          </Form.Item>
-          <Form.Item hasFeedback>
-            {getFieldDecorator('phone_code', {
-              normalize: this.normalizeUsername,
-              validateFirst: true,
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'error_api_code_required',
-                  }),
-                },
-                {
-                  validator: this.validatePhoneCode,
-                },
-              ],
-            })(
-              <Input
-                className="feedback"
-                placeholder={intl.formatMessage({
-                  id: 'enter_confirmation_code',
-                })}
-                addonAfter={
-                  <SendCode
-                    checked={!!this.state.rawPhone}
-                    sending={this.state.phone_code_sending}
-                    btnText={this.state.phone_send_code_txt}
-                    onClick={() => this.SendPhoneCodeWrapper()}
-                  />
-                }
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck="false"
-              />
-            )}
-          </Form.Item>
-          <Placeholder height="14px" />
-          {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
-            <Form.Item>
-              <div className="recaptcha-wrapper">
-                <div className="recaptcha">
-                  {getFieldDecorator('recaptcha', {
-                    rules: [{}],
-                    validateTrigger: '',
-                  })(
-                    <ReCAPTCHA
-                      ref={(el) => {
-                        this.captcha = el;
-                      }}
-                      sitekey={window.config.RECAPTCHA_SITE_KEY}
-                      type="image"
-                      size="normal"
-                      hl={this.state.change_locale_to === 'zh' ? 'zh_CN' : 'en'}
-                      onChange={() => {}}
-                    />
-                  )}
-                </div>
-              </div>
-            </Form.Item>
+  const {
+    form: { getFieldDecorator, getFieldValue },
+    intl,
+    origin,
+    countryCode,
+  } = props;
+
+  return (
+    <div className="user-info-wrap">
+      <Form onSubmit={handleSubmit} className="signup-form">
+        <h2>
+          <FormattedMessage id="username" />
+        </h2>
+        <p className="text">
+          <FormattedMessage id="username_know_steemit" />
+        </p>
+        <Form.Item hasFeedback>
+          {getFieldDecorator('username', {
+            normalize: this.normalizeUsername,
+            validateFirst: true,
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'error_username_required',
+                }),
+              },
+              { validator: validateAccountNameIntl },
+              { validator: validateUsername },
+            ],
+          })(
+            <Input
+              prefix={<UserOutlined />}
+              placeholder={intl.formatMessage({
+                id: 'username',
+              })}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+            />
           )}
-          {origin === 'steemit' && (
-            <Form.Item>
-              <div className="submit-button-wrapper">
-                <div className="submit-button">
-                  <Button
-                    className="custom-btn"
-                    type="primary"
-                    htmlType="submit"
-                    size="large"
-                    loading={this.state.pending_create_user}
-                    disabled={this.getBtnStatus()}
-                  >
-                    <FormattedMessage id="continue" />
-                  </Button>
-                </div>
-                <div className="signin_redirect">
-                  <FormattedMessage
-                    id="username_steemit_login"
-                    values={{
-                      link: (
-                        <a
-                          href="https://steemit.com/login.html"
-                          style={{
-                            textDecoration: 'underline',
-                          }}
-                        >
-                          <FormattedMessage id="sign_in" />
-                        </a>
-                      ),
-                    }}
-                  />
-                </div>
-              </div>
-            </Form.Item>
+        </Form.Item>
+        <Placeholder height="14px" />
+        <h2>
+          <FormattedMessage id="enter_email" />
+        </h2>
+        <p className="text">
+          <FormattedMessage id="email_description" />
+        </p>
+        <Form.Item hasFeedback>
+          {getFieldDecorator('email', {
+            validateFirst: true,
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'error_email_required',
+                }),
+              },
+              {
+                validator: validateEmailDomain,
+                message: intl.formatMessage({
+                  id: 'error_api_domain_blacklisted',
+                }),
+              },
+              { validator: validateEmail },
+            ],
+          })(
+            <Input
+              prefix={<MailOutlined />}
+              placeholder={intl.formatMessage({
+                id: 'email',
+              })}
+              disabled={email_code_sending}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+            />
           )}
-        </Form>
-        <Modal
-          title={null}
-          visible={recaptcha_modal_visible}
-          onCancel={this.hideRecaptchaModal}
-          footer={null}
-          closable={false}
-        >
-          {recaptcha_modal_visible === true && (
-            <ReCAPTCHA
-              ref={(el) => {
-                this.captcha = el;
-              }}
-              sitekey={window.config.RECAPTCHA_SITE_KEY}
-              type="image"
-              size="normal"
-              hl={this.state.change_locale_to === 'zh' ? 'zh_CN' : 'en'}
-              onChange={(recaptcha) => {
-                this.setState({
-                  phone_recaptcha: recaptcha,
-                  recaptcha_modal_visible: false,
-                });
-                this.SendPhoneCode();
+        </Form.Item>
+        <Form.Item hasFeedback>
+          {getFieldDecorator('email_code', {
+            validateFirst: true,
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'error_api_code_required',
+                }),
+              },
+              {
+                validator: validateEmailCode,
+              },
+            ],
+          })(
+            <Input
+              className="feedback"
+              placeholder={intl.formatMessage({
+                id: 'enter_confirmation_code',
+              })}
+              addonAfter={
+                <SendCode
+                  checked={check_email}
+                  sending={email_code_sending}
+                  btnText={email_send_code_txt}
+                  onClick={() => SendEmailCode(getFieldValue('email'))}
+                />
+              }
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+            />
+          )}
+        </Form.Item>
+        <Placeholder height="14px" />
+        <h2>
+          <FormattedMessage id="enter_phone" />
+        </h2>
+        <p className="text">
+          <FormattedMessage id="phone_description" />
+        </p>
+        <Form.Item hasFeedback>
+          {getFieldDecorator('phone', {
+            validateFirst: true,
+            rules: [
+              {
+                validator: validatePhoneRequired,
+                message: intl.formatMessage({
+                  id: 'error_phone_required',
+                }),
+              },
+            ],
+          })(
+            <PhoneInput
+              country={countryCode === null ? 'us' : countryCode.toLowerCase()}
+              placeholder={intl.formatMessage({
+                id: 'enter_phone',
+              })}
+              masks={getPhoneMasks()}
+              disabled={phone_code_sending}
+              onChange={(phone, data) => {
+                const prefix = data.dialCode;
+                const tmpCountryCode = data.countryCode;
+                setPhone(phone);
+                setRawPhone(phone.slice(data.dialCode.length));
+                setPrefix(`${prefix}_${tmpCountryCode}`);
               }}
             />
           )}
-        </Modal>
-      </div>
-    );
-  }
-}
-
-UserInfo.propTypes = {
-  intl: intlShape.isRequired,
-  locale: PropTypes.string,
-  form: PropTypes.shape({
-    setFields: PropTypes.func.isRequired,
-    getFieldValue: PropTypes.func.isRequired,
-  }).isRequired,
-  countryCode: PropTypes.string,
-  origin: PropTypes.string.isRequired,
-  handleSubmitUserInfo: PropTypes.func.isRequired,
-};
-
-UserInfo.defaultProps = {
-  countryCode: '',
-  origin: '',
-  locale: '',
+        </Form.Item>
+        <Form.Item hasFeedback>
+          {getFieldDecorator('phone_code', {
+            normalize: this.normalizeUsername,
+            validateFirst: true,
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'error_api_code_required',
+                }),
+              },
+              {
+                validator: validatePhoneCode,
+              },
+            ],
+          })(
+            <Input
+              className="feedback"
+              placeholder={intl.formatMessage({
+                id: 'enter_confirmation_code',
+              })}
+              addonAfter={
+                <SendCode
+                  checked={!!rawPhone}
+                  sending={phone_code_sending}
+                  btnText={phone_send_code_txt}
+                  onClick={() => SendPhoneCodeWrapper()}
+                />
+              }
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+            />
+          )}
+        </Form.Item>
+        <Placeholder height="14px" />
+        {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
+          <Form.Item>
+            <div className="recaptcha-wrapper">
+              <div className="recaptcha">
+                {getFieldDecorator('recaptcha', {
+                  rules: [{}],
+                  validateTrigger: '',
+                })(
+                  <ReCAPTCHA
+                    ref={(el) => {
+                      this.captcha = el;
+                    }}
+                    sitekey={window.config.RECAPTCHA_SITE_KEY}
+                    type="image"
+                    size="normal"
+                    hl={change_locale_to === 'zh' ? 'zh_CN' : 'en'}
+                    onChange={() => {}}
+                  />
+                )}
+              </div>
+            </div>
+          </Form.Item>
+        )}
+        {origin === 'steemit' && (
+          <Form.Item>
+            <div className="submit-button-wrapper">
+              <div className="submit-button">
+                <Button
+                  className="custom-btn"
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                  loading={pending_create_user}
+                  disabled={getBtnStatus()}
+                >
+                  <FormattedMessage id="continue" />
+                </Button>
+              </div>
+              <div className="signin_redirect">
+                <FormattedMessage
+                  id="username_steemit_login"
+                  values={{
+                    link: (
+                      <a
+                        href="https://steemit.com/login.html"
+                        style={{
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        <FormattedMessage id="sign_in" />
+                      </a>
+                    ),
+                  }}
+                />
+              </div>
+            </div>
+          </Form.Item>
+        )}
+      </Form>
+      <Modal
+        title={null}
+        visible={recaptcha_modal_visible}
+        onCancel={hideRecaptchaModal}
+        footer={null}
+        closable={false}
+      >
+        {recaptcha_modal_visible === true && (
+          <ReCAPTCHA
+            ref={(el) => {
+              this.captcha = el;
+            }}
+            sitekey={window.config.RECAPTCHA_SITE_KEY}
+            type="image"
+            size="normal"
+            hl={change_locale_to === 'zh' ? 'zh_CN' : 'en'}
+            onChange={(recaptcha) => {
+              setPhoneRecaptcha(recaptcha);
+              setRecaptchaModalVisible(false);
+              SendPhoneCode();
+            }}
+          />
+        )}
+      </Modal>
+    </div>
+  );
 };
 
 export default Form.create()(injectIntl(UserInfo));

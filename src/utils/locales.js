@@ -8,6 +8,11 @@ export const translations = {
   zh: zhLocale,
 };
 
+export const locales = {
+  en: 'English',
+  zh: '简体中文',
+};
+
 export const getAvailableLocale = (app) => {
   let locale = app || 'auto';
   // TODO: Test this.

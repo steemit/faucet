@@ -1,55 +1,39 @@
-import React, { PropTypes } from 'react';
+import { useState } from 'react';
 import { injectIntl } from 'react-intl';
 import { Button } from 'antd';
 
-class SendCode extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
-
-  getClassName = () => {
-    const { sending, checked } = this.props;
+const SendCode = ({ btnText = '', onClick, sending, checked }) => {
+  const getClassName = () => {
     const dynamicList = {
       sending: 'sending',
       checked: 'checked',
     };
     let className = ['send-code'];
     // sending class
-    className = this.addOrRemoveClass(dynamicList.sending, className, sending);
+    className = addOrRemoveClass(dynamicList.sending, className, sending);
     // checked class
-    className = this.addOrRemoveClass(dynamicList.checked, className, checked);
+    className = addOrRemoveClass(dynamicList.checked, className, checked);
     // return
     return className.join(' ');
   };
 
-  addOrRemoveClass = (needle, stack, condition) => {
+  const addOrRemoveClass = (needle, stack, condition) => {
     const isExist = stack.indexOf(needle);
     if (condition) {
       if (isExist === -1) {
         stack.push(needle);
       }
     } else if (isExist !== -1) {
-      stack.slice(isExist, 1);
+      stack.splice(isExist, 1); // 修正了这里的 slice 为 splice
     }
     return stack;
   };
 
-  render() {
-    const { btnText, onClick } = this.props;
-    return (
-      <Button className={this.getClassName()} onClick={onClick}>
-        {btnText}
-      </Button>
-    );
-  }
-}
-
-SendCode.propTypes = {
-  onClick: PropTypes.func.isRequired,
-  btnText: PropTypes.string.isRequired,
-  sending: PropTypes.bool.isRequired,
-  checked: PropTypes.bool.isRequired,
+  return (
+    <Button className={getClassName()} onClick={onClick}>
+      {btnText}
+    </Button>
+  );
 };
 
 SendCode.defaultProps = {

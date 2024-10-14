@@ -89,10 +89,40 @@ function makeOptimization(options) {
 function makeStyleLoaders(options) {
   if (options.isDevelopment) {
     return [
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader',
+        ],
+      },
+      {
+        test: /\.less$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          'less-loader',
+        ],
+      },
     ];
   }
 
   return [
+    {
+      test: /\.css$/,
+      use: [
+        'style-loader',
+        'css-loader',
+      ],
+    },
+    {
+      test: /\.less$/,
+      use: [
+        'style-loader',
+        'css-loader',
+        'less-loader',
+      ],
+    },
   ];
 }
 
@@ -134,7 +164,6 @@ function makeConfig(options) {
           use: {
             loader: 'babel-loader',
             options: {
-              configFile: join(__dirname, '..', 'babel.config.js'),
               plugins: [
                 isDevelopment && ReactRefreshBabel,
               ].filter(Boolean),
@@ -149,11 +178,9 @@ function makeConfig(options) {
         },
         {
           test: /\.(eot|ttf|woff|woff2)(\?.+)?$/,
-          use: {
-            loader: 'file-loader',
-            options: {
-              name: '[name].[chunkhash:5].[ext]',
-            },
+          type: 'asset/resource',
+          generator: {
+            filename: 'fonts/[name].[chunkhash:5].[ext]',
           },
         },
       ].concat(makeStyleLoaders(options)),

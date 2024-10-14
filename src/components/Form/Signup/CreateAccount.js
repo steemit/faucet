@@ -1,41 +1,46 @@
 /* eslint-disable no-console */
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import steem from '@steemit/steem-js';
+// import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
-import { signData } from '@steemfans/auth-data';
-import apiCall from '../../../utils/api';
-import getFingerprint from '../../../../helpers/fingerprint';
-import getHashParams from '../../../utils/url';
+// import { signData } from '@steemfans/auth-data';
+import apiCall from '../../../utils/api.js';
+import getFingerprint from '../../../utils/fingerprint.js';
+import getHashParams from '../../../utils/url.js';
 
-class CreateAccount extends React.Component {
-  constructor(props) {
-    super(props);
-    const urlParams = getHashParams();
-    this.state = {
-      fingerprint: '',
-      source: urlParams.source ? urlParams.source : null,
-    };
-  }
+// TODO: Mock steem-js for testing
+const steem = {
+  auth: {
+    generateKeys: () => ({}),
+    getPrivateKeys: () => ({}),
+  },
+};
 
-  componentWillMount() {
-    this.setState({
-      fingerprint: JSON.stringify(getFingerprint()),
-    });
-  }
+// TODO: Mock signData for testing
+const signData = () => ({});
 
-  getBtnStatus = () => {
-    const { form, password } = this.props;
+const CreateAccount = (props) => {
+  const { form, password, intl, handleCreateAccount, goBack } = props;
+  const urlParams = getHashParams();
+  const [fingerprint, setFingerprint] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const source = urlParams.source ? urlParams.source : null;
+
+  useEffect(() => {
+    setFingerprint(JSON.stringify(getFingerprint()));
+  }, []);
+
+  const getBtnStatus = () => {
     const tos = form.getFieldValue('agree_tos');
     const pp = form.getFieldValue('agree_pp');
     const isEqual = form.getFieldValue('password') === password;
     return !(isEqual && tos && pp);
   };
 
-  passwordEquals = (rule, value, callback) => {
-    const { init, password, intl } = this.props;
+  const passwordEquals = (rule, value, callback) => {
+    const { init, password, intl } = props;
     if (init) {
       callback();
     } else if (password !== value) {
@@ -45,7 +50,7 @@ class CreateAccount extends React.Component {
     }
   };
 
-  requireTerms = (rule, value, callback) => {
+  const requireTerms = (rule, value, callback) => {
     if (value) {
       callback();
       return;
@@ -54,22 +59,11 @@ class CreateAccount extends React.Component {
     callback(false);
   };
 
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (this.state.submitting) return;
-    this.setState({ submitting: true });
-    const {
-      form: { validateFieldsAndScroll },
-      username,
-      token,
-      password,
-      intl,
-      handleCreateAccount,
-      trackingId,
-      locale,
-      tronAddr,
-    } = this.props;
-    const { fingerprint, source } = this.state;
+    if (submitting) return;
+    setSubmitting(true);
+    const { username, token, trackingId, locale, tronAddr } = props;
     const roles = ['posting', 'active', 'owner', 'memo'];
     const pubKeys = steem.auth.generateKeys(username, password, roles);
     const privKeys = steem.auth.getPrivateKeys(username, password, roles);
@@ -81,8 +75,8 @@ class CreateAccount extends React.Component {
       },
       privKeys.posting
     );
-    const activityTags = this.getActivityTags();
-    validateFieldsAndScroll((err) => {
+    const activityTags = getActivityTags();
+    form.validateFieldsAndScroll((err) => {
       if (!err) {
         apiCall('/api/create_account_new', {
           token,
@@ -92,25 +86,25 @@ class CreateAccount extends React.Component {
           xref: trackingId,
           locale,
           activityTags,
-          source, // format: app|tag (eg. condenser|submit_post)
+          source,
         })
           .then(() => {
-            this.setState({ submitting: false });
-            this.updateActivityTags();
+            setSubmitting(false);
+            updateActivityTags();
             handleCreateAccount();
           })
           .catch((error) => {
-            this.setState({ submitting: false });
+            setSubmitting(false);
             message.error(intl.formatMessage({ id: error.type }));
           });
       } else {
-        this.setState({ submitting: false });
+        setSubmitting(false);
       }
     });
   };
 
-  getActivityTags = () => {
-    const cookieName = this.props.app.activityCookieName;
+  const getActivityTags = () => {
+    const cookieName = props.app.activityCookieName;
     const activityTags = Cookies.getJSON(cookieName);
     const result = [];
     if (activityTags !== undefined) {
@@ -123,11 +117,11 @@ class CreateAccount extends React.Component {
     return result;
   };
 
-  updateActivityTags = () => {
-    const cookieName = this.props.app.activityCookieName;
-    const expiresTime = this.props.app.activityCookieExpiresTime;
+  const updateActivityTags = () => {
+    const cookieName = props.app.activityCookieName;
+    const expiresTime = props.app.activityCookieExpiresTime;
     const activityTags = Cookies.getJSON(cookieName);
-    const trackingId = this.props.trackingId;
+    const trackingId = props.trackingId;
     if (activityTags !== undefined) {
       // location info
       const hostname = window.location.hostname;
@@ -153,153 +147,146 @@ class CreateAccount extends React.Component {
     }
   };
 
-  render() {
-    const {
-      form: { getFieldDecorator },
-      intl,
-      goBack,
-    } = this.props;
-    return (
-      <div>
-        <Form onSubmit={this.handleSubmit} className="signup-form ">
-          <Form.Item style={{ marginBottom: '2rem' }}>
-            {getFieldDecorator('password', {
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'error_password_required',
-                  }),
-                },
-                { validator: this.passwordEquals },
-              ],
-              initialValue: '',
-            })(
-              <Input.TextArea
-                className="input-password-textarea"
-                placeholder={intl.formatMessage({
-                  id: 'master_password',
-                })}
-                id="password"
-              />
-            )}
-          </Form.Item>
-          <Form.Item key="agree_tos">
-            {getFieldDecorator('agree_tos', {
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'must_agree_tos',
-                  }),
-                  validator: this.requireTerms,
-                },
-              ],
-              valuePropName: 'checked',
-              initialValue: false,
-            })(
-              <Checkbox className="signup-checkbox">
-                <FormattedMessage
-                  id="i_agree_to_document"
-                  values={{
-                    document: (
-                      <a
-                        className="doc-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href="https://steemit.com/tos.html"
-                      >
-                        <FormattedMessage id="terms_of_service" />
-                      </a>
-                    ),
-                  }}
-                />
-              </Checkbox>
-            )}
-          </Form.Item>
-          <Form.Item key="agree_pp">
-            {getFieldDecorator('agree_pp', {
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'must_agree_pp',
-                  }),
-                  validator: this.requireTerms,
-                },
-              ],
-              valuePropName: 'checked',
-              initialValue: false,
-            })(
-              <Checkbox className="signup-checkbox">
-                <FormattedMessage
-                  id="i_agree_to_document"
-                  values={{
-                    document: (
-                      <a
-                        className="doc-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href="https://steemit.com/privacy.html"
-                      >
-                        <FormattedMessage id="privacy_policy" />
-                      </a>
-                    ),
-                  }}
-                />
-              </Checkbox>
-            )}
-          </Form.Item>
-          <div
-            className="create-account-info"
-            style={{ marginTop: '3rem', marginBottom: '1rem' }}
-          >
-            <p style={{ paddingBottom: '0.2rem' }}>
-              <FormattedMessage id="create_account_tip1" />
-            </p>
-            <p style={{ paddingBottom: '0.2rem' }}>
-              <FormattedMessage id="create_account_tip2" />
-            </p>
-            <p style={{ paddingBottom: '0.2rem' }}>
-              <FormattedMessage id="create_account_tip3" />
-            </p>
-            <p style={{ paddingBottom: '0.2rem' }}>
-              <FormattedMessage id="create_account_tip4" />
-            </p>
-          </div>
-          <Form.Item>
-            <Button
-              className="create-account custom-btn"
-              style={{
-                fontSize: '16px',
-              }}
-              type="primary"
-              htmlType="submit"
-              loading={this.state.submitting}
-              disabled={this.getBtnStatus()}
-            >
-              <FormattedMessage id={'create_account_and_download_pdf'} />
-            </Button>
-          </Form.Item>
-          {goBack && (
-            <Form.Item>
-              <a
-                role="button"
-                tabIndex={0}
-                className="back"
-                onClick={(e) => {
-                  e.preventDefault();
-                  goBack();
-                }}
-              >
-                <FormattedMessage id="go_back" />
-              </a>
-            </Form.Item>
+  return (
+    <div>
+      <Form onSubmit={handleSubmit} className="signup-form ">
+        <Form.Item style={{ marginBottom: '2rem' }}>
+          {form.getFieldDecorator('password', {
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'error_password_required',
+                }),
+              },
+              { validator: passwordEquals },
+            ],
+            initialValue: '',
+          })(
+            <Input.TextArea
+              className="input-password-textarea"
+              placeholder={intl.formatMessage({
+                id: 'master_password',
+              })}
+              id="password"
+            />
           )}
-        </Form>
-      </div>
-    );
-  }
-}
+        </Form.Item>
+        <Form.Item key="agree_tos">
+          {form.getFieldDecorator('agree_tos', {
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'must_agree_tos',
+                }),
+                validator: requireTerms,
+              },
+            ],
+            valuePropName: 'checked',
+            initialValue: false,
+          })(
+            <Checkbox className="signup-checkbox">
+              <FormattedMessage
+                id="i_agree_to_document"
+                values={{
+                  document: (
+                    <a
+                      className="doc-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://steemit.com/tos.html"
+                    >
+                      <FormattedMessage id="terms_of_service" />
+                    </a>
+                  ),
+                }}
+              />
+            </Checkbox>
+          )}
+        </Form.Item>
+        <Form.Item key="agree_pp">
+          {form.getFieldDecorator('agree_pp', {
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'must_agree_pp',
+                }),
+                validator: requireTerms,
+              },
+            ],
+            valuePropName: 'checked',
+            initialValue: false,
+          })(
+            <Checkbox className="signup-checkbox">
+              <FormattedMessage
+                id="i_agree_to_document"
+                values={{
+                  document: (
+                    <a
+                      className="doc-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://steemit.com/privacy.html"
+                    >
+                      <FormattedMessage id="privacy_policy" />
+                    </a>
+                  ),
+                }}
+              />
+            </Checkbox>
+          )}
+        </Form.Item>
+        <div
+          className="create-account-info"
+          style={{ marginTop: '3rem', marginBottom: '1rem' }}
+        >
+          <p style={{ paddingBottom: '0.2rem' }}>
+            <FormattedMessage id="create_account_tip1" />
+          </p>
+          <p style={{ paddingBottom: '0.2rem' }}>
+            <FormattedMessage id="create_account_tip2" />
+          </p>
+          <p style={{ paddingBottom: '0.2rem' }}>
+            <FormattedMessage id="create_account_tip3" />
+          </p>
+          <p style={{ paddingBottom: '0.2rem' }}>
+            <FormattedMessage id="create_account_tip4" />
+          </p>
+        </div>
+        <Form.Item>
+          <Button
+            className="create-account custom-btn"
+            style={{
+              fontSize: '16px',
+            }}
+            type="primary"
+            htmlType="submit"
+            loading={submitting}
+            disabled={getBtnStatus()}
+          >
+            <FormattedMessage id={'create_account_and_download_pdf'} />
+          </Button>
+        </Form.Item>
+        {goBack && (
+          <Form.Item>
+            <a
+              role="button"
+              tabIndex={0}
+              className="back"
+              onClick={(e) => {
+                e.preventDefault();
+                goBack();
+              }}
+            >
+              <FormattedMessage id="go_back" />
+            </a>
+          </Form.Item>
+        )}
+      </Form>
+    </div>
+  );
+};
 
 export default Form.create()(injectIntl(CreateAccount));

@@ -2,6 +2,7 @@
 // TODO: for now, we don't need steem-js
 const api = {
   call: () => {},
+  getAccounts: () => {},
 };
 
 export default async function apiCall(path, payload, reqType = 'POST') {
@@ -53,3 +54,37 @@ export function recordActivityTracker({ trackingId, activityTag }) {
     if (error) console.warn('overseer error:', data, error);
   });
 }
+
+export const getPendingClaimedAccounts = (callback) => {
+  const result = {};
+  if (!window.config || !window.config.CREATOR_INFO) {
+    return callback(result);
+  }
+  const accounts = window.config.CREATOR_INFO.split('|');
+  if (accounts.length === 0) {
+    return callback(result);
+  }
+  steem.api.getAccounts(accounts, (err, response) => {
+    if (err) {
+      /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+      console.error('getPendingClaimedAccounts:', err);
+      return callback();
+    }
+    if (response) {
+      response.forEach((el) => {
+        if (el) {
+          result[el.name] = el.pending_claimed_accounts;
+        }
+      });
+      callback(result);
+    } else {
+      callback(result);
+    }
+  });
+};
+
+export const updateAnalytics = (eventId) => {
+  fetch(`/api/analytics?event_id=${eventId}`)
+    .then(() => {})
+    .catch(() => {});
+};

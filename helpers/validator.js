@@ -1,5 +1,11 @@
-import steem from '@steemit/steem-js';
+// import steem from '@steemit/steem-js';
 import validator from 'validator';
+
+const steem = {
+  api: {
+    getAccounts: () => {},
+  },
+};
 
 // const badDomains = require('../bad-domains');
 
@@ -179,43 +185,12 @@ export const normalizeEmail = (email) => {
   return `${username}@${domain}`;
 };
 
-// TODO: Finish this part code, when I re-construct frontend code.
-// this func for frontend
-// const getPendingClaimedAccounts = (callback) => {
-//   const result = {};
-//   if (!window.config || !window.config.CREATOR_INFO) {
-//     return callback(result);
-//   }
-//   const accounts = window.config.CREATOR_INFO.split('|');
-//   if (accounts.length === 0) {
-//     return callback(result);
-//   }
-//   steem.api.getAccounts(accounts, (err, response) => {
-//     if (err) {
-//       /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-//       console.error('getPendingClaimedAccounts:', err);
-//       return callback();
-//     }
-//     if (response) {
-//       response.forEach((el) => {
-//         if (el) {
-//           result[el.name] = el.pending_claimed_accounts;
-//         }
-//       });
-//       callback(result);
-//     } else {
-//       callback(result);
-//     }
-//   });
-// };
-
 const validators = {
   accountNotExist,
   accountNameIsValid,
   validateEmail,
   validateEmailDomain,
   normalizeEmail,
-  // getPendingClaimedAccounts,
   isEmail,
   emailValid,
   INVALID_ACCOUNTNAME_REASONS,

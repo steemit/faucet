@@ -19,7 +19,7 @@ import {
   setTrackingId,
 } from '../features/user.js';
 import { logCheckpoint } from '../features/tracking.js';
-// import Signup from '../components/Signup.js';
+import Signup from '../components/Signup.js';
 
 const SignupWrapper = (props) => {
   const dispatch = useDispatch();
@@ -51,8 +51,7 @@ const SignupWrapper = (props) => {
     logCheckpoint: (checkpoint) => dispatch(logCheckpoint(checkpoint)),
   };
 
-  return <div>hi</div>;
-  // return <Signup {...signupProps} />;
+  return <Signup {...signupProps} />;
 };
 
 export default SignupWrapper;
