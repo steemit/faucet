@@ -1,30 +1,24 @@
+import React, { useEffect, useState } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Button, Checkbox } from 'antd';
 import PdfDownload from './PdfDownload.js';
 
-class Finish extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      dlPdf: false,
-    };
-  }
+const Finish = ({ form, intl, username, password, tronAddr }) => {
+  const [dlPdf, setDlPdf] = useState(false);
 
-  componentWillMount() {}
-
-  componentDidMount() {
-    setTimeout(() => {
-      this.setState({ dlPdf: true });
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDlPdf(true);
     }, 1000);
-  }
+    return () => clearTimeout(timer); // 清理定时器
+  }, []);
 
-  getBtnStatus = () => {
-    const { form } = this.props;
+  const getBtnStatus = () => {
     const hasDownloaded = form.getFieldValue('has_downloaded');
     return !hasDownloaded;
   };
 
-  requireDownload = (rule, value, callback) => {
+  const requireDownload = (rule, value, callback) => {
     if (value) {
       callback();
       return;
@@ -32,116 +26,83 @@ class Finish extends React.Component {
     callback(false);
   };
 
-  downloadPdf = () => {
-    this.setState({ dlPdf: true });
+  const downloadPdf = () => {
+    setDlPdf(true);
   };
 
-  resetDlPdf = () => {
-    this.setState({ dlPdf: false });
+  const resetDlPdf = () => {
+    setDlPdf(false);
   };
 
-  handleSubmit = () => {
-    // this.downloadPdf();
+  const handleSubmit = () => {
     console.log('go to wallet');
-    const { username } = this.props;
     const url = `https://steemitwallet.com/@${username}/permissions`;
     window.location = url;
   };
 
-  render() {
-    const {
-      form: { getFieldDecorator },
-      intl,
-      username,
-      password,
-      tronAddr,
-    } = this.props;
-    const { dlPdf } = this.state;
-    return (
-      <div>
-        <Form onSubmit={this.handleSubmit} className="signup-form">
-          <h1>
-            <FormattedMessage id="welcome_page_title" /> {username}
-          </h1>
-          <div
-            style={{
-              marginTop: '3.2px',
-            }}
-          >
-            <a role="button" tabIndex={0} onClick={() => this.downloadPdf()}>
-              <FormattedMessage id="click_here_to_download" />
-            </a>
-            <FormattedMessage id="welcome_page_message_1" />
-          </div>
-          <div
-            style={{
-              marginTop: '3.2px',
-            }}
-          >
-            <FormattedMessage id="welcome_page_message_2" />
-          </div>
-          <Form.Item key="has_downloaded">
-            {getFieldDecorator('has_downloaded', {
-              rules: [
-                {
-                  required: true,
-                  message: intl.formatMessage({
-                    id: 'must_download',
-                  }),
-                  validator: this.requireDownload,
-                },
-              ],
-              valuePropName: 'checked',
-              initialValue: false,
-            })(
-              <Checkbox
-                className="signup-checkbox"
-                style={{
-                  fontSize: '1.2rem',
-                  marginTop: '10px',
-                }}
-              >
-                <FormattedMessage id="has_downloaded_pdf" />
-              </Checkbox>
-            )}
-          </Form.Item>
-          <div
-            style={{
-              marginTop: '3.2px',
-            }}
-          >
-            <FormattedMessage id="welcome_page_message_3" />
-          </div>
-          <div
-            style={{
-              marginTop: '50px',
-            }}
-          >
-            <Button
-              className="custom-btn"
-              style={{ width: '100%' }}
-              type="primary"
-              size="large"
-              onClick={this.handleSubmit}
-              disabled={this.getBtnStatus()}
+  return (
+    <div>
+      <Form onSubmit={handleSubmit} className="signup-form">
+        <h1>
+          <FormattedMessage id="welcome_page_title" /> {username}
+        </h1>
+        <div style={{ marginTop: '3.2px' }}>
+          <a role="button" tabIndex={0} onClick={downloadPdf}>
+            <FormattedMessage id="click_here_to_download" />
+          </a>
+          <FormattedMessage id="welcome_page_message_1" />
+        </div>
+        <div style={{ marginTop: '3.2px' }}>
+          <FormattedMessage id="welcome_page_message_2" />
+        </div>
+        <Form.Item key="has_downloaded">
+          {form.getFieldDecorator('has_downloaded', {
+            rules: [
+              {
+                required: true,
+                message: intl.formatMessage({ id: 'must_download' }),
+                validator: requireDownload,
+              },
+            ],
+            valuePropName: 'checked',
+            initialValue: false,
+          })(
+            <Checkbox
+              className="signup-checkbox"
+              style={{ fontSize: '1.2rem', marginTop: '10px' }}
             >
-              <FormattedMessage id="welcome_page_go_to_wallet" />
-            </Button>
-          </div>
-        </Form>
-        <PdfDownload
-          widthInches={8.5}
-          heightInches={11.0}
-          name={username}
-          password={password}
-          dlPdf={dlPdf}
-          resetDlPdf={this.resetDlPdf}
-          tron_address={tronAddr.pubKey}
-          tron_key={tronAddr.privKey}
-        />
-      </div>
-    );
-  }
-}
+              <FormattedMessage id="has_downloaded_pdf" />
+            </Checkbox>
+          )}
+        </Form.Item>
+        <div style={{ marginTop: '3.2px' }}>
+          <FormattedMessage id="welcome_page_message_3" />
+        </div>
+        <div style={{ marginTop: '50px' }}>
+          <Button
+            className="custom-btn"
+            style={{ width: '100%' }}
+            type="primary"
+            size="large"
+            onClick={handleSubmit}
+            disabled={getBtnStatus()}
+          >
+            <FormattedMessage id="welcome_page_go_to_wallet" />
+          </Button>
+        </div>
+      </Form>
+      <PdfDownload
+        widthInches={8.5}
+        heightInches={11.0}
+        name={username}
+        password={password}
+        dlPdf={dlPdf}
+        resetDlPdf={resetDlPdf}
+        tron_address={tronAddr.pubKey}
+        tron_key={tronAddr.privKey}
+      />
+    </div>
+  );
+};
 
-export default Form.create()(injectIntl(Finish));
+export default injectIntl(Finish);

@@ -1,9 +1,9 @@
-import { useState, PropTypes } from 'react';
+import { useState } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Button, Modal } from 'antd';
 import { LinkOutlined } from '@ant-design/icons';
-import { CHECKPOINTS } from '../../../../constants.js';
-import { updateAnalytics } from '../../../utils/api.js';
+import { CHECKPOINTS } from '../../constants.js';
+import { updateAnalytics } from '../utils/api.js';
 // import './SignupOptions.less';
 
 const SignupOptions = (props) => {
@@ -99,7 +99,7 @@ const SignupOptions = (props) => {
 
       <Modal
         title={modalTitle}
-        visible={signupModalVisible}
+        open={signupModalVisible}
         onCancel={hideSignupModal}
         footer={null}
       >
@@ -218,18 +218,6 @@ const SignupOptions = (props) => {
       </Modal>
     </div>
   );
-};
-
-SignupOptions.propTypes = {
-  signupModalVisible: PropTypes.bool.isRequired,
-  hideSignupModal: PropTypes.func.isRequired,
-  handleFreeSignup: PropTypes.func.isRequired,
-  logCheckpoint: PropTypes.func.isRequired,
-  pending_claimed_accounts: PropTypes.number,
-};
-
-SignupOptions.defaultProps = {
-  pending_claimed_accounts: 0,
 };
 
 export default injectIntl(SignupOptions);

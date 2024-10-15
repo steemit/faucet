@@ -1,14 +1,12 @@
-/* eslint-disable no-console */
-/* eslint-disable react/prop-types */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 // import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
 // import { signData } from '@steemfans/auth-data';
-import apiCall from '../../../utils/api.js';
-import getFingerprint from '../../../utils/fingerprint.js';
-import getHashParams from '../../../utils/url.js';
+import apiCall from '../utils/api.js';
+import getFingerprint from '../utils/fingerprint.js';
+import getHashParams from '../utils/url.js';
 
 // TODO: Mock steem-js for testing
 const steem = {
@@ -105,7 +103,7 @@ const CreateAccount = (props) => {
 
   const getActivityTags = () => {
     const cookieName = props.app.activityCookieName;
-    const activityTags = Cookies.getJSON(cookieName);
+    const activityTags = Cookies.get(cookieName);
     const result = [];
     if (activityTags !== undefined) {
       Object.keys(activityTags).forEach((tag) => {
@@ -120,7 +118,7 @@ const CreateAccount = (props) => {
   const updateActivityTags = () => {
     const cookieName = props.app.activityCookieName;
     const expiresTime = props.app.activityCookieExpiresTime;
-    const activityTags = Cookies.getJSON(cookieName);
+    const activityTags = Cookies.get(cookieName);
     const trackingId = props.trackingId;
     if (activityTags !== undefined) {
       // location info
@@ -289,4 +287,4 @@ const CreateAccount = (props) => {
   );
 };
 
-export default Form.create()(injectIntl(CreateAccount));
+export default injectIntl(CreateAccount);

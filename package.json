@@ -50,6 +50,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "globals": "^15.8.0",
     "jest": "^29.7.0",
+    "js-cookie": "^3.0.5",
     "jspdf": "^2.5.2",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",

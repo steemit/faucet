@@ -11,6 +11,7 @@ export default function (app) {
       colors: true,
       timings: true,
     },
+    writeToDisk: true,
   }));
   app.use(webpackHotMiddleware(compiler));
 };

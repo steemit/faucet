@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import LocaleWrapper from './containers/LocaleWrapper.js';
-import SignupWrapper from './containers/SignupWrapper.js';
+import IndexWrapper from './containers/IndexWrapper.js';
 
 const router = createBrowserRouter([
   {
@@ -12,7 +12,7 @@ const router = createBrowserRouter([
       {
         index: true,
         path: '/',
-        Component: SignupWrapper,
+        Component: IndexWrapper,
       },
     ],
   },

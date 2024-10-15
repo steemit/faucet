@@ -1,13 +1,12 @@
-/* eslint-disable no-console */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { FormattedMessage } from 'react-intl';
 import { Button, Popover } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import FormSignupUserInfo from './Form/Signup/UserInfo.js';
-import SignupOptions from './Form/Signup/SignupOptions.js';
-import SavePassword from './Form/Signup/SavePassword.js';
-import CreateAccount from './Form/Signup/CreateAccount.js';
+import FormSignupUserInfo from './UserInfo.js';
+import SignupOptions from './SignupOptions.js';
+import SavePassword from './SavePassword.js';
+import CreateAccount from './CreateAccount.js';
 import Finish from './Finish.js';
 import { CHECKPOINTS } from '../../constants.js';
 import LanguageItem from './LanguageItem.js';
@@ -19,60 +18,53 @@ import {
 } from '../utils/api.js';
 import getTronAddr from '../utils/tron.js';
 
-const Signup = (props) => {
+const Signup = ({
+  app: { locale, steps, signupModalVisible },
+  user: {
+    username,
+    email,
+    phoneNumber,
+    countryCode,
+    token,
+    step,
+    referrer,
+    trackingId,
+  },
+  logCheckpoint,
+  guessCountryCode,
+  setLocale,
+  hideSignupModal,
+  showSignupModal,
+  setStep,
+  setUsername,
+  setEmail,
+  setPhone,
+  setToken,
+}) => {
   const [pendingClaimedAccounts, setPendingClaimedAccounts] = useState(0);
   const [password, setPassword] = useState('');
   const [languageItemVisible, setLanguageItemVisible] = useState(false);
   const [tronAddr, setTronAddr] = useState({ pubKey: '', privKey: '' });
 
   useEffect(() => {
-    const {
-      user: { trackingId, step },
-      queryParams: {
-        username: paramUsername,
-        email: paramEmail,
-        token: paramToken,
-        xref: paramXref,
-      },
-      guessCountryCode,
-      setStep,
-      setTrackingId,
-      logCheckpoint,
-    } = props;
-
     getPendingClaimedAccounts((res) => {
       if (res && Object.keys(res).length > 0) {
         setPendingClaimedAccounts(Math.max(...Object.values(res)));
       }
     });
-
     guessCountryCode();
-
-    if (paramXref && trackingId !== paramXref) {
-      setTrackingId(paramXref);
-    }
-
-    if (paramEmail && paramUsername && paramToken) {
-      setStep('phoneNumber');
-    }
-
-    if (!paramUsername && step === 'signupOptions') {
-      logCheckpoint(CHECKPOINTS.signup_start);
-    }
-
     const fetchTronAddr = async () => {
       const addr = await getTronAddr();
       setTronAddr(addr);
     };
     fetchTronAddr();
     updateActivityTag();
-  }, [props]);
+  }, []);
 
   const updateActivityTag = () => {
-    const cookieName = props.app.activityCookieName;
-    const expiresTime = props.app.activityCookieExpiresTime;
-    const activityTags = Cookies.getJSON(cookieName);
-    const trackingId = props.user.trackingId;
+    const cookieName = app.activityCookieName;
+    const expiresTime = app.activityCookieExpiresTime;
+    const activityTags = Cookies.get(cookieName);
     if (activityTags !== undefined) {
       // location info
       const hostname = window.location.hostname;
@@ -102,66 +94,21 @@ const Signup = (props) => {
     }
   };
 
-  const goBack = () => {
-    props.decrementStep();
-  };
-
-  const handleFreeSignup = () => {
-    props.incrementStep();
-    // this is similar with CHECKPOINTS.signup_start
-    // props.logCheckpoint(CHECKPOINTS.free_signup_chosen);
-  };
   const handleSavePassword = (password) => {
     setPassword(password);
-    props.incrementStep();
   };
 
   const handleSubmitUserInfo = (data) => {
-    props.incrementStep();
-    props.setUsername(data.username);
-    props.setEmail(data.email);
-    props.setPhone(data.phoneNumber);
-    props.setToken(data.token);
-    props.logCheckpoint(CHECKPOINTS.user_created);
+    setUsername(data.username);
+    setEmail(data.email);
+    setPhone(data.phoneNumber);
+    setToken(data.token);
+    logCheckpoint(CHECKPOINTS.user_created);
   };
 
-  const handleCreateAccount = () => {
-    props.incrementStep();
-  };
-
-  const {
-    app: { locale, steps, signupModalVisible },
-    user: {
-      username,
-      email,
-      phoneNumber,
-      phoneNumberFormatted,
-      countryCode,
-      token,
-      step,
-      prefix,
-      referrer,
-      trackingId,
-    },
-    queryParams: {
-      username: paramUsername,
-      email: paramEmail,
-      token: paramToken,
-      ref: paramRef,
-    },
-    setLocale,
-    showSignupModal,
-    hideSignupModal,
-    logCheckpoint,
-  } = props;
+  const handleCreateAccount = () => {};
 
   const stepNumber = steps.indexOf(step);
-
-  // If param exists in url, prefer that:
-  const currentUsername = paramUsername || username;
-  const currentEmail = paramEmail || email;
-  const currentToken = paramToken || token;
-  const currentReferrer = paramRef || referrer;
 
   return (
     <div className="Signup_main">
@@ -186,7 +133,7 @@ const Signup = (props) => {
             </ul>
           }
           trigger="click"
-          visible={languageItemVisible}
+          open={languageItemVisible}
           onClick={(e) => {
             e.preventDefault();
             setLanguageItemVisible(true);
@@ -230,17 +177,6 @@ const Signup = (props) => {
                     stepNumber === 3 ? 'waiting' : ''
                   } ${stepNumber > 3 ? 'processed' : ''}`}
                 />
-                {/* <div
-                                        className={`Signup__steps-step ${
-                                            stepNumber === 4
-                                                ? 'waiting'
-                                                : ''
-                                        } ${
-                                            stepNumber > 4
-                                                ? 'processed'
-                                                : ''
-                                        }`}
-                                    /> */}
               </div>
             )}
           </div>
@@ -259,7 +195,6 @@ const Signup = (props) => {
                 signupModalVisible={signupModalVisible}
                 hideSignupModal={hideSignupModal}
                 showSignupModal={showSignupModal}
-                handleFreeSignup={handleFreeSignup}
                 logCheckpoint={logCheckpoint}
                 referrer={referrer || undefined}
                 pending_claimed_accounts={pendingClaimedAccounts}
@@ -340,7 +275,6 @@ const Signup = (props) => {
                 <FormattedMessage id="master_password" />
               </p>
               <CreateAccount
-                goBack={goBack}
                 username={username}
                 email={email}
                 phoneNumber={phoneNumber}
@@ -350,7 +284,7 @@ const Signup = (props) => {
                 tronAddr={tronAddr}
                 handleCreateAccount={handleCreateAccount}
                 trackingId={trackingId}
-                app={props.app}
+                app={app}
               />
             </div>
           )}

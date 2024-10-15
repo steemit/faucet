@@ -29,12 +29,6 @@ const userSlice = createSlice({
     setCountryCode: (state, action) => {
       state.countryCode = action.payload.countryCode;
     },
-    incrementStep: (state) => {
-      // logic is in saga parts
-    },
-    decrementStep: (state) => {
-      // logic is in saga parts
-    },
     setStep: (state, action) => {
       state.step = action.payload.step;
     },
@@ -68,8 +62,6 @@ const userSlice = createSlice({
 export const {
   guessCountryCode,
   setCountryCode,
-  incrementStep,
-  decrementStep,
   setStep,
   setUsername,
   setEmail,

@@ -37,6 +37,14 @@ function makePlugins(options) {
           from: 'src/assets/favicon.ico',
           to: '../favicon.ico',
         },
+        {
+          from: 'src/assets/img',
+          to: '../img',
+        },
+        {
+          from: 'src/assets/fonts',
+          to: '../fonts',
+        },
       ],
     }),
   ];
@@ -63,7 +71,7 @@ function makePlugins(options) {
 function makeOptimization(options) {
   const isDevelopment = options.isDevelopment;
   let optimization = {
-    minimize: true,
+    minimize: false,
     splitChunks: {
       chunks: 'all',
     },
@@ -71,6 +79,7 @@ function makeOptimization(options) {
   if (isDevelopment) {
     // do something
   } else {
+    optimization.minimize = true;
     optimization.minimizer = [
       new TerserPlugin({
         terserOptions: {
@@ -180,7 +189,14 @@ function makeConfig(options) {
           test: /\.(eot|ttf|woff|woff2)(\?.+)?$/,
           type: 'asset/resource',
           generator: {
-            filename: 'fonts/[name].[chunkhash:5].[ext]',
+            filename: '../fonts/[name].[ext]',
+          },
+        },
+        {
+          test: /\.(png|jpg|jpeg|gif|svg)(\?.+)?$/,
+          type: 'asset/resource',
+          generator: {
+            filename: '../img/[name].[ext]',
           },
         },
       ].concat(makeStyleLoaders(options)),

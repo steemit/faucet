@@ -6,14 +6,11 @@ import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Input, Button, message, Modal } from 'antd';
 import { UserOutlined, MailOutlined } from '@ant-design/icons';
 import SendCode from './SendCode.js';
-import apiCall from '../../../utils/api.js';
-import getFingerprint from '../../../utils/fingerprint.js';
-import {
-  accountNameIsValid,
-  emailValid,
-} from '../../../../helpers/validator.js';
-import badDomains from '../../../../bad-domains.js';
-import Placeholder from '../../Placeholder.js';
+import apiCall from '../utils/api.js';
+import getFingerprint from '../utils/fingerprint.js';
+import { accountNameIsValid, emailValid } from '../../helpers/validator.js';
+import badDomains from '../../bad-domains.js';
+import Placeholder from './Placeholder.js';
 
 // TODO: Mock ReCAPTCHA for testing
 const ReCAPTCHA = () => <div />;
@@ -603,7 +600,7 @@ const UserInfo = (props) => {
       </Form>
       <Modal
         title={null}
-        visible={recaptcha_modal_visible}
+        open={recaptcha_modal_visible}
         onCancel={hideRecaptchaModal}
         footer={null}
         closable={false}
@@ -629,4 +626,4 @@ const UserInfo = (props) => {
   );
 };
 
-export default Form.create()(injectIntl(UserInfo));
+export default injectIntl(UserInfo);

@@ -14,8 +14,4 @@ const LanguageItem = ({ setLocale, locale, onClick }) => (
   </li>
 );
 
-LanguageItem.defaultProps = {
-  onClick: () => {},
-};
-
 export default LanguageItem;

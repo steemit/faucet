@@ -1,13 +1,11 @@
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  setLocale,
   showSignupModal,
   hideSignupModal,
+  setLocale,
 } from '../features/app.js';
 import {
   guessCountryCode,
-  incrementStep,
-  decrementStep,
   setStep,
   setUsername,
   setEmail,
@@ -21,12 +19,11 @@ import {
 import { logCheckpoint } from '../features/tracking.js';
 import Signup from '../components/Signup.js';
 
-const SignupWrapper = (props) => {
+const SignupWrapper = () => {
   const dispatch = useDispatch();
   const app = useSelector((state) => state.app);
   const user = useSelector((state) => state.user);
-  // const { location } = props;
-  console.log(props, app, user);
+  console.log(app, user);
 
   const signupProps = {
     // queryParams: location.query,
@@ -34,8 +31,6 @@ const SignupWrapper = (props) => {
     user,
     setLocale: (locale) => dispatch(setLocale(locale)),
     guessCountryCode: () => dispatch(guessCountryCode()),
-    incrementStep: () => dispatch(incrementStep()),
-    decrementStep: () => dispatch(decrementStep()),
     showSignupModal: () => dispatch(showSignupModal()),
     hideSignupModal: () => dispatch(hideSignupModal()),
     setStep: (stepName) => dispatch(setStep(stepName)),

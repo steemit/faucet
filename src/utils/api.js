@@ -64,7 +64,7 @@ export const getPendingClaimedAccounts = (callback) => {
   if (accounts.length === 0) {
     return callback(result);
   }
-  steem.api.getAccounts(accounts, (err, response) => {
+  api.getAccounts(accounts, (err, response) => {
     if (err) {
       /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
       console.error('getPendingClaimedAccounts:', err);

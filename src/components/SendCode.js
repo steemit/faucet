@@ -36,8 +36,4 @@ const SendCode = ({ btnText = '', onClick, sending, checked }) => {
   );
 };
 
-SendCode.defaultProps = {
-  btnText: '',
-};
-
 export default injectIntl(SendCode);
