@@ -71,12 +71,6 @@ function PdfDownload(props) {
     ctx.rect(x, y, w, h, 'F');
   }
 
-  function drawStrokedRect(ctx, x, y, w, h, { color, lineWidth }) {
-    ctx.setLineWidth(lineWidth);
-    ctx.setDrawColor(color);
-    ctx.rect(x, y, w, h);
-  }
-
   function drawImageFromCanvas(ctx, selector, x, y, w, h, bgcolor) {
     const canvas = image2canvas(document.querySelector(selector), bgcolor); // svg -> jpg
     ctx.addImage(canvas, 'JPEG', x, y, w, h);
@@ -91,10 +85,6 @@ function PdfDownload(props) {
       background: bgcolor,
     });
     ctx.addImage(canvas, 'PNG', x, y, size, size);
-  }
-
-  function addPage(ctx) {
-    ctx.addPage('letter', 'portrait');
   }
 
   function renderText(
@@ -247,120 +237,6 @@ function PdfDownload(props) {
         font: 'Roboto-Regular',
       }
     );
-    // offset += 0.2;
-
-    // tron account information
-    offset += 0.2;
-    offset += renderText(ctx, 'Your Tron account', {
-      scale,
-      x: margin,
-      y: offset,
-      lineHeight,
-      maxWidth: maxLineWidth,
-      color: 'black',
-      fontSize: 0.18,
-      font: 'Roboto-Bold',
-    });
-    offset += 0.1;
-    // tron account public key
-    sectionStart = offset;
-    sectionHeight = qrSize + 0.15 * 2;
-    drawFilledRect(ctx, 0.0, offset, widthInches, sectionHeight, {
-      color: 'f4f4f4',
-    });
-
-    offset += 0.15;
-    drawQr(ctx, props.tron_address, margin, offset, qrSize, '#f4f4f4');
-
-    offset += 0.1;
-    offset += renderText(ctx, 'TRON Public Key (TRON Address)', {
-      scale,
-      x: margin + qrSize + 0.1,
-      y: offset,
-      lineHeight,
-      maxWidth: maxLineWidth,
-      color: 'black',
-      fontSize: 0.2,
-      font: 'Roboto-Bold',
-    });
-
-    offset += renderText(
-      ctx,
-      'Used for transfers. The public key is the address you send the tokens to',
-      {
-        scale,
-        x: margin + qrSize + 0.1,
-        y: offset,
-        lineHeight,
-        maxWidth: maxLineWidth - (qrSize + 0.1),
-        color: 'black',
-        fontSize: 0.14,
-        font: 'Roboto-Regular',
-      }
-    );
-
-    offset += 0.075; // todo: replace tron address
-    offset += renderText(ctx, props.tron_address, {
-      scale,
-      x: margin + qrSize + 0.1,
-      y: sectionStart + sectionHeight - 0.6,
-      lineHeight,
-      maxWidth: maxLineWidth,
-      color: 'black',
-      fontSize: 0.14,
-      font: 'RobotoMono-Regular',
-    });
-    offset += 0.2;
-    offset = sectionStart + sectionHeight;
-
-    // tron account private key
-    sectionStart = offset;
-    sectionHeight = qrSize + 0.15 * 2;
-
-    offset += 0.15;
-    drawQr(ctx, props.tron_key, margin, offset, qrSize, '#f4f4f4');
-
-    offset += 0.1;
-    offset += renderText(ctx, 'TRON Private Key', {
-      scale,
-      x: margin + qrSize + 0.1,
-      y: offset,
-      lineHeight,
-      maxWidth: maxLineWidth,
-      color: 'black',
-      fontSize: 0.2,
-      font: 'Roboto-Bold',
-    });
-
-    offset += renderText(
-      ctx,
-      'This private key has the highest authority on your TRON account. It is ' +
-        'used for signing transactions of TRON, such as transferring tokens,freezing and voting',
-      {
-        scale,
-        x: margin + qrSize + 0.1,
-        y: offset,
-        lineHeight,
-        maxWidth: maxLineWidth - (qrSize + 0.1),
-        color: 'black',
-        fontSize: 0.14,
-        font: 'Roboto-Regular',
-      }
-    );
-
-    offset += 0.075; // todo: replace tron private key
-    offset += renderText(ctx, props.tron_key, {
-      scale,
-      x: margin + qrSize + 0.1,
-      y: sectionStart + sectionHeight - 0.5,
-      lineHeight,
-      maxWidth: maxLineWidth,
-      color: 'black',
-      fontSize: 0.14,
-      font: 'RobotoMono-Regular',
-    });
-    offset += 0.2;
-    offset = sectionStart + sectionHeight;
 
     // Steemit Account
     offset += 0.4;
@@ -548,12 +424,11 @@ function PdfDownload(props) {
       fontSize: 0.14,
       font: 'RobotoMono-Regular',
     });
-    // offset += 0.2;
+    offset += 0.6;
 
-    // offset = sectionStart + sectionHeight;
     // add a new page
-    ctx.addPage('letter', 'portrait');
-    offset = 0.2;
+    // ctx.addPage('letter', 'portrait');
+    // offset = 0.2;
 
     // OWNER KEY
     sectionStart = offset;
