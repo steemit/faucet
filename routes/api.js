@@ -71,11 +71,6 @@ router.post(
 );
 router.post('/create_account', apiMiddleware(apiHandlers.handleCreateAccount));
 
-router.get(
-  '/create_tron_addr',
-  apiMiddleware(apiHandlers.handleCreateTronAddr)
-);
-
 // This api is a temporary api. This will be removed in the future!
 router.get('/analytics', apiMiddleware(apiHandlers.handleAnalytics));
 

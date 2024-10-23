@@ -12,7 +12,6 @@ import {
   isEmail,
 } from '../helpers/validator.js';
 import { getEnv, generateTrackingId, generateCode } from '../helpers/common.js';
-import { getTronAccount, updateTronUser } from '../helpers/tron.js';
 
 const PNF = GLPN.PhoneNumberFormat;
 const phoneUtil = GLPN.PhoneNumberUtil.getInstance();
@@ -1053,7 +1052,6 @@ async function handleCreateAccount(req) {
     xref,
     locale,
     activityTags,
-    tron_bind_data,
     source, // format: app|tag (eg. condenser|submit_post)
   } = req.body;
 
@@ -1064,11 +1062,6 @@ async function handleCreateAccount(req) {
   if (!token) {
     throw new ApiError({ type: 'error_api_token_required' });
   }
-
-  if (!tron_bind_data) {
-    throw new ApiError({ type: 'error_api_tron_bind_data_required' });
-  }
-  const tronBindData = JSON.parse(tron_bind_data);
 
   let decoded;
 
@@ -1228,27 +1221,6 @@ async function handleCreateAccount(req) {
     });
   }
 
-  try {
-    const updateTronUserResult = await updateTronUser(
-      decoded.username,
-      tronBindData
-    );
-    req.log.info(
-      { decoded, updateTronUserResult },
-      'bind_tron_address_success'
-    );
-  } catch (cause) {
-    req.log.error(
-      { decoded, tronBindData, cause },
-      'error_api_bind_tron_addr_failed'
-    );
-    throw new ApiError({
-      type: 'error_api_bind_tron_addr_failed',
-      cause,
-      status: 500,
-    });
-  }
-
   // try {
   //     await services.gatekeeperMarkSignupCreated(user);
   // } catch (error) {
@@ -1349,11 +1321,6 @@ async function handleCreateAccount(req) {
   return { success: true };
 }
 
-async function handleCreateTronAddr() {
-  const tronUser = await getTronAccount();
-  return tronUser;
-}
-
 export default {
   handleRequestSms,
   handleConfirmSms,
@@ -1363,6 +1330,5 @@ export default {
   handleAnalytics,
   handleRequestEmailCode,
   handleConfirmEmailCode,
-  handleCreateTronAddr,
   finalizeSignup,
 };
