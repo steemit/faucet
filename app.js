@@ -127,18 +127,18 @@ hbs.registerPartials(`${baseDir}/views/partials`);
 app.set('views', path.join(baseDir, 'views'));
 app.set('view engine', 'hbs');
 
-// set route
-app.use('/', genRoutes({
-  baseDir,
-}));
-app.use('/api', apiRoutes);
-
 // other settings
 app.enable('trust proxy');
 app.disable('x-powered-by');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(baseDir, 'public')));
+
+// set route
+app.use('/', genRoutes({
+  baseDir,
+}));
+app.use('/api', apiRoutes);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
