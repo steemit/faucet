@@ -1,8 +1,12 @@
 import { Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { IntlProvider } from 'react-intl';
-import { ConfigProvider } from 'antd';
-// import '../styles/common.less';
+import { App, ConfigProvider } from 'antd';
+import { getCustomDesignToken } from '../styles/custom.js';
+import '../styles/common.less';
+
+const designTokens = getCustomDesignToken();
+console.log('debug designTokens: ', designTokens);
 
 const LocaleWrapper = () => {
   const locale = useSelector((state) => state.app.locale);
@@ -13,10 +17,10 @@ const LocaleWrapper = () => {
 
   return (
     <IntlProvider locale={locale} messages={translations}>
-      <ConfigProvider locale={antdLocale}>
-        <div className="main">
+      <ConfigProvider locale={antdLocale} theme={designTokens}>
+        <App>
           <Outlet />
-        </div>
+        </App>
       </ConfigProvider>
     </IntlProvider>
   );

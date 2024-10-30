@@ -7,6 +7,7 @@
   "confirm_existence": "我们需要确认是否存在",
   "confirm_password": "请输入密码以确认",
   "confirmation_code": "验证码",
+  "master_password": "主密码:",
   "continue": "继续",
   "copy_password": "复制密码",
   "country_code_select": "选择地区",
@@ -55,6 +56,7 @@
   "error_confirmation_code_required": "'请输入你收到的验证码",
   "error_country_code_required": "请选择你的地区",
   "error_email_required": "请输入E-mail",
+  "error_email_invalid": "无效的Email",
   "error_password_match": "密码不匹配",
   "error_password_required": "密码是必须的",
   "error_phone_format": "无效的手机号码",
@@ -146,5 +148,7 @@
   "must_download": "请确保已下载PDF并安全保存",
   "welcome_page_go_to_wallet": "访问钱包",
   "error_api_insert_user_into_db_failed": "用户数据写入失败",
-  "insufficient_places": "免费注册额度不足"
+  "insufficient_places": "免费注册额度不足",
+  "success_email_code_sent": "邮箱验证码已发送",
+  "success_phone_code_sent": "手机验证码已发送"
 }

@@ -18,7 +18,10 @@ const steem = {
   api: {
     setOptions: () => {},
     call: () => {},
-    getAccountsAsync: () => [],
+    getAccountsAsync: () =>
+      new Promise((resolve) =>
+        resolve([{ name: 'mockAccount', pending_claimed_accounts: 100 }])
+      ),
     signedCallAsync: () => {},
   },
 };
@@ -464,7 +467,7 @@ export async function getPendingClaimedAccountsAsync() {
     return false;
   }
   return steem.api.getAccountsAsync(accounts).then((res) => {
-    if (res) {
+    if (res.length > 0) {
       const claim_acconts = {};
       res.forEach((acc) => {
         claim_acconts[acc.name] = acc.pending_claimed_accounts;

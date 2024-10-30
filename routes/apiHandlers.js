@@ -19,7 +19,6 @@ const logger = getLogChild({ module: 'api_handlers' });
 
 /**
  * Check the validity and blockchain availability of a username
- * Accounts created with the faucet can book a username for one week
  */
 async function handleCheckUsername(req) {
   const { username } = req.body;
@@ -58,13 +57,6 @@ async function handleCheckUsername(req) {
     });
   }
 
-  // const usernameIsBooked = await database.usernameIsBooked(username);
-  // if (usernameIsBooked) {
-  //     throw new ApiError({
-  //         type: 'error_api_username_reserved',
-  //         status: 200,
-  //     });
-  // }
   return { success: true };
 }
 
@@ -145,7 +137,30 @@ async function handleAnalytics(req) {
   return { success: true };
 }
 
-async function handleRequestEmailCode(ip, email, locale) {
+async function handleRequestEmailCode(req) {
+  const ip = req.ip;
+  const email = req.body?.email;
+  const locale = req.body?.locale;
+  // check email value empty
+  if (!email) {
+    throw new ApiError({
+      type: 'error_api_email_required',
+      field: 'email',
+    });
+  }
+  // email format check
+  if (!isEmail(email)) {
+    throw new ApiError({
+      type: 'error_api_email_format',
+      field: 'email',
+    });
+  }
+  // bad domains check
+  if (badDomains.includes(email.split('@')[1])) {
+    logger.warn({ email }, 'error_api_domain_blacklisted');
+    return { success: true, token: null, xref: null };
+  }
+  // account creation policy check
   const isEnoughPendingClaimedAccounts =
     await services.getPendingClaimedAccountsAsync();
   if (isEnoughPendingClaimedAccounts === false) {
@@ -158,27 +173,11 @@ async function handleRequestEmailCode(ip, email, locale) {
       type: 'signup_free_tip3',
     });
   }
-  if (!email) {
-    throw new ApiError({
-      type: 'error_api_email_required',
-      field: 'email',
-    });
-  }
-  // format check
-  if (!isEmail(email)) {
-    throw new ApiError({
-      type: 'error_api_email_format',
-      field: 'email',
-    });
-  }
-  // bad domains check
-  if (badDomains.includes(email.split('@')[1])) {
-    logger.warn({ email }, 'error_api_domain_blacklisted');
-    return { success: true, token: null, xref: null };
-  }
 
+  // action limit check
   await database.actionLimitNew(ip, 'request_email_code');
 
+  // log action
   await database.logAction({
     action: 'request_email_code',
     ip,
@@ -878,15 +877,15 @@ async function handleConfirmSms(req) {
   return { success: true };
 }
 
-async function finalizeSignup(
-  ip,
-  recaptcha,
-  email,
-  emailCode,
-  phoneNumber,
-  phoneCode,
-  username
-) {
+async function finalizeSignup(req) {
+  const ip = req.ip;
+  const recaptcha = req.body?.recaptcha;
+  const email = req.body?.email;
+  const emailCode = req.body?.emailCode;
+  const phoneNumber = req.body?.phoneNumber;
+  const phoneCode = req.body?.phoneCode;
+  const username = req.body?.username;
+
   if (getEnv('RECAPTCHA_SWITCH') !== 'OFF') {
     if (!recaptcha) {
       throw new ApiError({

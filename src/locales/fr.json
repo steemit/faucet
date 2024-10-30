@@ -8,6 +8,7 @@
   "confirm_existence": "Nous avons besoin de vérifier que vous existez",
   "confirm_password": "Veuillez saisir votre mot de passe afin de le confirmer.",
   "confirmation_code": "Code de confirmation",
+  "master_password": "Mot de passe maître:",
   "continue": "Continuer",
   "copy_password": "Copier mot de passe",
   "country_code_select": "Sélectionnez votre pays",
@@ -61,6 +62,7 @@
   "error_password_required": "Le mot de passe est obligatoire",
   "error_phone_format": "Numéro de téléphone non valide",
   "error_phone_required": "Veuillez saisir votre numéro de téléphone",
+  "error_email_invalid": "Email non valide",
   "error_recaptcha_required": "Veuillez valider le recaptcha",
   "error_token_required": "Le token est obligatoire",
   "error_username_required": "Veuillez saisir votre nom d'utilisateur",
@@ -104,5 +106,7 @@
   "username_know": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom pour toutes les applications Steem.",
   "username_know_steemit": "Commencez par choisir un nom d'utilisateur. Vous serez connu sous ce nom sur Steemit et toutes les autres applications Steem.",
   "username_steemit_login": "Vous avez déjà un compte ? {link}",
-  "welcome": "Welcome"
+  "welcome": "Welcome",
+  "success_email_code_sent": "Code email envoyé",
+  "success_phone_code_sent": "Code téléphone envoyé"
 }

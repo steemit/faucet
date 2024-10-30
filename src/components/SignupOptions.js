@@ -6,7 +6,13 @@ import { CHECKPOINTS } from '../../constants.js';
 import { updateAnalytics } from '../utils/api.js';
 // import './SignupOptions.less';
 
-const SignupOptions = (props) => {
+const SignupOptions = ({
+  signupModalVisible,
+  hideSignupModal,
+  handleFreeSignup,
+  logCheckpoint,
+  pending_claimed_accounts,
+}) => {
   const [pending_claimed_accounts_threshold] = useState(
     window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD
       ? parseInt(window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD, 10)
@@ -18,27 +24,11 @@ const SignupOptions = (props) => {
   const capitalizeFirstLetter = (string) =>
     string.charAt(0).toUpperCase() + string.slice(1);
 
-  const {
-    signupModalVisible,
-    hideSignupModal,
-    handleFreeSignup,
-    logCheckpoint,
-    pending_claimed_accounts,
-  } = props;
-
   return (
     <div className="signup_options_wrap">
       <h1>
         <FormattedMessage id="signup_options" />
       </h1>
-      {/* <p>
-                    {referrer && (
-                        <FormattedMessage
-                            id="signup_options_referrer"
-                            values={{ referrer: capitalizeFirstLetter(referrer) }}
-                        />
-                    )}
-                </p> */}
       <p>
         <FormattedMessage
           id="signup_options_referrer"
@@ -48,10 +38,6 @@ const SignupOptions = (props) => {
       <p>
         <FormattedMessage id="signup_options_body_1" />
       </p>
-      {/* <p>
-                    <FormattedMessage id="signup_options_body_3" />
-                </p> */}
-
       <div
         className={`${
           pending_claimed_accounts >= pending_claimed_accounts_threshold &&

@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { message, Button } from 'antd';

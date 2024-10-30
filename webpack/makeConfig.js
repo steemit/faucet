@@ -7,9 +7,15 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import ReactRefreshBabel from 'react-refresh/babel';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 import { _defaults, getEnv } from '../helpers/common.js';
+import { theme } from 'antd';
+import { convertLegacyToken } from '@ant-design/compatible';
+import { getCustomDesignToken } from '../src/styles/custom.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+// convert antd theme to less
+const mapV4Token = theme.getDesignToken(getCustomDesignToken());
+const v4Vars = convertLegacyToken(mapV4Token);
 
 const DEFAULTS = {
   isDevelopment: getEnv('NODE_ENV') !== 'production',
@@ -110,7 +116,15 @@ function makeStyleLoaders(options) {
         use: [
           'style-loader',
           'css-loader',
-          'less-loader',
+          {
+            loader: 'less-loader',
+            options: {
+              lessOptions: {
+                modifyVars: v4Vars,
+                javascriptEnabled: true,
+              },
+            },
+          },
         ],
       },
     ];
@@ -129,7 +143,15 @@ function makeStyleLoaders(options) {
       use: [
         'style-loader',
         'css-loader',
-        'less-loader',
+        {
+          loader: 'less-loader',
+          options: {
+            lessOptions: {
+              modifyVars: v4Vars,
+              javascriptEnabled: true,
+            },
+          },
+        },
       ],
     },
   ];

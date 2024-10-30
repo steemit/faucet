@@ -61,6 +61,7 @@
   "error_confirmation_code_required": "'Please input the code you received",
   "error_country_code_required": "Please select your country code",
   "error_email_required": "Please input your email address",
+  "error_email_invalid": "Email invalid",
   "error_password_match": "Passwords don't match",
   "error_password_required": "Password required",
   "error_phone_format": "Phone number invalid",
@@ -166,5 +167,7 @@
   "must_download": "Make sure you have downloaded and saved",
   "welcome_page_go_to_wallet": "Go to wallet",
   "error_api_insert_user_into_db_failed": "User data inserts failed",
-  "insufficient_places": "Insufficient Places"
+  "insufficient_places": "Insufficient Places",
+  "success_email_code_sent": "Email code sent",
+  "success_phone_code_sent": "Phone code sent"
 }

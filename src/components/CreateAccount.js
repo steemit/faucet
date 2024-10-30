@@ -3,7 +3,6 @@ import Cookies from 'js-cookie';
 // import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, message, Input, Button, Checkbox } from 'antd';
-// import { signData } from '@steemfans/auth-data';
 import apiCall from '../utils/api.js';
 import getFingerprint from '../utils/fingerprint.js';
 import getHashParams from '../utils/url.js';
@@ -16,93 +15,82 @@ const steem = {
   },
 };
 
-// TODO: Mock signData for testing
-const signData = () => ({});
-
-const CreateAccount = (props) => {
-  const { form, password, intl, handleCreateAccount, goBack } = props;
+const CreateAccount = ({
+  app,
+  username,
+  token,
+  trackingId,
+  locale,
+  password,
+  handleCreateAccount,
+  goBack,
+  intl,
+}) => {
+  const [form] = Form.useForm();
   const urlParams = getHashParams();
   const [fingerprint, setFingerprint] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [btnDisabled, setBtnDisabled] = useState(true);
   const source = urlParams.source ? urlParams.source : null;
 
   useEffect(() => {
     setFingerprint(JSON.stringify(getFingerprint()));
   }, []);
 
-  const getBtnStatus = () => {
+  const formValuesChange = () => {
     const tos = form.getFieldValue('agree_tos');
     const pp = form.getFieldValue('agree_pp');
-    const isEqual = form.getFieldValue('password') === password;
-    return !(isEqual && tos && pp);
+    const isEqual = password && form.getFieldValue('password') === password;
+    setBtnDisabled(!(isEqual && tos && pp));
   };
 
-  const passwordEquals = (rule, value, callback) => {
-    const { init, password, intl } = props;
-    if (init) {
-      callback();
-    } else if (password !== value) {
-      callback(intl.formatMessage({ id: 'error_password_match' }));
-    } else {
-      callback();
+  const passwordCheck = (_, value) => {
+    if (value.length > 0 && password !== value) {
+      return Promise.reject(intl.formatMessage({ id: 'error_password_match' }));
     }
+    if (value.length === 0) {
+      return Promise.reject(
+        intl.formatMessage({ id: 'error_password_required' })
+      );
+    }
+    return Promise.resolve();
   };
 
-  const requireTerms = (rule, value, callback) => {
+  const requireTerms = (_, value) => {
     if (value) {
-      callback();
-      return;
+      return Promise.resolve();
     }
-
-    callback(false);
+    return Promise.reject(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onFinish = () => {
     if (submitting) return;
     setSubmitting(true);
-    const { username, token, trackingId, locale, tronAddr } = props;
     const roles = ['posting', 'active', 'owner', 'memo'];
     const pubKeys = steem.auth.generateKeys(username, password, roles);
-    const privKeys = steem.auth.getPrivateKeys(username, password, roles);
-    const tronBindData = signData(
-      {
-        username,
-        tron_addr: tronAddr.pubKey,
-        is_new_user: true,
-      },
-      privKeys.posting
-    );
     const activityTags = getActivityTags();
-    form.validateFieldsAndScroll((err) => {
-      if (!err) {
-        apiCall('/api/create_account_new', {
-          token,
-          public_keys: JSON.stringify(pubKeys),
-          fingerprint,
-          tron_bind_data: JSON.stringify(tronBindData),
-          xref: trackingId,
-          locale,
-          activityTags,
-          source,
-        })
-          .then(() => {
-            setSubmitting(false);
-            updateActivityTags();
-            handleCreateAccount();
-          })
-          .catch((error) => {
-            setSubmitting(false);
-            message.error(intl.formatMessage({ id: error.type }));
-          });
-      } else {
+    apiCall('/api/create_account', {
+      token,
+      public_keys: JSON.stringify(pubKeys),
+      fingerprint,
+      xref: trackingId,
+      locale,
+      activityTags,
+      source,
+    })
+      .then(() => {
         setSubmitting(false);
-      }
-    });
+        updateActivityTags();
+        handleCreateAccount();
+      })
+      .catch((error) => {
+        setSubmitting(false);
+        message.error(intl.formatMessage({ id: error.type }));
+      });
   };
 
   const getActivityTags = () => {
-    const cookieName = props.app.activityCookieName;
+    const cookieName = app.activityCookieName;
     const activityTags = Cookies.get(cookieName);
     const result = [];
     if (activityTags !== undefined) {
@@ -116,10 +104,10 @@ const CreateAccount = (props) => {
   };
 
   const updateActivityTags = () => {
-    const cookieName = props.app.activityCookieName;
-    const expiresTime = props.app.activityCookieExpiresTime;
+    const cookieName = app.activityCookieName;
+    const expiresTime = app.activityCookieExpiresTime;
     const activityTags = Cookies.get(cookieName);
-    const trackingId = props.trackingId;
+    const trackingId = trackingId;
     if (activityTags !== undefined) {
       // location info
       const hostname = window.location.hostname;
@@ -147,94 +135,96 @@ const CreateAccount = (props) => {
 
   return (
     <div>
-      <Form onSubmit={handleSubmit} className="signup-form ">
-        <Form.Item style={{ marginBottom: '2rem' }}>
-          {form.getFieldDecorator('password', {
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'error_password_required',
-                }),
-              },
-              { validator: passwordEquals },
-            ],
-            initialValue: '',
-          })(
-            <Input.TextArea
-              className="input-password-textarea"
-              placeholder={intl.formatMessage({
-                id: 'master_password',
-              })}
-              id="password"
+      <Form
+        form={form}
+        onFinish={onFinish}
+        variant="filled"
+        scrollToFirstError={true}
+        onValuesChange={formValuesChange}
+        className="signup-form "
+      >
+        <Form.Item
+          style={{ marginBottom: '2rem' }}
+          name="password"
+          rules={[
+            {
+              required: true,
+              validator: passwordCheck,
+            },
+          ]}
+          initialValue=""
+        >
+          <Input.TextArea
+            className="input-password-textarea"
+            placeholder={intl.formatMessage({
+              id: 'master_password',
+            })}
+            name="password"
+          />
+        </Form.Item>
+        <Form.Item
+          name="agree_tos"
+          valuePropName="checked"
+          initialValue={false}
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({
+                id: 'must_agree_tos',
+              }),
+              validator: requireTerms,
+            },
+          ]}
+        >
+          <Checkbox className="signup-checkbox">
+            <FormattedMessage
+              id="i_agree_to_document"
+              values={{
+                document: (
+                  <a
+                    className="doc-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://steemit.com/tos.html"
+                  >
+                    <FormattedMessage id="terms_of_service" />
+                  </a>
+                ),
+              }}
             />
-          )}
+          </Checkbox>
         </Form.Item>
-        <Form.Item key="agree_tos">
-          {form.getFieldDecorator('agree_tos', {
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'must_agree_tos',
-                }),
-                validator: requireTerms,
-              },
-            ],
-            valuePropName: 'checked',
-            initialValue: false,
-          })(
-            <Checkbox className="signup-checkbox">
-              <FormattedMessage
-                id="i_agree_to_document"
-                values={{
-                  document: (
-                    <a
-                      className="doc-link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href="https://steemit.com/tos.html"
-                    >
-                      <FormattedMessage id="terms_of_service" />
-                    </a>
-                  ),
-                }}
-              />
-            </Checkbox>
-          )}
-        </Form.Item>
-        <Form.Item key="agree_pp">
-          {form.getFieldDecorator('agree_pp', {
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'must_agree_pp',
-                }),
-                validator: requireTerms,
-              },
-            ],
-            valuePropName: 'checked',
-            initialValue: false,
-          })(
-            <Checkbox className="signup-checkbox">
-              <FormattedMessage
-                id="i_agree_to_document"
-                values={{
-                  document: (
-                    <a
-                      className="doc-link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href="https://steemit.com/privacy.html"
-                    >
-                      <FormattedMessage id="privacy_policy" />
-                    </a>
-                  ),
-                }}
-              />
-            </Checkbox>
-          )}
+        <Form.Item
+          name="agree_pp"
+          valuePropName="checked"
+          initialValue={false}
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({
+                id: 'must_agree_pp',
+              }),
+              validator: requireTerms,
+            },
+          ]}
+        >
+          <Checkbox className="signup-checkbox">
+            <FormattedMessage
+              id="i_agree_to_document"
+              values={{
+                document: (
+                  <a
+                    className="doc-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://steemit.com/privacy.html"
+                  >
+                    <FormattedMessage id="privacy_policy" />
+                  </a>
+                ),
+              }}
+            />
+          </Checkbox>
         </Form.Item>
         <div
           className="create-account-info"
@@ -262,7 +252,7 @@ const CreateAccount = (props) => {
             type="primary"
             htmlType="submit"
             loading={submitting}
-            disabled={getBtnStatus()}
+            disabled={btnDisabled}
           >
             <FormattedMessage id={'create_account_and_download_pdf'} />
           </Button>

@@ -43,9 +43,7 @@ router.post('/check_username', apiMiddleware(apiHandlers.handleCheckUsername));
 
 router.post(
   '/request_email',
-  apiMiddleware((req) =>
-    apiHandlers.handleRequestEmailCode(req.ip, req.body.email, req.body.locale)
-  )
+  apiMiddleware(apiHandlers.handleRequestEmailCode)
 );
 
 router.post('/request_sms', apiMiddleware(apiHandlers.handleRequestSms));
@@ -54,21 +52,11 @@ router.post(
   '/check_email_code',
   apiMiddleware(apiHandlers.handleConfirmEmailCode)
 );
+
 router.post('/check_phone_code', apiMiddleware(apiHandlers.handleConfirmSms));
-router.post(
-  '/create_user',
-  apiMiddleware((req) =>
-    apiHandlers.finalizeSignup(
-      req.ip,
-      req.body.recaptcha,
-      req.body.email,
-      req.body.emailCode,
-      req.body.phoneNumber,
-      req.body.phoneCode,
-      req.body.username
-    )
-  )
-);
+
+router.post('/create_user', apiMiddleware(apiHandlers.finalizeSignup));
+
 router.post('/create_account', apiMiddleware(apiHandlers.handleCreateAccount));
 
 // This api is a temporary api. This will be removed in the future!

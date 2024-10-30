@@ -2,7 +2,9 @@
 // TODO: for now, we don't need steem-js
 const api = {
   call: () => {},
-  getAccounts: () => {},
+  getAccounts: (accounts, callback) => {
+    callback(null, [{ name: accounts[0], pending_claimed_accounts: 100 }]);
+  },
 };
 
 export default async function apiCall(path, payload, reqType = 'POST') {
@@ -66,7 +68,6 @@ export const getPendingClaimedAccounts = (callback) => {
   }
   api.getAccounts(accounts, (err, response) => {
     if (err) {
-      /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
       console.error('getPendingClaimedAccounts:', err);
       return callback();
     }

@@ -3,20 +3,19 @@ import Cookies from 'js-cookie';
 import { FormattedMessage } from 'react-intl';
 import { Button, Popover } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import FormSignupUserInfo from './UserInfo.js';
+import UserInfo from './UserInfo.js';
 import SignupOptions from './SignupOptions.js';
 import SavePassword from './SavePassword.js';
 import CreateAccount from './CreateAccount.js';
 import Finish from './Finish.js';
 import { CHECKPOINTS } from '../../constants.js';
 import LanguageItem from './LanguageItem.js';
-// import './Signup.less';
 import { locales } from '../utils/locales.js';
 import {
   getPendingClaimedAccounts,
   recordActivityTracker,
 } from '../utils/api.js';
-import getTronAddr from '../utils/tron.js';
+import './Signup.less';
 
 const Signup = ({
   app: { locale, steps, signupModalVisible },
@@ -44,7 +43,6 @@ const Signup = ({
   const [pendingClaimedAccounts, setPendingClaimedAccounts] = useState(0);
   const [password, setPassword] = useState('');
   const [languageItemVisible, setLanguageItemVisible] = useState(false);
-  const [tronAddr, setTronAddr] = useState({ pubKey: '', privKey: '' });
 
   useEffect(() => {
     getPendingClaimedAccounts((res) => {
@@ -53,11 +51,6 @@ const Signup = ({
       }
     });
     guessCountryCode();
-    const fetchTronAddr = async () => {
-      const addr = await getTronAddr();
-      setTronAddr(addr);
-    };
-    fetchTronAddr();
     updateActivityTag();
   }, []);
 
@@ -107,6 +100,10 @@ const Signup = ({
   };
 
   const handleCreateAccount = () => {};
+
+  const handleFreeSignup = () => {
+    console.log('debug handleFreeSignup');
+  };
 
   const stepNumber = steps.indexOf(step);
 
@@ -183,19 +180,12 @@ const Signup = ({
 
           {step === 'signupOptions' && (
             <div>
-              {referrer === 'steemit' && (
-                <object
-                  data="img/steemit-logo.svg"
-                  type="image/svg+xml"
-                  id="app-logo"
-                  aria-label="logo"
-                />
-              )}
               <SignupOptions
                 signupModalVisible={signupModalVisible}
                 hideSignupModal={hideSignupModal}
                 showSignupModal={showSignupModal}
                 logCheckpoint={logCheckpoint}
+                handleFreeSignup={handleFreeSignup}
                 referrer={referrer || undefined}
                 pending_claimed_accounts={pendingClaimedAccounts}
               />
@@ -203,41 +193,15 @@ const Signup = ({
           )}
           {step === 'signupInfo' && (
             <div>
-              {referrer === 'steemit' && (
-                <object
-                  data="img/steemit-logo.svg"
-                  type="image/svg+xml"
-                  id="app-logo"
-                  aria-label="logo"
-                />
-              )}
-              <FormSignupUserInfo
-                origin={currentReferrer}
+              <UserInfo
                 countryCode={countryCode}
                 locale={locale}
                 handleSubmitUserInfo={handleSubmitUserInfo}
               />
-              {/* <h1>
-                                <FormattedMessage id="save_password" />
-                            </h1>
-                            <p className="text">
-                                <FormattedMessage id="save_password_text" />
-                            </p>
-                            <SavePassword
-                                password="asjdhfafdakjshfdjashdfkjashdjkfhaskjhdfkashflsdf"
-                                handleSavePassword={handleSavePassword}/> */}
             </div>
           )}
           {step === 'savePassword' && (
             <div>
-              {referrer === 'steemit' && (
-                <object
-                  data="img/steemit-logo.svg"
-                  type="image/svg+xml"
-                  id="app-logo"
-                  aria-label="logo"
-                />
-              )}
               <h1>
                 <FormattedMessage id="save_password" />
               </h1>
@@ -252,14 +216,6 @@ const Signup = ({
           )}
           {step === 'createAccount' && (
             <div>
-              {referrer === 'steemit' && (
-                <object
-                  data="img/steemit-logo.svg"
-                  type="image/svg+xml"
-                  id="app-logo"
-                  aria-label="logo"
-                />
-              )}
               <h1>
                 <FormattedMessage id="confirmPassword" />
               </h1>
@@ -281,7 +237,6 @@ const Signup = ({
                 token={token}
                 password={password}
                 locale={locale}
-                tronAddr={tronAddr}
                 handleCreateAccount={handleCreateAccount}
                 trackingId={trackingId}
                 app={app}
@@ -290,11 +245,7 @@ const Signup = ({
           )}
           {step === 'finish' && (
             <div className="form-content">
-              <Finish
-                username={username}
-                password={password}
-                tronAddr={tronAddr}
-              />
+              <Finish username={username} password={password} />
             </div>
           )}
         </div>
@@ -332,38 +283,6 @@ const Signup = ({
               id="signup-username"
               aria-label="signup-username"
               alt="signup-username"
-            />
-          )}
-          {step === 'email' && (
-            <object
-              data="img/signup-email.svg"
-              type="image/svg+xml"
-              id="signup-email"
-              aria-label="signup-email"
-            />
-          )}
-          {step === 'checkYourEmail' && (
-            <object
-              data="img/signup-email.svg"
-              type="image/svg+xml"
-              id="signup-email"
-              aria-label="signup-email"
-            />
-          )}
-          {step === 'phoneNumber' && (
-            <object
-              data="img/signup-phone.svg"
-              type="image/svg+xml"
-              id="signup-phone"
-              aria-label="signup-phone"
-            />
-          )}
-          {step === 'confirmPhoneNumber' && (
-            <object
-              data="img/signup-sms.svg"
-              type="image/svg+xml"
-              id="signup-sms"
-              aria-label="signup-sms"
             />
           )}
           {(step === 'savePassword' || step === 'createAccount') && (

@@ -3,8 +3,10 @@ import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Button, Checkbox } from 'antd';
 import PdfDownload from './PdfDownload.js';
 
-const Finish = ({ form, intl, username, password, tronAddr }) => {
+const Finish = ({ username, password, intl }) => {
+  const [form] = Form.useForm();
   const [dlPdf, setDlPdf] = useState(false);
+  const [hasDownloaded, setHasDownloaded] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -12,19 +14,6 @@ const Finish = ({ form, intl, username, password, tronAddr }) => {
     }, 1000);
     return () => clearTimeout(timer); // 清理定时器
   }, []);
-
-  const getBtnStatus = () => {
-    const hasDownloaded = form.getFieldValue('has_downloaded');
-    return !hasDownloaded;
-  };
-
-  const requireDownload = (rule, value, callback) => {
-    if (value) {
-      callback();
-      return;
-    }
-    callback(false);
-  };
 
   const downloadPdf = () => {
     setDlPdf(true);
@@ -40,9 +29,13 @@ const Finish = ({ form, intl, username, password, tronAddr }) => {
     window.location = url;
   };
 
+  const handleCheckboxChange = (e) => {
+    setHasDownloaded(e.target.checked);
+  };
+
   return (
     <div>
-      <Form onSubmit={handleSubmit} className="signup-form">
+      <Form form={form} onFinish={handleSubmit} className="signup-form">
         <h1>
           <FormattedMessage id="welcome_page_title" /> {username}
         </h1>
@@ -55,25 +48,26 @@ const Finish = ({ form, intl, username, password, tronAddr }) => {
         <div style={{ marginTop: '3.2px' }}>
           <FormattedMessage id="welcome_page_message_2" />
         </div>
-        <Form.Item key="has_downloaded">
-          {form.getFieldDecorator('has_downloaded', {
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({ id: 'must_download' }),
-                validator: requireDownload,
+        <Form.Item
+          name="has_downloaded"
+          valuePropName="checked"
+          initialValue={false}
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({ id: 'must_download' }),
+              validator: (_, value) => {
+                if (!value) {
+                  return Promise.reject(false);
+                }
+                return Promise.resolve();
               },
-            ],
-            valuePropName: 'checked',
-            initialValue: false,
-          })(
-            <Checkbox
-              className="signup-checkbox"
-              style={{ fontSize: '1.2rem', marginTop: '10px' }}
-            >
-              <FormattedMessage id="has_downloaded_pdf" />
-            </Checkbox>
-          )}
+            },
+          ]}
+        >
+          <Checkbox className="signup-checkbox" onChange={handleCheckboxChange}>
+            <FormattedMessage id="has_downloaded_pdf" />
+          </Checkbox>
         </Form.Item>
         <div style={{ marginTop: '3.2px' }}>
           <FormattedMessage id="welcome_page_message_3" />
@@ -83,9 +77,9 @@ const Finish = ({ form, intl, username, password, tronAddr }) => {
             className="custom-btn"
             style={{ width: '100%' }}
             type="primary"
+            htmlType="submit"
             size="large"
-            onClick={handleSubmit}
-            disabled={getBtnStatus()}
+            disabled={!hasDownloaded}
           >
             <FormattedMessage id="welcome_page_go_to_wallet" />
           </Button>
@@ -98,8 +92,6 @@ const Finish = ({ form, intl, username, password, tronAddr }) => {
         password={password}
         dlPdf={dlPdf}
         resetDlPdf={resetDlPdf}
-        tron_address={tronAddr.pubKey}
-        tron_key={tronAddr.privKey}
       />
     </div>
   );

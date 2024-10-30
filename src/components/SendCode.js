@@ -1,37 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { injectIntl } from 'react-intl';
 import { Button } from 'antd';
 
-const SendCode = ({ btnText = '', onClick, sending, checked }) => {
-  const getClassName = () => {
-    const dynamicList = {
-      sending: 'sending',
-      checked: 'checked',
-    };
-    let className = ['send-code'];
-    // sending class
-    className = addOrRemoveClass(dynamicList.sending, className, sending);
-    // checked class
-    className = addOrRemoveClass(dynamicList.checked, className, checked);
-    // return
-    return className.join(' ');
-  };
+const COUNT_SECONDS = 3;
 
-  const addOrRemoveClass = (needle, stack, condition) => {
-    const isExist = stack.indexOf(needle);
-    if (condition) {
-      if (isExist === -1) {
-        stack.push(needle);
-      }
-    } else if (isExist !== -1) {
-      stack.splice(isExist, 1); // 修正了这里的 slice 为 splice
+const SendCode = ({ btnText = '', onClick, checked }) => {
+  const [className, setClassName] = useState(['send-code']);
+  const [countdown, setCountdown] = useState(0);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    const newClassName = ['send-code'];
+    if (checked) newClassName.push('checked');
+    if (sending) newClassName.push('sending');
+    setClassName(newClassName);
+  }, [checked, sending]);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      setTimeout(() => setCountdown(countdown - 1), 1000);
+    } else {
+      setSending(false);
     }
-    return stack;
+  }, [countdown]);
+
+  const handleClick = () => {
+    if (countdown > 0) return;
+    setSending(true);
+    setCountdown(COUNT_SECONDS);
+    onClick();
   };
 
   return (
-    <Button className={getClassName()} onClick={onClick}>
-      {btnText}
+    <Button
+      className={className.join(' ')}
+      onClick={handleClick}
+      disabled={!checked}
+    >
+      {sending ? `${countdown} s` : btnText}
     </Button>
   );
 };

@@ -11,20 +11,23 @@ import getFingerprint from '../utils/fingerprint.js';
 import { accountNameIsValid, emailValid } from '../../helpers/validator.js';
 import badDomains from '../../bad-domains.js';
 import Placeholder from './Placeholder.js';
+// import { api } from '@steemit/steem-js';
 
 // TODO: Mock ReCAPTCHA for testing
 const ReCAPTCHA = () => <div />;
 
-const UserInfo = (props) => {
-  const [username, setUsername] = useState(null);
-  const [email, setEmail] = useState(null);
-  const [email_code, setEmailCode] = useState(null);
-  const [email_code_sending, setEmailCodeSending] = useState(false);
+const UserInfo = ({
+  locale,
+  intl,
+  handleSubmitUserInfo,
+  origin,
+  countryCode,
+}) => {
+  const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
   const [email_send_code_txt, setEmailSendCodeTxt] = useState('');
-  const [phone, setPhone] = useState(null);
   const [rawPhone, setRawPhone] = useState(null);
   const [prefix, setPrefix] = useState(null);
-  const [phone_code, setPhoneCode] = useState(null);
   const [phone_code_sending, setPhoneCodeSending] = useState(false);
   const [phone_send_code_txt, setPhoneSendCodeTxt] = useState('');
   const [fingerprint, setFingerprint] = useState('');
@@ -33,27 +36,26 @@ const UserInfo = (props) => {
   const [check_email, setCheckEmail] = useState(false);
   const [check_email_code, setCheckEmailCode] = useState(false);
   const [check_phone_code, setCheckPhoneCode] = useState(false);
-  const [change_locale_to, setChangeLocaleTo] = useState(props.locale);
+  const [change_locale_to, setChangeLocaleTo] = useState(locale);
   const [recaptcha_modal_visible, setRecaptchaModalVisible] = useState(false);
   const [phone_recaptcha, setPhoneRecaptcha] = useState(null);
 
   useEffect(() => {
     setFingerprint(JSON.stringify(getFingerprint()));
-    setEmailSendCodeTxt(props.intl.formatMessage({ id: 'send_code' }));
-    setPhoneSendCodeTxt(props.intl.formatMessage({ id: 'send_code' }));
+    setEmailSendCodeTxt(intl.formatMessage({ id: 'send_code' }));
+    setPhoneSendCodeTxt(intl.formatMessage({ id: 'send_code' }));
   }, []);
 
   useEffect(() => {
-    if (props.locale !== change_locale_to) {
-      // ... 更新状态逻辑 ...
+    if (locale !== change_locale_to) {
       clearGoogleRecaptcha();
     }
-  }, [props.locale]);
+  }, [locale]);
 
   const getBtnStatus = () => {
     const recaptcha =
       window.config.RECAPTCHA_SWITCH !== 'OFF'
-        ? props.form.getFieldValue('recaptcha')
+        ? form.getFieldValue('recaptcha')
         : true;
     return !(
       check_username &&
@@ -64,10 +66,6 @@ const UserInfo = (props) => {
       !!recaptcha
     );
   };
-
-  const getPhoneMasks = () => ({
-    cn: '... .... ....',
-  });
 
   const clearGoogleRecaptcha = () => {
     // remove google recaptcha
@@ -85,175 +83,147 @@ const UserInfo = (props) => {
     delete window.onloadcallback;
   };
 
-  const validateAccountNameIntl = (rule, value, callback) => {
-    try {
-      accountNameIsValid(value);
-      setCheckUsername(true);
-    } catch (e) {
-      setCheckUsername(false);
-      callback(props.intl.formatMessage({ id: e.message }));
-    }
-    callback();
-  };
-  const validateEmail = (rule, value, callback) => {
+  const validateEmail = (_, value) => {
     if (!value) {
       setCheckEmail(false);
-      return;
+      return Promise.reject(intl.formatMessage({ id: 'error_email_required' }));
+    }
+    const [email, domain] = value.split('@');
+    if (!email || !domain) {
+      setCheckEmail(false);
+      return Promise.reject(intl.formatMessage({ id: 'error_email_invalid' }));
+    }
+    if (badDomains.includes(domain)) {
+      setCheckEmail(false);
+      return Promise.reject(
+        intl.formatMessage({ id: 'error_api_domain_blacklisted' })
+      );
     }
     try {
       emailValid(value);
-      setCheckEmail(true);
     } catch (e) {
       setCheckEmail(false);
-      callback(props.intl.formatMessage({ id: e.message }));
+      return Promise.reject(intl.formatMessage({ id: e.message }));
     }
-    callback();
+    setCheckEmail(true);
+    return Promise.resolve();
   };
 
-  const validateEmailDomain = (rule, value, callback) => {
-    if (value) {
-      const [email, domain] = value.split('@'); // eslint-disable-line no-unused-vars
-      if (domain && badDomains.includes(domain)) {
-        setCheckEmail(true);
-        // callback(
-        //     'This domain name is blacklisted, please provide another email'
-        // );
-        callback();
-      } else {
-        if (domain) {
-          setCheckEmail(true);
-        }
-        callback();
-      }
-    } else {
-      setCheckEmail(false);
-      callback();
+  const validateUsername = (_, value) => {
+    if (!value) {
+      setCheckUsername(false);
+      return Promise.reject(
+        intl.formatMessage({ id: 'error_username_required' })
+      );
     }
-  };
-
-  const validateUsername = (rule, value, callback) => {
-    if (value) {
+    try {
+      accountNameIsValid(value);
+    } catch (e) {
+      setCheckUsername(false);
+      return Promise.reject(intl.formatMessage({ id: e.message }));
+    }
+    return new Promise((resolve, reject) => {
       if (window.usernameTimeout) {
         window.clearTimeout(window.usernameTimeout);
       }
-      const { intl } = props;
       window.usernameTimeout = setTimeout(() => {
         apiCall('/api/check_username', { username: value })
           .then(() => {
-            setUsername(value);
             setCheckUsername(true);
-            callback();
+            resolve();
           })
           .catch((error) => {
             setCheckUsername(false);
-            callback(intl.formatMessage({ id: error.type }));
+            reject(intl.formatMessage({ id: error.type }));
           });
       }, 500);
-    } else {
-      setCheckUsername(false);
-      callback();
-    }
-  };
-
-  const validateEmailCode = (rule, value, callback) => {
-    if (value) {
-      const { intl, form } = props;
-      const email = form.getFieldValue('email');
-      apiCall('/api/check_email_code', { code: value, email })
-        .then(() => {
-          setCheckEmailCode(true);
-          callback();
-        })
-        .catch((error) => {
-          setCheckEmailCode(false);
-          callback(intl.formatMessage({ id: error.type }));
-        });
-    } else {
-      setCheckEmailCode(false);
-      callback();
-    }
-  };
-
-  const validatePhoneRequired = (rule, value, callback) => {
-    const { intl } = props;
-    setTimeout(() => {
-      if (rawPhone) {
-        callback();
-      } else {
-        callback(intl.formatMessage({ id: 'error_api_phone_required' }));
-      }
     });
   };
 
-  const validatePhoneCode = (rule, value, callback) => {
+  const validateEmailCode = (_, value) => {
+    if (!value) {
+      setCheckEmailCode(false);
+      return Promise.reject(
+        intl.formatMessage({ id: 'error_api_code_required' })
+      );
+    }
+    const email = form.getFieldValue('email');
+    return new Promise((resolve, reject) => {
+      apiCall('/api/check_email_code', { code: value, email })
+        .then(() => {
+          setCheckEmailCode(true);
+          resolve();
+        })
+        .catch((error) => {
+          setCheckEmailCode(false);
+          reject(intl.formatMessage({ id: error.type }));
+        });
+    });
+  };
+
+  const validatePhoneRequired = (_, value) => {
+    if (rawPhone) {
+      return Promise.resolve();
+    } else {
+      return Promise.reject(
+        intl.formatMessage({ id: 'error_api_phone_required' })
+      );
+    }
+  };
+
+  const validatePhoneCode = (_, value) => {
     if (value) {
-      const { intl, form } = props;
       if (value.length !== 6) {
         setCheckPhoneCode(false);
-        callback(intl.formatMessage({ id: 'error_api_phone_code_invalid' }));
-        return;
+        return Promise.reject(
+          intl.formatMessage({ id: 'error_api_phone_code_invalid' })
+        );
       }
       const phoneNumber = `+${form.getFieldValue('phone')}`;
       apiCall('/api/check_phone_code', { code: value, phoneNumber })
         .then(() => {
           setCheckPhoneCode(true);
-          callback();
+          return Promise.resolve();
         })
         .catch((error) => {
           setCheckPhoneCode(false);
-          callback(intl.formatMessage({ id: error.type }));
+          return Promise.reject(intl.formatMessage({ id: error.type }));
         });
     } else {
       setCheckPhoneCode(false);
-      callback();
+      return Promise.reject(
+        intl.formatMessage({ id: 'error_api_code_required' })
+      );
     }
   };
 
   const SendEmailCode = (email) => {
-    if (email_code_sending) return;
-    const { intl, locale } = props;
-    setEmailCodeSending(true);
-    apiCall('/api/request_email_new', {
+    if (!email) return;
+    // clear input error
+    form.setFields([
+      {
+        name: 'email',
+        errors: [],
+      },
+    ]);
+    // send email code
+    apiCall('/api/request_email', {
       email,
       locale,
     })
       .then(() => {
-        props.form.setFields({
-          email: {
-            value: email,
-          },
+        messageApi.open({
+          type: 'success',
+          content: intl.formatMessage({ id: 'success_email_code_sent' }),
         });
-        window.email_code_count_seconds = 60;
-        window.email_code_interval = setInterval(() => {
-          if (window.email_code_count_seconds === 0) {
-            clearInterval(window.email_code_interval);
-            setEmailSendCodeTxt(
-              intl.formatMessage({
-                id: 'send_code',
-              })
-            );
-            setEmailCodeSending(false);
-            return;
-          }
-          window.email_code_count_seconds -= 1;
-          setEmailSendCodeTxt(`${window.email_code_count_seconds} s`);
-        }, 1000);
       })
       .catch((error) => {
-        props.form.setFields({
-          email: {
-            value: email,
-            errors: [new Error(intl.formatMessage({ id: error.type }))],
+        form.setFields([
+          {
+            name: 'email',
+            errors: [intl.formatMessage({ id: error.type })],
           },
-        });
-        window.email_code_count_seconds = 0;
-        clearInterval(window.email_code_interval);
-        setEmailSendCodeTxt(
-          intl.formatMessage({
-            id: 'send_code',
-          })
-        );
-        setEmailCodeSending(false);
+        ]);
       });
   };
 
@@ -269,59 +239,34 @@ const UserInfo = (props) => {
 
   const SendPhoneCode = () => {
     if (phone_code_sending) return;
-    const { intl, locale } = props;
     setPhoneCodeSending(true);
-    apiCall('/api/request_sms_new', {
+    apiCall('/api/request_sms', {
       phoneNumber: rawPhone,
       prefix,
       locale,
       phone_recaptcha,
     })
       .then(() => {
-        props.form.setFields({
-          phone: {
-            value: phone,
-          },
+        messageApi.open({
+          type: 'success',
+          content: intl.formatMessage({ id: 'success_phone_code_sent' }),
         });
-        window.phone_code_count_seconds = 60;
-        window.phone_code_interval = setInterval(() => {
-          if (window.phone_code_count_seconds === 0) {
-            clearInterval(window.phone_code_interval);
-            setPhoneSendCodeTxt(
-              intl.formatMessage({
-                id: 'send_code',
-              })
-            );
-            setPhoneCodeSending(false);
-            return;
-          }
-          window.phone_code_count_seconds -= 1;
-          setPhoneSendCodeTxt(`${window.phone_code_count_seconds} s`);
-        }, 1000);
+        setPhoneCodeSending(false);
       })
       .catch((error) => {
-        props.form.setFields({
-          phone: {
-            value: phone,
-            errors: [new Error(intl.formatMessage({ id: error.type }))],
+        form.setFields([
+          {
+            name: 'phone',
+            errors: [intl.formatMessage({ id: error.type })],
           },
-        });
-        window.phone_code_count_seconds = 0;
-        clearInterval(window.phone_code_interval);
-        setPhoneSendCodeTxt(
-          intl.formatMessage({
-            id: 'send_code',
-          })
-        );
+        ]);
         setPhoneCodeSending(false);
       });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleFinish = () => {
     if (pending_create_user) return;
     setPendingCreateUser(true);
-    const { form, intl, handleSubmitUserInfo } = props;
     const data = {
       recaptcha:
         window.config.RECAPTCHA_SITE_KEY !== ''
@@ -333,7 +278,7 @@ const UserInfo = (props) => {
       phoneCode: form.getFieldValue('phone_code'),
       username: form.getFieldValue('username'),
     };
-    apiCall('/api/create_user_new', data)
+    apiCall('/api/create_user', data)
       .then((result) => {
         setPendingCreateUser(false);
         data.token = result.token;
@@ -349,48 +294,44 @@ const UserInfo = (props) => {
     setRecaptchaModalVisible(false);
   };
 
-  const {
-    form: { getFieldDecorator, getFieldValue },
-    intl,
-    origin,
-    countryCode,
-  } = props;
-
   return (
     <div className="user-info-wrap">
-      <Form onSubmit={handleSubmit} className="signup-form">
+      {contextHolder}
+      <Form
+        form={form}
+        onFinish={handleFinish}
+        className="signup-form"
+        autoComplete="off"
+      >
         <h2>
           <FormattedMessage id="username" />
         </h2>
         <p className="text">
           <FormattedMessage id="username_know_steemit" />
         </p>
-        <Form.Item hasFeedback>
-          {getFieldDecorator('username', {
-            normalize: this.normalizeUsername,
-            validateFirst: true,
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'error_username_required',
-                }),
-              },
-              { validator: validateAccountNameIntl },
-              { validator: validateUsername },
-            ],
-          })(
-            <Input
-              prefix={<UserOutlined />}
-              placeholder={intl.formatMessage({
-                id: 'username',
-              })}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck="false"
-            />
-          )}
+        <Form.Item
+          name="username"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({
+                id: 'error_username_required',
+              }),
+              validator: validateUsername,
+            },
+          ]}
+        >
+          <Input
+            size="large"
+            prefix={<UserOutlined />}
+            placeholder={intl.formatMessage({
+              id: 'username',
+            })}
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck="false"
+          />
         </Form.Item>
         <Placeholder height="14px" />
         <h2>
@@ -399,72 +340,59 @@ const UserInfo = (props) => {
         <p className="text">
           <FormattedMessage id="email_description" />
         </p>
-        <Form.Item hasFeedback>
-          {getFieldDecorator('email', {
-            validateFirst: true,
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'error_email_required',
-                }),
-              },
-              {
-                validator: validateEmailDomain,
-                message: intl.formatMessage({
-                  id: 'error_api_domain_blacklisted',
-                }),
-              },
-              { validator: validateEmail },
-            ],
-          })(
-            <Input
-              prefix={<MailOutlined />}
-              placeholder={intl.formatMessage({
-                id: 'email',
-              })}
-              disabled={email_code_sending}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck="false"
-            />
-          )}
+        <Form.Item
+          name="email"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({
+                id: 'error_email_required',
+              }),
+              validator: validateEmail,
+            },
+          ]}
+        >
+          <Input
+            size="large"
+            prefix={<MailOutlined />}
+            placeholder={intl.formatMessage({
+              id: 'email',
+            })}
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck="false"
+          />
         </Form.Item>
-        <Form.Item hasFeedback>
-          {getFieldDecorator('email_code', {
-            validateFirst: true,
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'error_api_code_required',
-                }),
-              },
-              {
-                validator: validateEmailCode,
-              },
-            ],
-          })(
-            <Input
-              className="feedback"
-              placeholder={intl.formatMessage({
-                id: 'enter_confirmation_code',
-              })}
-              addonAfter={
-                <SendCode
-                  checked={check_email}
-                  sending={email_code_sending}
-                  btnText={email_send_code_txt}
-                  onClick={() => SendEmailCode(getFieldValue('email'))}
-                />
-              }
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck="false"
-            />
-          )}
+        <Form.Item
+          name="email_code"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({
+                id: 'error_api_code_required',
+              }),
+              validator: validateEmailCode,
+            },
+          ]}
+        >
+          <Input
+            size="large"
+            placeholder={intl.formatMessage({
+              id: 'enter_confirmation_code',
+            })}
+            addonAfter={
+              <SendCode
+                checked={check_email}
+                btnText={email_send_code_txt}
+                onClick={() => SendEmailCode(form.getFieldValue('email'))}
+              />
+            }
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck="false"
+          />
         </Form.Item>
         <Placeholder height="14px" />
         <h2>
@@ -473,130 +401,118 @@ const UserInfo = (props) => {
         <p className="text">
           <FormattedMessage id="phone_description" />
         </p>
-        <Form.Item hasFeedback>
-          {getFieldDecorator('phone', {
-            validateFirst: true,
-            rules: [
-              {
-                validator: validatePhoneRequired,
-                message: intl.formatMessage({
-                  id: 'error_phone_required',
-                }),
-              },
-            ],
-          })(
-            <PhoneInput
-              country={countryCode === null ? 'us' : countryCode.toLowerCase()}
-              placeholder={intl.formatMessage({
-                id: 'enter_phone',
-              })}
-              masks={getPhoneMasks()}
-              disabled={phone_code_sending}
-              onChange={(phone, data) => {
-                const prefix = data.dialCode;
-                const tmpCountryCode = data.countryCode;
-                setPhone(phone);
-                setRawPhone(phone.slice(data.dialCode.length));
-                setPrefix(`${prefix}_${tmpCountryCode}`);
-              }}
-            />
-          )}
+        <Form.Item
+          // name="phone"
+          hasFeedback
+          rules={[
+            {
+              validator: validatePhoneRequired,
+              message: intl.formatMessage({
+                id: 'error_phone_required',
+              }),
+            },
+          ]}
+        >
+          {/*<PhoneInput
+            country={countryCode === null ? 'us' : countryCode.toLowerCase()}
+            placeholder={intl.formatMessage({
+              id: 'enter_phone',
+            })}
+            masks={getPhoneMasks()}
+            disabled={phone_code_sending}
+            onChange={(phone, data) => {
+              const prefix = data.dialCode;
+              const tmpCountryCode = data.countryCode;
+              setPhone(phone);
+              setRawPhone(phone.slice(data.dialCode.length));
+              setPrefix(`${prefix}_${tmpCountryCode}`);
+            }}
+          />*/}
         </Form.Item>
-        <Form.Item hasFeedback>
-          {getFieldDecorator('phone_code', {
-            normalize: this.normalizeUsername,
-            validateFirst: true,
-            rules: [
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'error_api_code_required',
-                }),
-              },
-              {
-                validator: validatePhoneCode,
-              },
-            ],
-          })(
-            <Input
-              className="feedback"
-              placeholder={intl.formatMessage({
-                id: 'enter_confirmation_code',
-              })}
-              addonAfter={
-                <SendCode
-                  checked={!!rawPhone}
-                  sending={phone_code_sending}
-                  btnText={phone_send_code_txt}
-                  onClick={() => SendPhoneCodeWrapper()}
-                />
-              }
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck="false"
-            />
-          )}
+        <Form.Item
+          name="phone_code"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: intl.formatMessage({
+                id: 'error_api_code_required',
+              }),
+            },
+            {
+              validator: validatePhoneCode,
+            },
+          ]}
+        >
+          <Input
+            size="large"
+            placeholder={intl.formatMessage({
+              id: 'enter_confirmation_code',
+            })}
+            addonAfter={
+              <SendCode
+                checked={!!rawPhone}
+                btnText={phone_send_code_txt}
+                onClick={() => SendPhoneCodeWrapper()}
+              />
+            }
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck="false"
+          />
         </Form.Item>
         <Placeholder height="14px" />
         {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
           <Form.Item>
             <div className="recaptcha-wrapper">
               <div className="recaptcha">
-                {getFieldDecorator('recaptcha', {
-                  rules: [{}],
-                  validateTrigger: '',
-                })(
-                  <ReCAPTCHA
-                    ref={(el) => {
-                      this.captcha = el;
-                    }}
-                    sitekey={window.config.RECAPTCHA_SITE_KEY}
-                    type="image"
-                    size="normal"
-                    hl={change_locale_to === 'zh' ? 'zh_CN' : 'en'}
-                    onChange={() => {}}
-                  />
-                )}
-              </div>
-            </div>
-          </Form.Item>
-        )}
-        {origin === 'steemit' && (
-          <Form.Item>
-            <div className="submit-button-wrapper">
-              <div className="submit-button">
-                <Button
-                  className="custom-btn"
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                  loading={pending_create_user}
-                  disabled={getBtnStatus()}
-                >
-                  <FormattedMessage id="continue" />
-                </Button>
-              </div>
-              <div className="signin_redirect">
-                <FormattedMessage
-                  id="username_steemit_login"
-                  values={{
-                    link: (
-                      <a
-                        href="https://steemit.com/login.html"
-                        style={{
-                          textDecoration: 'underline',
-                        }}
-                      >
-                        <FormattedMessage id="sign_in" />
-                      </a>
-                    ),
+                <ReCAPTCHA
+                  ref={(el) => {
+                    this.captcha = el;
                   }}
+                  sitekey={window.config.RECAPTCHA_SITE_KEY}
+                  type="image"
+                  size="normal"
+                  hl={change_locale_to === 'zh' ? 'zh_CN' : 'en'}
+                  onChange={() => {}}
                 />
               </div>
             </div>
           </Form.Item>
         )}
+        <Form.Item>
+          <div className="submit-button-wrapper">
+            <div className="submit-button">
+              <Button
+                className="custom-btn"
+                type="primary"
+                htmlType="submit"
+                size="large"
+                loading={pending_create_user}
+                disabled={getBtnStatus()}
+              >
+                <FormattedMessage id="continue" />
+              </Button>
+            </div>
+            <div className="signin_redirect">
+              <FormattedMessage
+                id="username_steemit_login"
+                values={{
+                  link: (
+                    <a
+                      href="https://steemit.com/login.html"
+                      style={{
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      <FormattedMessage id="sign_in" />
+                    </a>
+                  ),
+                }}
+              />
+            </div>
+          </div>
+        </Form.Item>
       </Form>
       <Modal
         title={null}

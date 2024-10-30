@@ -1,6 +1,4 @@
-@import '~antd/dist/antd.less';
-@import '../styles/screen-sizes';
-@import '../styles/custom';
+// @import '../styles/common.less';
 
 .signup-bg-left {
   position: fixed;
@@ -201,61 +199,9 @@
         display: flex;
         align-items: center;
         font-size: 1rem;
-        .ant-checkbox-input {
-          width: 1.125rem;
-          height: 1.125rem;
-          border-radius: 4px;
-        }
-        .ant-checkbox-inner {
-          width: 1.125rem;
-          height: 1.125rem;
-          border: 0;
-          background: rgba(47, 47, 47, 0.1);
-          &:after {
-            left: 6px;
-            top: 2px;
-            width: 6px;
-            height: 10px;
-          }
-        }
-        .ant-checkbox-checked {
-          .ant-checkbox-inner {
-            background-color: #1720c9;
-          }
-        }
         .doc-link {
           text-decoration: underline;
           padding-left: 10px;
-        }
-      }
-      .input-password-textarea {
-        background: rgba(47, 47, 47, 0.04);
-        font-size: 1rem;
-        resize: none;
-        border: 2px solid #fff;
-        background: rgba(47, 47, 47, 0.04);
-        border-radius: 10px;
-      }
-      .input-password-textarea:focus {
-        background-color: #fff;
-        border: 2px solid rgba(23, 32, 201, 0.4);
-        border-radius: 10px;
-        box-shadow: none;
-      }
-      .has-success {
-        .input-password-textarea {
-          background: rgba(23, 32, 201, 0.06);
-          border: 2px solid #fff;
-        }
-        .input-password-textarea:focus {
-          background-color: #fff;
-          border: 2px solid rgba(23, 32, 201, 0.4);
-        }
-      }
-      .has-error {
-        .input-password-textarea {
-          background: #ffffff;
-          border: 2px solid rgba(243, 89, 85, 0.6);
         }
       }
       .create-account:active {
@@ -282,28 +228,11 @@
           margin-top: 6px;
           margin-bottom: 0px;
         }
-        .ant-input {
-          border: 2px solid #fff;
-          background: rgba(47, 47, 47, 0.04);
-          border-radius: 10px;
-        }
-        .ant-input-affix-wrapper .ant-input:focus {
-          background-color: #fff;
-          border: 2px solid rgba(23, 32, 201, 0.4);
-          border-radius: 10px;
-          box-shadow: none;
-        }
         .has-feedback.has-success {
           .ant-input {
             border-radius: 10px;
             background: rgba(23, 32, 201, 0.06);
             border: 2px solid #fff;
-          }
-          .ant-input:focus {
-            background-color: #fff;
-            border: 2px solid rgba(23, 32, 201, 0.4);
-            border-radius: 10px;
-            box-shadow: none;
           }
         }
         .has-feedback.has-error {
@@ -314,34 +243,12 @@
           }
         }
         .ant-input-group-wrapper {
-          .ant-input {
-            border-right: 0;
-            background: rgba(47, 47, 47, 0.04);
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-          }
           .ant-input + span {
             border-left: 0;
             border-right: 2px solid #fff;
             background: rgba(47, 47, 47, 0.04);
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
-          }
-          .ant-input:focus {
-            background-color: #fff;
-            border: 2px solid rgba(23, 32, 201, 0.4);
-            border-right: 0;
-            border-top-left-radius: 10px;
-            border-bottom-left-radius: 10px;
-            box-shadow: none;
-          }
-          .ant-input:focus + span {
-            background-color: #fff;
-            border: 2px solid rgba(23, 32, 201, 0.4);
-            border-left: 0;
-            border-top-right-radius: 10px;
-            border-bottom-right-radius: 10px;
-            box-shadow: none;
           }
         }
         .has-success {
@@ -357,10 +264,6 @@
               background: rgba(23, 32, 201, 0.06);
               border-top-left-radius: 0;
               border-bottom-left-radius: 0;
-            }
-            .ant-input:focus,
-            .ant-input:focus + span {
-              background-color: #fff;
             }
           }
         }
@@ -404,16 +307,6 @@
           color: #ababab;
           letter-spacing: 0;
         }
-        .ant-input-group-addon {
-          background-color: rgba(47, 47, 47, 0.04);
-          border-top: 2px solid #fff;
-          border-right: 2px solid #fff;
-          border-bottom: 2px solid #fff;
-          border-right: 0;
-          border-top-right-radius: 10px;
-          border-bottom-right-radius: 10px;
-          padding: 0.75rem;
-        }
         .react-tel-input {
           font-family:
             Whitney,
@@ -440,12 +333,6 @@
             width: 100%;
             padding: 0.875rem 14px 0.875rem 62px;
           }
-          .form-control:focus,
-          .form-control.open {
-            background-color: #fff;
-            border: 2px solid rgba(23, 32, 201, 0.4);
-            box-shadow: none;
-          }
           .flag-dropdown {
             .flag {
               .arrow {
@@ -460,12 +347,6 @@
             .form-control {
               background: rgba(23, 32, 201, 0.06);
               border: 2px solid #fff;
-            }
-            .form-control:focus,
-            .form-control.open {
-              background-color: #fff;
-              border: 2px solid rgba(23, 32, 201, 0.4);
-              box-shadow: none;
             }
           }
         }
@@ -630,10 +511,6 @@
         line-height: 1.5rem;
         font-weight: normal;
       }
-    }
-
-    .ant-form-item-control {
-      text-align: center;
     }
 
     button.back {

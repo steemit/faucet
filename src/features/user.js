@@ -15,7 +15,11 @@ const initialState = {
     referrerMatch && referrerMatch.length === 2 ? referrerMatch[1] : 'steemit',
   token: '',
   completed: false,
-  step: 'signupOptions',
+  // step: 'signupOptions',
+  step: 'signupInfo',
+  // step: 'savePassword',
+  // step: 'createAccount',
+  // step: 'finish',
   trackingId: generateTrackingId(),
 };
 

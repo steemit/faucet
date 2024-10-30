@@ -1,13 +1,13 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import LocaleWrapper from './containers/LocaleWrapper.js';
+import BaseWrapper from './containers/BaseWrapper.js';
 import IndexWrapper from './containers/IndexWrapper.js';
 
 const router = createBrowserRouter([
   {
     id: 'root',
     path: '/',
-    Component: LocaleWrapper,
+    Component: BaseWrapper,
     children: [
       {
         index: true,
