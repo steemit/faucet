@@ -81,7 +81,7 @@ export async function sendSMSCode(to) {
  */
 export async function authSMSCode(to, code) {
   if (DEBUG_MODE) {
-    logger.warn('Send SMS to %s with code: %s', to, code);
+    logger.warn('Auth SMS of %s with code: %s', to, code);
     return true;
   }
   let result;

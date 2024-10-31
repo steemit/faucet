@@ -136,12 +136,12 @@ export async function findLastSendSmsByCountryNumber(
   countryNumber,
   phoneNumber
 ) {
-  let where = `where action = 'send_sms' and metadata->'$.countryNumber' = :countryNumber`;
+  let where = `where action = 'send_sms' and JSON_EXTRACT(metadata, '$.countryNumber') = :countryNumber`;
   const replacements = {
     countryNumber,
   };
   if (phoneNumber) {
-    where = `${where} and metadata->'$.phoneNumber' != :phoneNumber`;
+    where = `${where} and JSON_EXTRACT(metadata, '$.phoneNumber') != :phoneNumber`;
     replacements.phoneNumber = phoneNumber;
   }
   const actions = await sequelize.query(
@@ -158,7 +158,7 @@ export async function findLastSendSmsByCountryNumber(
  * find number of try_number actions in last X hours with same country number
  */
 export async function countTryNumber(countryNumber, hours) {
-  let where = `where action = 'try_number' and metadata->'$.countryNumber' = :countryNumber`;
+  let where = `where action = 'try_number' and JSON_EXTRACT(metadata, '$.countryNumber') = :countryNumber`;
   where = `${where} and now() - created_at <= :hours * 3600`;
   const replacements = {
     countryNumber,

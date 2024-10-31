@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken';
-import GLPN from 'google-libphonenumber';
 import mail from '../helpers/mail.js';
 import { getLogChild } from '../helpers/logger.js';
 import services from '../helpers/services.js';
 import database from '../helpers/database.js';
 import ApiError from '../helpers/errortypes.js';
 import badDomains from '../helpers/badDomains.js';
+import { parsePhoneNumber } from 'react-phone-number-input';
 import {
   accountNameIsValid,
   normalizeEmail,
@@ -13,8 +13,6 @@ import {
 } from '../helpers/validator.js';
 import { getEnv, generateTrackingId, generateCode } from '../helpers/common.js';
 
-const PNF = GLPN.PhoneNumberFormat;
-const phoneUtil = GLPN.PhoneNumberUtil.getInstance();
 const logger = getLogChild({ module: 'api_handlers' });
 
 /**
@@ -310,11 +308,33 @@ async function handleRequestEmailCode(req) {
  * compare to old request sms func
  */
 async function handleRequestSms(req) {
+  /*
+    Parse Phone Number 
+      eg. +1 234 567 8910
+      parsedPhoneNumber: {
+        countryCallingCode: '1',
+        country: 'US',
+        nationalNumber: '2345678910',
+        number: '+12345678910',
+      }
+  */
+  const parsedPhoneNumber = parsePhoneNumber(req.body?.phoneNumber);
+  if (!parsedPhoneNumber) {
+    throw new ApiError({
+      type: 'error_phone_invalid',
+      field: 'phoneNumber',
+    });
+  }
+  // like 1_us
+  const prefix =
+    `${parsedPhoneNumber.countryCallingCode}_${parsedPhoneNumber.country}`.toLowerCase();
+  // record sms tracker
   services.recordSmsTracker({
     sendType: 'get_in',
-    countryCode: req.body.prefix,
-    phoneNumber: req.body.phoneNumber,
+    countryCode: prefix,
+    phoneNumber: parsedPhoneNumber.nationalNumber,
   });
+  // check pending claimed accounts
   const isEnoughPendingClaimedAccounts =
     await services.getPendingClaimedAccountsAsync();
   if (isEnoughPendingClaimedAccounts === false) {
@@ -327,6 +347,7 @@ async function handleRequestSms(req) {
       type: 'signup_free_tip3',
     });
   }
+  // check recaptcha
   if (getEnv('RECAPTCHA_SWITCH') !== 'OFF') {
     const recaptcha = req.body.phone_recaptcha;
     if (!recaptcha) {
@@ -346,61 +367,18 @@ async function handleRequestSms(req) {
     }
   }
 
-  if (!req.body.phoneNumber) {
-    throw new ApiError({
-      type: 'error_api_phone_required',
-      field: 'phoneNumber',
-    });
-  }
-  if (!req.body.prefix) {
-    throw new ApiError({
-      type: 'error_api_country_code_required',
-      field: 'phoneNumber',
-    });
-  }
-
-  const countryCode = req.body.prefix.split('_')[1];
-  const countryNumber = req.body.prefix.split('_')[0];
-  if (!countryCode) {
-    throw new ApiError({
-      field: 'phoneNumber',
-      type: 'error_api_prefix_invalid',
-    });
-  }
-  if (!countryNumber) {
-    throw new ApiError({
-      field: 'phoneNumber',
-      type: 'error_api_prefix_invalid',
-    });
-  }
-
-  let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
   const countryNumberList = getEnv('COUNTRY_NUMBER')
     ? getEnv('COUNTRY_NUMBER').split(',')
     : '';
-  if (countryNumberList.indexOf(countryNumber) !== -1) {
+  if (countryNumberList.indexOf(parsedPhoneNumber.countryCallingCode) !== -1) {
     req.log.warn({ phoneNumber: req.body }, 'sms_phone_number_hit_block_list');
-    return { success: true, phoneNumber, ref: '' };
-  }
-
-  const isValid = phoneUtil.isValidNumber(phoneNumber);
-
-  services.recordSmsTracker({
-    sendType: 'fe_condition_fixed',
-    countryCode: req.body.prefix,
-    phoneNumber: req.body.phoneNumber,
-  });
-
-  if (!isValid) {
     throw new ApiError({
       field: 'phoneNumber',
-      type: 'error_phone_invalid',
+      type: 'error_api_country_blocked',
     });
   }
 
-  phoneNumber = phoneUtil.format(phoneNumber, PNF.E164);
-
-  const phoneExists = await database.phoneIsInUse(phoneNumber);
+  const phoneExists = await database.phoneIsInUse(parsedPhoneNumber.number);
 
   if (phoneExists) {
     throw new ApiError({
@@ -410,7 +388,7 @@ async function handleRequestSms(req) {
   }
 
   const phoneRegistered = await services.conveyorCall('is_phone_registered', [
-    phoneNumber,
+    parsedPhoneNumber.number,
   ]);
 
   if (phoneRegistered) {
@@ -424,13 +402,15 @@ async function handleRequestSms(req) {
     action: 'try_number',
     ip: req.ip,
     metadata: {
-      phoneNumber,
-      countryNumber,
+      phoneNumber: parsedPhoneNumber.number,
+      countryNumber: parsedPhoneNumber.countryCallingCode,
     },
   });
 
   try {
-    await services.validatePhone(phoneNumber);
+    // check phone valid by twilio
+    // attention: this may take some money
+    await services.validatePhone(parsedPhoneNumber.number);
   } catch (cause) {
     throw new ApiError({
       field: 'phoneNumber',
@@ -446,7 +426,7 @@ async function handleRequestSms(req) {
 
   const existingRecord = await database.findPhoneRecord({
     where: {
-      phone_number: phoneNumber,
+      phone_number: parsedPhoneNumber.number,
     },
   });
 
@@ -455,7 +435,7 @@ async function handleRequestSms(req) {
     record.phone_code = null;
   } else {
     const newPhoneRecord = await database.createPhoneRecord({
-      phone_number: phoneNumber,
+      phone_number: parsedPhoneNumber.number,
       last_attempt_verify_phone_number: new Date(1588291200000),
       phone_code: null,
       phone_code_attempts: 0,
@@ -502,8 +482,8 @@ async function handleRequestSms(req) {
   }
 
   const hitNumbers = await database.findLastSendSmsByCountryNumber(
-    countryNumber,
-    phoneNumber
+    parsedPhoneNumber.countryCallingCode,
+    parsedPhoneNumber.number
   );
   let lastPhoneCodeRecord = null;
   // high frequency policy for all countries (hfp)
@@ -523,11 +503,14 @@ async function handleRequestSms(req) {
         lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
         minusOneMinute
       ) {
-        req.log.warn({ phoneNumber }, 'hfp:lower_than_one_minute');
+        req.log.warn(
+          { phoneNumber: parsedPhoneNumber.number },
+          'hfp:lower_than_one_minute'
+        );
         services.recordSmsTracker({
           sendType: 'hit_hfp_1',
-          countryCode: req.body.prefix,
-          phoneNumber: req.body.phoneNumber,
+          countryCode: parsedPhoneNumber.countryCallingCode,
+          phoneNumber: parsedPhoneNumber.number,
         });
         throw new ApiError({
           field: 'phone',
@@ -535,7 +518,7 @@ async function handleRequestSms(req) {
         });
       }
       const count = await database.countTryNumber(
-        countryNumber,
+        parsedPhoneNumber.countryCallingCode,
         highFrequencyRange
       );
       if (
@@ -543,11 +526,14 @@ async function handleRequestSms(req) {
         lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
           minusOneHour
       ) {
-        req.log.warn({ phoneNumber }, 'hfp:lower_than_one_hour');
+        req.log.warn(
+          { phoneNumber: parsedPhoneNumber.number },
+          'hfp:lower_than_one_hour'
+        );
         services.recordSmsTracker({
           sendType: 'hit_hfp_2',
-          countryCode: req.body.prefix,
-          phoneNumber: req.body.phoneNumber,
+          countryCode: parsedPhoneNumber.countryCallingCode,
+          phoneNumber: parsedPhoneNumber.number,
         });
         throw new ApiError({
           field: 'phone',
@@ -561,7 +547,11 @@ async function handleRequestSms(req) {
   const delaySendBlockCountryNumbers = getEnv('DELAY_SEND_SMS_COUNTRY_NUMBER')
     ? getEnv('DELAY_SEND_SMS_COUNTRY_NUMBER').split(',')
     : '';
-  if (delaySendBlockCountryNumbers.indexOf(countryNumber) !== -1) {
+  if (
+    delaySendBlockCountryNumbers.indexOf(
+      parsedPhoneNumber.countryCallingCode
+    ) !== -1
+  ) {
     const delaySendTimeout = getEnv('DELAY_SEND_SMS_TIMEOUT')
       ? parseInt(getEnv('DELAY_SEND_SMS_TIMEOUT').split(','), 10) * 1000
       : 3600 * 1000;
@@ -570,13 +560,13 @@ async function handleRequestSms(req) {
       // if sending interval time lower than delaySendTimeout, throw err
       if (now - tempNumber.created_at.getTime() <= delaySendTimeout) {
         req.log.warn(
-          { phoneNumber },
+          { phoneNumber: parsedPhoneNumber.number },
           'delay sending code, lower than DELAY_SEND_SMS_TIMEOUT'
         );
         services.recordSmsTracker({
           sendType: 'hit_delay_sending_1',
-          countryCode: req.body.prefix,
-          phoneNumber: req.body.phoneNumber,
+          countryCode: parsedPhoneNumber.countryCallingCode,
+          phoneNumber: parsedPhoneNumber.number,
         });
         throw new ApiError({
           field: 'phone',
@@ -599,13 +589,13 @@ async function handleRequestSms(req) {
           delaySendTimeoutNotRegSuccess
       ) {
         req.log.warn(
-          { phoneNumber },
+          { phoneNumber: parsedPhoneNumber.number },
           'delay sending code when last same country number does not register success'
         );
         services.recordSmsTracker({
           sendType: 'hit_delay_sending_2',
-          countryCode: req.body.prefix,
-          phoneNumber: req.body.phoneNumber,
+          countryCode: parsedPhoneNumber.countryCallingCode,
+          phoneNumber: parsedPhoneNumber.number,
         });
         throw new ApiError({
           field: 'phone',
@@ -619,14 +609,14 @@ async function handleRequestSms(req) {
     action: 'send_sms',
     ip: req.ip,
     metadata: {
-      phoneNumber,
-      countryNumber,
+      phoneNumber: parsedPhoneNumber.number,
+      countryNumber: parsedPhoneNumber.countryCallingCode,
     },
   });
   services.recordSmsTracker({
     sendType: 'before_send_sms',
-    countryCode: req.body.prefix,
-    phoneNumber: req.body.phoneNumber,
+    countryCode: parsedPhoneNumber.countryCallingCode,
+    phoneNumber: parsedPhoneNumber.number,
   });
 
   const phoneCode = generateCode(6);
@@ -635,18 +625,19 @@ async function handleRequestSms(req) {
     : '';
 
   try {
-    if (countryCodeList.indexOf(countryCode) !== -1) {
+    if (countryCodeList.indexOf(parsedPhoneNumber.countryCallingCode) !== -1) {
+      // legacy send method
       let msg;
       if (req.body.locale === 'zh') {
         msg = `[Steemit] 验证码为: ${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
       } else {
         msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
       }
-      const response = await services.sendSMS(phoneNumber, msg);
+      const response = await services.sendSMS(parsedPhoneNumber.number, msg);
       services.recordSmsTracker({
         sendType: 'after_send_sms_1',
-        countryCode: req.body.prefix,
-        phoneNumber: req.body.phoneNumber,
+        countryCode: parsedPhoneNumber.countryCallingCode,
+        phoneNumber: parsedPhoneNumber.number,
       });
       req.log.info(
         { response, ip: req.ip, req: req.body },
@@ -660,11 +651,12 @@ async function handleRequestSms(req) {
         });
       }
     } else {
-      const response = await services.sendSMSCode(phoneNumber);
+      // new send code method
+      const response = await services.sendSMSCode(parsedPhoneNumber.number);
       services.recordSmsTracker({
         sendType: 'after_send_sms_2',
-        countryCode: req.body.prefix,
-        phoneNumber: req.body.phoneNumber,
+        countryCode: parsedPhoneNumber.countryCallingCode,
+        phoneNumber: parsedPhoneNumber.number,
       });
       req.log.info(
         { response, ip: req.ip, req: req.body },
@@ -679,7 +671,10 @@ async function handleRequestSms(req) {
       }
     }
   } catch (cause) {
-    req.log.warn({ cause, phoneNumber }, 'sms_send_error');
+    req.log.warn(
+      { cause, phoneNumber: parsedPhoneNumber.number },
+      'sms_send_error'
+    );
     if (cause.code === 21614 || cause.code === 21211) {
       throw new ApiError({
         cause,
@@ -696,7 +691,8 @@ async function handleRequestSms(req) {
   }
 
   record.phone_code_attempts = 0;
-  if (countryCodeList.indexOf(countryCode) !== -1) {
+  if (countryCodeList.indexOf(parsedPhoneNumber.countryCallingCode) !== -1) {
+    // legacy send method
     record.phone_code = phoneCode;
   }
   record.phone_code_generated = new Date();
@@ -717,7 +713,11 @@ async function handleRequestSms(req) {
   record.last_attempt_verify_phone_number = new Date();
   await record.save();
 
-  return { success: true, phoneNumber, ref: record.ref_code };
+  return {
+    success: true,
+    phoneNumber: parsedPhoneNumber.number,
+    ref: record.ref_code,
+  };
 }
 
 async function handleConfirmEmailCode(req) {
@@ -727,13 +727,13 @@ async function handleConfirmEmailCode(req) {
   if (!currentEmail) {
     throw new ApiError({
       type: 'error_api_email_required',
-      field: 'email',
+      field: 'email_code',
     });
   }
 
   if (!req.body.code) {
     throw new ApiError({
-      field: 'code',
+      field: 'email_code',
       type: 'error_api_code_required',
     });
   }
@@ -744,7 +744,7 @@ async function handleConfirmEmailCode(req) {
 
   if (!record) {
     throw new ApiError({
-      field: 'code',
+      field: 'email_code',
       type: 'error_api_unknown_email',
     });
   }
@@ -752,7 +752,7 @@ async function handleConfirmEmailCode(req) {
   // incorrect input over 100 times
   if (record.email_code_attempts >= 100) {
     throw new ApiError({
-      field: 'code',
+      field: 'email_code',
       type: 'error_api_phone_too_many',
     });
   }
@@ -763,7 +763,7 @@ async function handleConfirmEmailCode(req) {
     record.email_code_attempts = 0;
     record.save();
     throw new ApiError({
-      field: 'code',
+      field: 'email_code',
       type: 'error_api_email_code_invalid',
     });
   }
@@ -774,7 +774,7 @@ async function handleConfirmEmailCode(req) {
   if (record.email_code !== req.body.code) {
     await record.save();
     throw new ApiError({
-      field: 'code',
+      field: 'email_code',
       type: 'error_api_email_code_invalid',
     });
   }
@@ -785,7 +785,7 @@ async function handleConfirmEmailCode(req) {
 async function handleConfirmSms(req) {
   if (!req.body.code) {
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_code_required',
     });
   }
@@ -793,14 +793,14 @@ async function handleConfirmSms(req) {
   if (!req.body.phoneNumber) {
     throw new ApiError({
       type: 'error_api_phone_required',
-      field: 'phoneNumber',
+      field: 'phone_code',
     });
   }
 
   if (req.body.code.length !== 6) {
     throw new ApiError({
       type: 'error_api_code_length_required',
-      field: 'code',
+      field: 'phone_code',
     });
   }
 
@@ -813,24 +813,24 @@ async function handleConfirmSms(req) {
   } catch (cause) {
     req.log.warn({ cause }, 'error_api_findPhoneRecord_failed');
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_findPhoneRecord_failed',
       cause,
     });
   }
 
-  req.log.info({ record }, 'handleConfirmSmsNew_findPhoneRecord_result');
+  req.log.info({ record }, 'handleConfirmSms_findPhoneRecord_result');
 
   if (record === null) {
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_unknown_phone_number',
     });
   }
 
   if (record.phone_code_attempts >= 50) {
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_phone_too_many',
     });
   }
@@ -842,7 +842,7 @@ async function handleConfirmSms(req) {
     record.phone_code_attempts = 0;
     record.save();
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_phone_code_invalid',
     });
   }
@@ -861,7 +861,7 @@ async function handleConfirmSms(req) {
     }
     await record.save();
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_phone_code_invalid',
     });
   }
@@ -869,7 +869,7 @@ async function handleConfirmSms(req) {
   if (record.phone_code !== req.body.code) {
     await record.save();
     throw new ApiError({
-      field: 'code',
+      field: 'phone_code',
       type: 'error_api_phone_code_invalid',
     });
   }

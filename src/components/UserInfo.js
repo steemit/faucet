@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/bootstrap.css';
+import React, { useEffect, useState, useRef, useImperativeHandle } from 'react';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import { FormattedMessage, injectIntl } from 'react-intl';
 // import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, message, Modal } from 'antd';
@@ -12,9 +11,19 @@ import { accountNameIsValid, emailValid } from '../../helpers/validator.js';
 import badDomains from '../../bad-domains.js';
 import Placeholder from './Placeholder.js';
 // import { api } from '@steemit/steem-js';
+import 'react-phone-number-input/style.css';
 
 // TODO: Mock ReCAPTCHA for testing
 const ReCAPTCHA = () => <div />;
+
+const AntdInputForPhoneNumber = React.forwardRef((props, ref) => {
+  const inputRef = useRef(null);
+
+  useImperativeHandle(ref, () => {
+    return inputRef.current.input;
+  }, []);
+  return <Input {...props} ref={inputRef} />;
+});
 
 const UserInfo = ({
   locale,
@@ -26,7 +35,6 @@ const UserInfo = ({
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
   const [email_send_code_txt, setEmailSendCodeTxt] = useState('');
-  const [rawPhone, setRawPhone] = useState(null);
   const [prefix, setPrefix] = useState(null);
   const [phone_code_sending, setPhoneCodeSending] = useState(false);
   const [phone_send_code_txt, setPhoneSendCodeTxt] = useState('');
@@ -35,6 +43,7 @@ const UserInfo = ({
   const [check_username, setCheckUsername] = useState(false);
   const [check_email, setCheckEmail] = useState(false);
   const [check_email_code, setCheckEmailCode] = useState(false);
+  const [check_phone, setCheckPhone] = useState(false);
   const [check_phone_code, setCheckPhoneCode] = useState(false);
   const [change_locale_to, setChangeLocaleTo] = useState(locale);
   const [recaptcha_modal_visible, setRecaptchaModalVisible] = useState(false);
@@ -61,7 +70,7 @@ const UserInfo = ({
       check_username &&
       check_email &&
       check_email_code &&
-      !!rawPhone &&
+      check_phone &&
       check_phone_code &&
       !!recaptcha
     );
@@ -161,40 +170,44 @@ const UserInfo = ({
     });
   };
 
-  const validatePhoneRequired = (_, value) => {
-    if (rawPhone) {
-      return Promise.resolve();
-    } else {
+  const validatePhone = (_, value) => {
+    if (!value) {
+      setCheckPhone(false);
+      return Promise.reject(intl.formatMessage({ id: 'error_phone_required' }));
+    }
+    if (!isValidPhoneNumber(value)) {
+      setCheckPhone(false);
       return Promise.reject(
-        intl.formatMessage({ id: 'error_api_phone_required' })
+        intl.formatMessage({ id: 'error_api_phone_invalid' })
       );
     }
+    setCheckPhone(true);
+    return Promise.resolve();
   };
 
   const validatePhoneCode = (_, value) => {
-    if (value) {
+    return new Promise((resolve, reject) => {
+      if (!value) {
+        setCheckPhoneCode(false);
+        return reject(intl.formatMessage({ id: 'error_api_code_required' }));
+      }
       if (value.length !== 6) {
         setCheckPhoneCode(false);
-        return Promise.reject(
+        return reject(
           intl.formatMessage({ id: 'error_api_phone_code_invalid' })
         );
       }
-      const phoneNumber = `+${form.getFieldValue('phone')}`;
+      const phoneNumber = form.getFieldValue('phone');
       apiCall('/api/check_phone_code', { code: value, phoneNumber })
         .then(() => {
           setCheckPhoneCode(true);
-          return Promise.resolve();
+          return resolve();
         })
         .catch((error) => {
           setCheckPhoneCode(false);
-          return Promise.reject(intl.formatMessage({ id: error.type }));
+          return reject(intl.formatMessage({ id: error.type }));
         });
-    } else {
-      setCheckPhoneCode(false);
-      return Promise.reject(
-        intl.formatMessage({ id: 'error_api_code_required' })
-      );
-    }
+    });
   };
 
   const SendEmailCode = (email) => {
@@ -228,7 +241,7 @@ const UserInfo = ({
   };
 
   const SendPhoneCodeWrapper = () => {
-    if (!rawPhone) return;
+    if (!check_phone) return;
     if (phone_code_sending) return;
     if (window.config.RECAPTCHA_SWITCH !== 'OFF') {
       setRecaptchaModalVisible(true);
@@ -239,10 +252,18 @@ const UserInfo = ({
 
   const SendPhoneCode = () => {
     if (phone_code_sending) return;
+    // clear input error
+    form.setFields([
+      {
+        name: 'phone',
+        errors: [],
+      },
+    ]);
+    // set sending status
     setPhoneCodeSending(true);
+    // api call
     apiCall('/api/request_sms', {
-      phoneNumber: rawPhone,
-      prefix,
+      phoneNumber: form.getFieldValue('phone'),
       locale,
       phone_recaptcha,
     })
@@ -264,7 +285,8 @@ const UserInfo = ({
       });
   };
 
-  const handleFinish = () => {
+  const handleFinish = (values) => {
+    console.log('form values:', values);
     if (pending_create_user) return;
     setPendingCreateUser(true);
     const data = {
@@ -402,32 +424,31 @@ const UserInfo = ({
           <FormattedMessage id="phone_description" />
         </p>
         <Form.Item
-          // name="phone"
+          name="phone"
           hasFeedback
           rules={[
             {
-              validator: validatePhoneRequired,
+              required: true,
               message: intl.formatMessage({
                 id: 'error_phone_required',
               }),
+              validator: validatePhone,
             },
           ]}
         >
-          {/*<PhoneInput
-            country={countryCode === null ? 'us' : countryCode.toLowerCase()}
+          <PhoneInput
             placeholder={intl.formatMessage({
               id: 'enter_phone',
             })}
-            masks={getPhoneMasks()}
+            defaultCountry={
+              countryCode === null ? 'US' : countryCode.toUpperCase()
+            }
+            international
+            withCountryCallingCode
+            inputComponent={AntdInputForPhoneNumber}
+            size="large"
             disabled={phone_code_sending}
-            onChange={(phone, data) => {
-              const prefix = data.dialCode;
-              const tmpCountryCode = data.countryCode;
-              setPhone(phone);
-              setRawPhone(phone.slice(data.dialCode.length));
-              setPrefix(`${prefix}_${tmpCountryCode}`);
-            }}
-          />*/}
+          />
         </Form.Item>
         <Form.Item
           name="phone_code"
@@ -438,8 +459,6 @@ const UserInfo = ({
               message: intl.formatMessage({
                 id: 'error_api_code_required',
               }),
-            },
-            {
               validator: validatePhoneCode,
             },
           ]}
@@ -451,7 +470,7 @@ const UserInfo = ({
             })}
             addonAfter={
               <SendCode
-                checked={!!rawPhone}
+                checked={check_phone}
                 btnText={phone_send_code_txt}
                 onClick={() => SendPhoneCodeWrapper()}
               />
