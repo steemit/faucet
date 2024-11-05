@@ -10,10 +10,10 @@ const trackingSlice = createSlice({
   initialState,
   reducers: {
     logCheckpoint: (state, action) => {
-      state.checkpoint = action.payload.checkpoint;
+      state.checkpoint = action.payload;
     },
     setLoggedCheckpoint: (state, action) => {
-      state.loggedCheckpoints.push(action.payload.loggedCheckpoint);
+      state.loggedCheckpoints.push(action.payload);
     },
   },
 });
