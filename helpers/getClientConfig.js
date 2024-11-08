@@ -7,12 +7,12 @@ import { getEnv } from './common.js';
  */
 function getClientConfig() {
   const envVars = [
-    'RECAPTCHA_SITE_KEY',
+    'CAPTCHA_SWITCH',
+    'CAPTCHA_SITE_KEY',
     'STEEMJS_URL',
     'DEFAULT_REDIRECT_URI',
     'SIFTSCIENCE_JS_SNIPPET_KEY',
     'REACT_DISABLE_ACCOUNT_CREATION',
-    'RECAPTCHA_SWITCH',
     'PENDING_CLAIMED_ACCOUNTS_THRESHOLD',
     'CREATOR_INFO',
     'GOOGLE_ANALYTICS_ID',

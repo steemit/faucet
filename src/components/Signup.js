@@ -1,58 +1,56 @@
 import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Cookies from 'js-cookie';
 import { FormattedMessage } from 'react-intl';
-import { Button, Popover } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
+import { Menu, message } from 'antd';
 import UserInfo from './UserInfo.js';
 import SignupOptions from './SignupOptions.js';
 import SavePassword from './SavePassword.js';
 import CreateAccount from './CreateAccount.js';
 import Finish from './Finish.js';
-import { CHECKPOINTS } from '../../constants.js';
-import LanguageItem from './LanguageItem.js';
 import { locales } from '../utils/locales.js';
+import getFingerprint from '../utils/fingerprint.js';
+import { setLocale, setStep } from '../features/app.js';
+import { guessCountryCode, setPassword } from '../features/user.js';
 import {
   getPendingClaimedAccounts,
   recordActivityTracker,
 } from '../utils/api.js';
+import { CHECKPOINTS } from '../../constants.js';
 import './Signup.less';
 
-const Signup = ({
-  app: { locale, steps, signupModalVisible },
-  user: {
-    username,
-    email,
-    phoneNumber,
-    countryCode,
-    token,
-    step,
-    referrer,
-    trackingId,
-  },
-  logCheckpoint,
-  guessCountryCode,
-  setLocale,
-  hideSignupModal,
-  showSignupModal,
-  setStep,
-  setUsername,
-  setEmail,
-  setPhone,
-  setToken,
-}) => {
+const Signup = ({ logCheckpoint }) => {
+  const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
   const [pendingClaimedAccounts, setPendingClaimedAccounts] = useState(0);
-  const [password, setPassword] = useState('');
-  const [languageItemVisible, setLanguageItemVisible] = useState(false);
+  const [fingerprint, setFingerprint] = useState('');
+  const app = useSelector((state) => state.app);
+  const user = useSelector((state) => state.user);
+  const { locale, steps, step } = app;
+  const { countryCode, referrer, trackingId, token, username, password } = user;
 
+  const languageItems = [
+    {
+      key: 'menu',
+      label: locales[locale],
+      children: Object.keys(locales).map((key) => ({
+        key,
+        label: locales[key],
+      })),
+    },
+  ];
+
+  // init state
   useEffect(() => {
     getPendingClaimedAccounts((res) => {
       if (res && Object.keys(res).length > 0) {
         setPendingClaimedAccounts(Math.max(...Object.values(res)));
       }
     });
-    guessCountryCode();
+    dispatch(guessCountryCode());
     updateActivityTag();
-  }, []);
+    setFingerprint(JSON.stringify(getFingerprint()));
+  }, [dispatch]);
 
   const updateActivityTag = () => {
     const cookieName = app.activityCookieName;
@@ -88,59 +86,30 @@ const Signup = ({
   };
 
   const handleSavePassword = (password) => {
-    setPassword(password);
+    dispatch(setPassword(password));
+    logCheckpoint(CHECKPOINTS.password_saved);
+    dispatch(setStep('createAccount'));
   };
 
-  const handleSubmitUserInfo = (data) => {
-    setUsername(data.username);
-    setEmail(data.email);
-    setPhone(data.phoneNumber);
-    setToken(data.token);
-    logCheckpoint(CHECKPOINTS.user_created);
-  };
-
-  const handleCreateAccount = () => {};
-
-  const handleFreeSignup = () => {
-    console.log('debug handleFreeSignup');
+  const handleMenuClick = (e) => {
+    dispatch(setLocale(e.key));
   };
 
   const stepNumber = steps.indexOf(step);
 
   return (
     <div className="Signup_main">
+      {contextHolder}
       <div className="signup-bg-left" />
       <div className="signup-bg-right" />
       <div className="language-select">
-        <Popover
-          placement="bottom"
-          content={
-            <ul className="lp-language-select">
-              {Object.keys(locales).map((key) => (
-                <LanguageItem
-                  key={key}
-                  locale={key}
-                  setLocale={setLocale}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setLanguageItemVisible(false);
-                  }}
-                />
-              ))}
-            </ul>
-          }
-          trigger="click"
-          open={languageItemVisible}
-          onClick={(e) => {
-            e.preventDefault();
-            setLanguageItemVisible(true);
-          }}
-        >
-          <Button>
-            {locales[locale]}
-            <DownOutlined />
-          </Button>
-        </Popover>
+        <Menu
+          onClick={handleMenuClick}
+          style={{}}
+          defaultSelectedKeys={['menu', locale]}
+          mode="horizontal"
+          items={languageItems}
+        />
       </div>
       <div className="Signup__container">
         <div className="Signup__form">
@@ -181,22 +150,21 @@ const Signup = ({
           {step === 'signupOptions' && (
             <div>
               <SignupOptions
-                signupModalVisible={signupModalVisible}
-                hideSignupModal={hideSignupModal}
-                showSignupModal={showSignupModal}
                 logCheckpoint={logCheckpoint}
-                handleFreeSignup={handleFreeSignup}
                 referrer={referrer || undefined}
                 pending_claimed_accounts={pendingClaimedAccounts}
+                setStep={(stepName) => dispatch(setStep(stepName))}
               />
             </div>
           )}
-          {step === 'signupInfo' && (
+          {step === 'userInfo' && (
             <div>
               <UserInfo
                 countryCode={countryCode}
                 locale={locale}
-                handleSubmitUserInfo={handleSubmitUserInfo}
+                logCheckpoint={logCheckpoint}
+                setStep={(stepName) => dispatch(setStep(stepName))}
+                messageApi={messageApi}
               />
             </div>
           )}
@@ -209,8 +177,9 @@ const Signup = ({
                 <FormattedMessage id="save_password_text" />
               </p>
               <SavePassword
-                password={password}
                 handleSavePassword={handleSavePassword}
+                messageApi={messageApi}
+                setStep={(stepName) => dispatch(setStep(stepName))}
               />
             </div>
           )}
@@ -231,21 +200,26 @@ const Signup = ({
                 <FormattedMessage id="master_password" />
               </p>
               <CreateAccount
-                username={username}
-                email={email}
-                phoneNumber={phoneNumber}
-                token={token}
-                password={password}
+                logCheckpoint={logCheckpoint}
+                fingerprint={fingerprint}
+                tracking_id={trackingId}
                 locale={locale}
-                handleCreateAccount={handleCreateAccount}
-                trackingId={trackingId}
-                app={app}
+                token={token}
+                setStep={(stepName) => dispatch(setStep(stepName))}
+                goBack={() => dispatch(setStep('savePassword'))}
+                messageApi={messageApi}
+                username={username}
+                password={password}
               />
             </div>
           )}
           {step === 'finish' && (
             <div className="form-content">
-              <Finish username={username} password={password} />
+              <Finish
+                username={username}
+                password={password}
+                messageApi={messageApi}
+              />
             </div>
           )}
         </div>
@@ -269,7 +243,7 @@ const Signup = ({
               </p>
             </div>
           )}
-          {step === 'signupInfo' && (
+          {step === 'userInfo' && (
             <img
               src="/img/signup-options.svg"
               id="signup-options"

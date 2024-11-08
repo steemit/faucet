@@ -1,25 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { generateTrackingId } from '../../helpers/stepLogger.js';
 
-// Provide the referrer based on whatever our ref is set to at page load.
-const referrerMatch = window.location.search.match(/\?ref=([a-zA-Z]*)/);
-
 const initialState = {
   username: '',
-  email: '',
-  phoneNumber: '',
-  countryCode: null,
-  phoneNumberFormatted: '',
-  prefix: '',
-  referrer:
-    referrerMatch && referrerMatch.length === 2 ? referrerMatch[1] : 'steemit',
+  password: '',
   token: '',
-  completed: false,
-  // step: 'signupOptions',
-  step: 'signupInfo',
-  // step: 'savePassword',
-  // step: 'createAccount',
-  // step: 'finish',
+  countryCode: null,
   trackingId: generateTrackingId(),
 };
 
@@ -31,34 +17,19 @@ const userSlice = createSlice({
       // logic is in saga parts
     },
     setCountryCode: (state, action) => {
-      state.countryCode = action.payload.countryCode;
-    },
-    setStep: (state, action) => {
-      state.step = action.payload.step;
-    },
-    setUsername: (state, action) => {
-      state.username = action.payload.username;
-    },
-    setEmail: (state, action) => {
-      state.email = action.payload.email;
-    },
-    setPhone: (state, action) => {
-      state.phoneNumber = action.payload.phone;
-    },
-    setPhoneFormatted: (state, action) => {
-      state.phoneNumberFormatted = action.payload.phoneNumberFormatted;
-    },
-    setToken: (state, action) => {
-      state.token = action.payload.token;
-    },
-    setPrefix: (state, action) => {
-      state.prefix = action.payload.prefix;
-    },
-    setCompleted: (state, action) => {
-      state.completed = action.payload.completed;
+      state.countryCode = action.payload;
     },
     setTrackingId: (state, action) => {
-      state.trackingId = action.payload.trackingId;
+      state.trackingId = action.payload;
+    },
+    setToken: (state, action) => {
+      state.token = action.payload;
+    },
+    setPassword: (state, action) => {
+      state.password = action.payload;
+    },
+    setUsername: (state, action) => {
+      state.username = action.payload;
     },
   },
 });
@@ -66,18 +37,15 @@ const userSlice = createSlice({
 export const {
   guessCountryCode,
   setCountryCode,
-  setStep,
-  setUsername,
-  setEmail,
-  setPhone,
-  setPhoneFormatted,
-  setToken,
-  setPrefix,
-  setCompleted,
   setTrackingId,
+  setToken,
+  setPassword,
+  setUsername,
 } = userSlice.actions;
 
-export const getStep = (state) => state.user.step;
 export const getTrackingId = (state) => state.user.trackingId;
+export const getToken = (state) => state.user.token;
+export const getPassword = (state) => state.user.password;
+export const getUsername = (state) => state.user.username;
 
 export default userSlice.reducer;

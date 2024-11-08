@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 // import steem from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import { Form, message, Input, Button, Checkbox } from 'antd';
+import { Form, Input, Button, Checkbox } from 'antd';
 import apiCall from '../utils/api.js';
-import getFingerprint from '../utils/fingerprint.js';
 import getHashParams from '../utils/url.js';
+import { CHECKPOINTS } from '../../constants.js';
 
 // TODO: Mock steem-js for testing
 const steem = {
@@ -16,26 +16,25 @@ const steem = {
 };
 
 const CreateAccount = ({
-  app,
-  username,
+  logCheckpoint,
   token,
-  trackingId,
+  fingerprint,
+  tracking_id,
   locale,
-  password,
-  handleCreateAccount,
   goBack,
+  messageApi,
+  username,
+  password,
+  setStep,
   intl,
 }) => {
   const [form] = Form.useForm();
   const urlParams = getHashParams();
-  const [fingerprint, setFingerprint] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [btnDisabled, setBtnDisabled] = useState(true);
   const source = urlParams.source ? urlParams.source : null;
 
-  useEffect(() => {
-    setFingerprint(JSON.stringify(getFingerprint()));
-  }, []);
+  useEffect(() => {}, []);
 
   const formValuesChange = () => {
     const tos = form.getFieldValue('agree_tos');
@@ -45,6 +44,7 @@ const CreateAccount = ({
   };
 
   const passwordCheck = (_, value) => {
+    console.log('password injected:', password);
     if (value.length > 0 && password !== value) {
       return Promise.reject(intl.formatMessage({ id: 'error_password_match' }));
     }
@@ -73,19 +73,24 @@ const CreateAccount = ({
       token,
       public_keys: JSON.stringify(pubKeys),
       fingerprint,
-      xref: trackingId,
+      tracking_id,
       locale,
       activityTags,
       source,
     })
       .then(() => {
         setSubmitting(false);
-        updateActivityTags();
-        handleCreateAccount();
+        // updateActivityTags();
+        logCheckpoint(CHECKPOINTS.user_created);
+        setStep('finish');
       })
       .catch((error) => {
         setSubmitting(false);
-        message.error(intl.formatMessage({ id: error.type }));
+        console.error('error', error);
+        messageApi.open({
+          type: 'error',
+          content: intl.formatMessage({ id: error.type }),
+        });
       });
   };
 

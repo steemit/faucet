@@ -1,25 +1,21 @@
 import { useEffect, useState } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import { message, Button } from 'antd';
+import { Button } from 'antd';
 // import { key_utils } from '@steemit/steem-js/lib/auth/ecc';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 // TODO: Mock key_utils for testing
 const key_utils = {
-  get_random_key: () => ({ toWif: () => 'P' }),
+  get_random_key: () => ({ toWif: () => 'P1234567890' }),
 };
 
-const SavePassword = ({ password, handleSavePassword, intl }) => {
+const SavePassword = ({ handleSavePassword, messageApi, intl }) => {
   const [newPassword, setNewPassword] = useState('');
   const [isClickedCopyBtn, setIsClickedCopyBtn] = useState(false);
 
   useEffect(() => {
-    if (password === '') {
-      generateWif(true);
-    } else {
-      setNewPassword(password);
-    }
-  }, [password]);
+    generateWif(true);
+  }, []);
 
   const generateWif = (isFirstTrigger) => {
     const generatedWif = `P${key_utils.get_random_key().toWif()}`;
@@ -33,7 +29,10 @@ const SavePassword = ({ password, handleSavePassword, intl }) => {
 
   const copySuccess = () => {
     setIsClickedCopyBtn(true);
-    message.success(intl.formatMessage({ id: 'password_copied' }));
+    messageApi.open({
+      type: 'success',
+      content: intl.formatMessage({ id: 'password_copied' }),
+    });
   };
 
   return (

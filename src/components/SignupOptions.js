@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
-import { Button, Modal } from 'antd';
-import { LinkOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 import { CHECKPOINTS } from '../../constants.js';
-import { updateAnalytics } from '../utils/api.js';
-// import './SignupOptions.less';
+import './SignupOptions.less';
 
 const SignupOptions = ({
-  signupModalVisible,
-  hideSignupModal,
-  handleFreeSignup,
   logCheckpoint,
   pending_claimed_accounts,
+  setStep,
 }) => {
   const [pending_claimed_accounts_threshold] = useState(
     window.config.PENDING_CLAIMED_ACCOUNTS_THRESHOLD
@@ -19,7 +15,10 @@ const SignupOptions = ({
       : 50
   );
 
-  const modalTitle = <FormattedMessage id="signup_options_modal_title" />;
+  const handleSignup = () => {
+    logCheckpoint(CHECKPOINTS.signup_start);
+    setStep('userInfo');
+  };
 
   const capitalizeFirstLetter = (string) =>
     string.charAt(0).toUpperCase() + string.slice(1);
@@ -60,12 +59,14 @@ const SignupOptions = ({
             )}
           </div>
           <Button
+            type="primary"
+            size="large"
             className={`${
               pending_claimed_accounts >= pending_claimed_accounts_threshold &&
               'get-in-register__button'
             } custom-btn`}
             htmlType="button"
-            onClick={handleFreeSignup}
+            onClick={handleSignup}
             disabled={
               pending_claimed_accounts < pending_claimed_accounts_threshold
             }
@@ -73,7 +74,6 @@ const SignupOptions = ({
             <FormattedMessage id="signup_options_button_free" />
             {pending_claimed_accounts < pending_claimed_accounts_threshold && (
               <span>
-                <br />
                 <span className="btn-caveat">
                   <FormattedMessage id="insufficient_places" />
                 </span>
@@ -82,126 +82,6 @@ const SignupOptions = ({
           </Button>
         </div>
       </div>
-
-      <Modal
-        title={modalTitle}
-        open={signupModalVisible}
-        onCancel={hideSignupModal}
-        footer={null}
-      >
-        <a
-          className="external-link"
-          href="https://steemwallet.app"
-          onClick={() => {
-            updateAnalytics(1);
-            logCheckpoint(CHECKPOINTS.paid_signup_clicked_steemwalletapp);
-          }}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Button type="primary" ghost htmlType="button">
-            SteemWallet.app
-            <LinkOutlined />
-          </Button>
-        </a>
-        <p>
-          <FormattedMessage id="signup_options_steemwalletapp" />
-        </p>
-        <a
-          className="external-link"
-          href="https://anon.steem.network/"
-          onClick={() => {
-            updateAnalytics(2);
-            logCheckpoint(CHECKPOINTS.paid_signup_clicked_anonsteem);
-          }}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Button type="primary" ghost htmlType="button">
-            AnonSteem
-            <LinkOutlined />
-          </Button>
-        </a>
-        <p>
-          <FormattedMessage id="signup_options_anonsteem" />
-        </p>
-        <a
-          className="external-link"
-          href="https://account.buildteam.io/apps/steem-account"
-          onClick={() => {
-            updateAnalytics(3);
-            logCheckpoint(CHECKPOINTS.paid_signup_clicked_buildteam);
-          }}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Button type="primary" ghost htmlType="button">
-            BuildTeam
-            <LinkOutlined />
-          </Button>
-        </a>
-        <p>
-          <FormattedMessage id="signup_options_buildteam" />
-        </p>
-        <a
-          className="external-link"
-          href="https://widget.steem.ninja/widget.html"
-          onClick={() => {
-            updateAnalytics(4);
-            logCheckpoint(CHECKPOINTS.paid_signup_clicked_steemninja);
-          }}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Button type="primary" ghost htmlType="button">
-            Steem.Ninja
-            <LinkOutlined />
-          </Button>
-        </a>
-        <p>
-          <FormattedMessage id="signup_options_steemninja" />
-        </p>
-        <a
-          className="external-link"
-          href="https://actifit.io/signup"
-          onClick={() => {
-            updateAnalytics(5);
-            logCheckpoint(CHECKPOINTS.paid_signup_clicked_actifit);
-          }}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Button type="primary" ghost htmlType="button">
-            Actifit
-            <LinkOutlined />
-          </Button>
-        </a>
-        <p>
-          <FormattedMessage id="signup_options_actifit" />
-        </p>
-        {/* <a
-                        className="external-link"
-                        href="https://blocktrades.us/create-steem-account"
-                        onClick={() => {
-                            logCheckpoint(
-                                CHECKPOINTS.paid_signup_clicked_blocktrades
-                            );
-                        }}
-                    >
-                        <Button type="primary" ghost htmlType="button">
-                            Blocktrades
-                            <LinkOutlined />
-                        </Button>
-                    </a>
-                    <p>
-                        <FormattedMessage id="signup_options_blocktrades" />
-                    </p> */}
-
-        <hr />
-        <p className="modal-disclaimer">
-          <FormattedMessage id="signup_options_disclaimer" />
-        </p>
-      </Modal>
     </div>
   );
 };

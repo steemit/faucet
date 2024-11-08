@@ -37,7 +37,7 @@ const condenserSecret = getEnv('CREATE_USER_SECRET');
 const condenserUrl = getEnv('CREATE_USER_URL');
 const conveyorAccount = getEnv('CONVEYOR_USERNAME');
 const conveyorKey = getEnv('CONVEYOR_POSTING_WIF');
-const recaptchaSecret = getEnv('RECAPTCHA_SECRET');
+const captchaSecret = getEnv('CAPTCHA_SECRET');
 const PENDING_CLAIMED_ACCOUNTS_THRESHOLD = getEnv(
   'PENDING_CLAIMED_ACCOUNTS_THRESHOLD'
 )
@@ -175,6 +175,8 @@ export async function conveyorCall(method, params) {
         return (params.phone || params[0]) === '+12345678900';
       case 'set_user_data':
         return;
+      case 'assign_tag':
+        return;
       default:
         throw new Error(`No mock implementation for ${method}`);
     }
@@ -189,15 +191,16 @@ export async function conveyorCall(method, params) {
 }
 
 /**
- * Verify Google recaptcha.
- * @param recaptcha Challenge.
+ * Verify Captcha.
+ * @param Captcha Challenge.
  * @param ip Remote addr of client.
  */
-export async function verifyCaptcha(recaptcha, ip) {
+export async function verifyCaptcha(captcha, ip) {
   if (DEBUG_MODE) {
     logger.warn('Verify captcha for %s', ip);
   } else {
-    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptcha}&remoteip=${ip}`;
+    const site = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+    const url = `${site}?secret=${captchaSecret}&response=${captcha}&remoteip=${ip}`;
     const response = await (await fetch(url)).json();
     if (!response.success) {
       const codes = response['error-codes'] || ['unknown'];
@@ -386,12 +389,12 @@ export function locationFromIp(ip) {
 }
 
 /**
- * Should recaptcha be required for this IP address?
+ * Should Captcha be required for this IP address?
  *
  * @param {string} ip ip address
  * @return {boolean}
  */
-export function recaptchaRequiredForIp(ip) {
+export function captchaRequiredForIp(ip) {
   const location = locationFromIp(ip);
   return location && location.country;
 }
@@ -495,7 +498,7 @@ export default {
   gatekeeperMarkSignupRejected,
   gatekeeperMarkSignupCreated,
   locationFromIp,
-  recaptchaRequiredForIp,
+  captchaRequiredForIp,
   sendApprovalEmail,
   sendEmail,
   sendSMS,

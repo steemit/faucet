@@ -11,7 +11,7 @@ import {
   normalizeEmail,
   isEmail,
 } from '../helpers/validator.js';
-import { getEnv, generateTrackingId, generateCode } from '../helpers/common.js';
+import { getEnv, generateCode } from '../helpers/common.js';
 
 const logger = getLogChild({ module: 'api_handlers' });
 
@@ -269,7 +269,7 @@ async function handleRequestEmailCode(req) {
   const captchaCode = (100000 + Math.round(Math.random() * 899999)).toString();
 
   // Send the email.
-  if (locale === 'zh') {
+  if (locale === 'zh-cn') {
     await services.sendEmail(record.email, 'email_code_zh', {
       code: captchaCode,
     });
@@ -308,6 +308,25 @@ async function handleRequestEmailCode(req) {
  * compare to old request sms func
  */
 async function handleRequestSms(req) {
+  // check captcha
+  if (getEnv('CAPTCHA_SWITCH') !== 'OFF') {
+    const captcha = req.body.phoneCaptcha;
+    if (!captcha) {
+      throw new ApiError({
+        field: 'phoneNumber',
+        type: 'error_api_captcha_required',
+      });
+    }
+    try {
+      await services.verifyCaptcha(captcha, req.ip);
+    } catch (cause) {
+      throw new ApiError({
+        field: 'phoneNumber',
+        type: 'error_api_captcha_invalid',
+        cause,
+      });
+    }
+  }
   /*
     Parse Phone Number 
       eg. +1 234 567 8910
@@ -347,26 +366,7 @@ async function handleRequestSms(req) {
       type: 'signup_free_tip3',
     });
   }
-  // check recaptcha
-  if (getEnv('RECAPTCHA_SWITCH') !== 'OFF') {
-    const recaptcha = req.body.phone_recaptcha;
-    if (!recaptcha) {
-      throw new ApiError({
-        field: 'code',
-        type: 'error_api_recaptcha_required',
-      });
-    }
-    try {
-      await services.verifyCaptcha(recaptcha, req.ip);
-    } catch (cause) {
-      throw new ApiError({
-        field: 'code',
-        type: 'error_api_recaptcha_invalid',
-        cause,
-      });
-    }
-  }
-
+  // check country number block list
   const countryNumberList = getEnv('COUNTRY_NUMBER')
     ? getEnv('COUNTRY_NUMBER').split(',')
     : '';
@@ -495,8 +495,17 @@ async function handleRequestSms(req) {
     : 10;
   if (hitNumbers.length > 0) {
     const tempNumber = hitNumbers[0];
+    const tempMetadata = tempNumber.metadata
+      ? JSON.parse(tempNumber.metadata)
+      : null;
+    if (tempMetadata === null) {
+      throw new ApiError({
+        field: 'phone',
+        type: 'error_api_unknown_phone',
+      });
+    }
     lastPhoneCodeRecord = await database.findPhoneRecord({
-      where: { phone_number: tempNumber.metadata.phoneNumber },
+      where: { phone_number: tempMetadata.phoneNumber },
     });
     if (lastPhoneCodeRecord != null && !lastPhoneCodeRecord.phone_code) {
       if (
@@ -628,7 +637,7 @@ async function handleRequestSms(req) {
     if (countryCodeList.indexOf(parsedPhoneNumber.countryCallingCode) !== -1) {
       // legacy send method
       let msg;
-      if (req.body.locale === 'zh') {
+      if (req.body.locale === 'zh-cn') {
         msg = `[Steemit] 验证码为: ${phoneCode}，有效期30分钟。请勿泄漏给他人。`;
       } else {
         msg = `[Steemit] verification code: ${phoneCode}, which will expire after 30 minutes. Please do not disclose code to others.`;
@@ -877,28 +886,41 @@ async function handleConfirmSms(req) {
   return { success: true };
 }
 
+/*
+  API: /api/create_user
+  Method: POST
+  Params:
+    - captcha: string
+    - email: string
+    - emailCode: string
+    - phoneNumber: string
+    - phoneCode: string
+    - username: string
+  This is for component UserInfo.js
+*/
+
 async function finalizeSignup(req) {
   const ip = req.ip;
-  const recaptcha = req.body?.recaptcha;
+  const captcha = req.body?.captcha;
   const email = req.body?.email;
   const emailCode = req.body?.emailCode;
   const phoneNumber = req.body?.phoneNumber;
   const phoneCode = req.body?.phoneCode;
   const username = req.body?.username;
 
-  if (getEnv('RECAPTCHA_SWITCH') !== 'OFF') {
-    if (!recaptcha) {
+  if (getEnv('CAPTCHA_SWITCH') !== 'OFF') {
+    if (!captcha) {
       throw new ApiError({
         field: 'code',
-        type: 'error_api_recaptcha_required',
+        type: 'error_api_captcha_required',
       });
     }
     try {
-      await services.verifyCaptcha(recaptcha, ip);
+      await services.verifyCaptcha(captcha, ip);
     } catch (cause) {
       throw new ApiError({
         field: 'code',
-        type: 'error_api_recaptcha_invalid',
+        type: 'error_api_captcha_invalid',
         cause,
       });
     }
@@ -1005,20 +1027,6 @@ async function finalizeSignup(req) {
     });
   }
 
-  // await database.createUser({
-  //     email,
-  //     email_normalized: normalizeEmail(email),
-  //     email_is_verified: true,
-  //     phone_number: phoneNumber,
-  //     phone_number_is_verified: true,
-  //     ip,
-  //     account_is_created: false,
-  //     created_at: new Date(),
-  //     updated_at: null,
-  //     fingerprint,
-  //     username,
-  //     tracking_id: xref || generateTrackingId(),
-  // });
   const token = jwt.sign(
     {
       type: 'signup_new',
@@ -1035,6 +1043,7 @@ async function finalizeSignup(req) {
   return { success: true, token };
 }
 
+// final create user on Blockchain and insert into database
 async function handleCreateAccount(req) {
   // Do not allow account creations if REACT_DISABLE_ACCOUNT_CREATION is set to true
   if (getEnv('REACT_DISABLE_ACCOUNT_CREATION') === 'true') {
@@ -1048,7 +1057,7 @@ async function handleCreateAccount(req) {
     public_keys,
     token,
     fingerprint,
-    xref,
+    tracking_id,
     locale,
     activityTags,
     source, // format: app|tag (eg. condenser|submit_post)
@@ -1060,6 +1069,10 @@ async function handleCreateAccount(req) {
 
   if (!token) {
     throw new ApiError({ type: 'error_api_token_required' });
+  }
+
+  if (!tracking_id) {
+    throw new ApiError({ type: 'error_api_tracking_id_required' });
   }
 
   let decoded;
@@ -1134,22 +1147,10 @@ async function handleCreateAccount(req) {
   ]);
   if (phoneRegistered) {
     throw new ApiError({
-      field: 'phoneNumber',
+      field: 'phone',
       type: 'error_api_phone_used',
     });
   }
-
-  // let user = await database.findUser({
-  //     where: {
-  //         username: decoded.username,
-  //         email: decoded.email,
-  //         phone_number: decoded.phoneNumber,
-  //     },
-  // });
-
-  // if (user) {
-  //     throw new ApiError({ type: 'error_api_user_exist' });
-  // }
 
   const weightThreshold = 1;
   const accountAuths = [];
@@ -1171,7 +1172,7 @@ async function handleCreateAccount(req) {
     key_auths: [[publicKeys.posting, 1]],
   };
 
-  // create user on Steem Chain.
+  // Create user on Steem Chain.
   try {
     await services.createAccount({
       active,
@@ -1209,7 +1210,7 @@ async function handleCreateAccount(req) {
       updated_at: createdTime,
       fingerprint: fingerprint ? JSON.parse(fingerprint) : {},
       username: decoded.username,
-      tracking_id: xref || generateTrackingId(),
+      tracking_id,
     });
   } catch (cause) {
     req.log.error({ decoded, cause }, 'create user in database error');
@@ -1264,7 +1265,7 @@ async function handleCreateAccount(req) {
 
   // Send success email
   try {
-    if (locale === 'zh') {
+    if (locale === 'zh-cn') {
       await services.sendEmail(decoded.email, 'register_success_zh', {
         username: decoded.username,
         email: decoded.email,
@@ -1299,7 +1300,7 @@ async function handleCreateAccount(req) {
     req.log.info({ activityTags }, 'activity_tag_analytics_starting');
     activityTags.forEach((tag) => {
       services.recordActivityTracker({
-        trackingId: xref,
+        trackingId: tracking_id,
         activityTag: tag,
         username: decoded.username,
       });
@@ -1308,7 +1309,7 @@ async function handleCreateAccount(req) {
     req.log.info({ regSource }, 'reg_source_record_starting');
     if (regSource.length > 0) {
       services.recordSource({
-        trackingId: xref,
+        trackingId: tracking_id,
         app: regSource[0],
         from_page: regSource[1],
       });

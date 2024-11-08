@@ -1,16 +1,17 @@
 import enLocale from '../locales/en.json';
 import frLocale from '../locales/fr.json';
-import zhLocale from '../locales/zh.json';
+import zhLocale from '../locales/zh_CN.json';
 
 export const translations = {
   en: enLocale,
   fr: frLocale,
-  zh: zhLocale,
+  'zh-cn': zhLocale,
 };
 
 export const locales = {
   en: 'English',
-  zh: '简体中文',
+  'zh-cn': '简体中文',
+  fr: 'Français',
 };
 
 export const getAvailableLocale = (app) => {
@@ -24,10 +25,11 @@ export const getAvailableLocale = (app) => {
         ? navigator.languages[0]
         : 'en');
   }
-  if (translations[locale.slice(0, 2)]) {
-    return locale.slice(0, 2);
+  locale = locale.toLowerCase();
+  if (translations[locale]) {
+    return locale;
   }
   return 'en';
 };
 
-export const getTranslations = (app) => translations[getAvailableLocale(app)];
+export const getTranslations = (locale) => translations[locale];

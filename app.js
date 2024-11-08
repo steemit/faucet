@@ -104,9 +104,9 @@ hbs.registerHelper('baseCss', () => new hbs.SafeString(
       : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'
   )
 );
-hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(
-    getEnv('RECAPTCHA_SWITCH') !== 'OFF'
-      ? '<script src="//www.google.com/recaptcha/api.js"></script>'
+hbs.registerHelper('captchaJs', () => new hbs.SafeString(
+    getEnv('CAPTCHA_SWITCH') !== 'OFF'
+      ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
       : ''
   )
 );

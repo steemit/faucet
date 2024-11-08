@@ -1,20 +1,19 @@
 import React, { useEffect, useState, useRef, useImperativeHandle } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import { FormattedMessage, injectIntl } from 'react-intl';
-// import ReCAPTCHA from 'react-google-recaptcha';
-import { Form, Input, Button, message, Modal } from 'antd';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { Form, Input, Button, Modal } from 'antd';
 import { UserOutlined, MailOutlined } from '@ant-design/icons';
 import SendCode from './SendCode.js';
+import { setUsername, setToken } from '../features/user.js';
 import apiCall from '../utils/api.js';
-import getFingerprint from '../utils/fingerprint.js';
 import { accountNameIsValid, emailValid } from '../../helpers/validator.js';
 import badDomains from '../../bad-domains.js';
 import Placeholder from './Placeholder.js';
+import { CHECKPOINTS } from '../../constants.js';
 // import { api } from '@steemit/steem-js';
 import 'react-phone-number-input/style.css';
-
-// TODO: Mock ReCAPTCHA for testing
-const ReCAPTCHA = () => <div />;
 
 const AntdInputForPhoneNumber = React.forwardRef((props, ref) => {
   const inputRef = useRef(null);
@@ -27,69 +26,62 @@ const AntdInputForPhoneNumber = React.forwardRef((props, ref) => {
 
 const UserInfo = ({
   locale,
-  intl,
-  handleSubmitUserInfo,
-  origin,
   countryCode,
+  logCheckpoint,
+  setStep,
+  messageApi,
+  intl,
 }) => {
+  const dispatch = useDispatch();
+  const refOfTurnstileInModal = React.useRef();
   const [form] = Form.useForm();
-  const [messageApi, contextHolder] = message.useMessage();
-  const [email_send_code_txt, setEmailSendCodeTxt] = useState('');
-  const [prefix, setPrefix] = useState(null);
-  const [phone_code_sending, setPhoneCodeSending] = useState(false);
-  const [phone_send_code_txt, setPhoneSendCodeTxt] = useState('');
-  const [fingerprint, setFingerprint] = useState('');
-  const [pending_create_user, setPendingCreateUser] = useState(false);
-  const [check_username, setCheckUsername] = useState(false);
-  const [check_email, setCheckEmail] = useState(false);
-  const [check_email_code, setCheckEmailCode] = useState(false);
-  const [check_phone, setCheckPhone] = useState(false);
-  const [check_phone_code, setCheckPhoneCode] = useState(false);
-  const [change_locale_to, setChangeLocaleTo] = useState(locale);
-  const [recaptcha_modal_visible, setRecaptchaModalVisible] = useState(false);
-  const [phone_recaptcha, setPhoneRecaptcha] = useState(null);
+  const [emailSendCodeTxt, setEmailSendCodeTxt] = useState('');
+  const [phoneCodeSending, setPhoneCodeSending] = useState(false);
+  const [phoneSendCodeTxt, setPhoneSendCodeTxt] = useState('');
+  const [pendingCreateUser, setPendingCreateUser] = useState(false);
+  const [checkUsername, setCheckUsername] = useState(false);
+  const [checkEmail, setCheckEmail] = useState(false);
+  const [checkEmailCode, setCheckEmailCode] = useState(false);
+  const [checkPhone, setCheckPhone] = useState(false);
+  const [checkPhoneCode, setCheckPhoneCode] = useState(false);
+  const [captchaModalVisible, setCaptchaModalVisible] = useState(false);
+  const [phoneCaptcha, setPhoneCaptcha] = useState(null);
+  const [formCaptcha, setFormCaptcha] = useState(null);
+  const captchaSwitch = useSelector((state) => state.app.captchaSwitch);
+  const captchaSiteKey = useSelector((state) => state.app.captchaSiteKey);
+
+  const captchaRenderOptions = {
+    language: locale,
+    size: 'normal',
+  };
 
   useEffect(() => {
-    setFingerprint(JSON.stringify(getFingerprint()));
     setEmailSendCodeTxt(intl.formatMessage({ id: 'send_code' }));
     setPhoneSendCodeTxt(intl.formatMessage({ id: 'send_code' }));
   }, []);
 
   useEffect(() => {
-    if (locale !== change_locale_to) {
-      clearGoogleRecaptcha();
+    if (phoneCaptcha) {
+      SendPhoneCode();
     }
-  }, [locale]);
+  }, [phoneCaptcha]);
+
+  useEffect(() => {
+    if (formCaptcha) {
+      form.setFieldValue('captcha', formCaptcha);
+    }
+  }, [formCaptcha]);
 
   const getBtnStatus = () => {
-    const recaptcha =
-      window.config.RECAPTCHA_SWITCH !== 'OFF'
-        ? form.getFieldValue('recaptcha')
-        : true;
+    const captcha = captchaSwitch ? formCaptcha : true;
     return !(
-      check_username &&
-      check_email &&
-      check_email_code &&
-      check_phone &&
-      check_phone_code &&
-      !!recaptcha
+      checkUsername &&
+      checkEmail &&
+      checkEmailCode &&
+      checkPhone &&
+      checkPhoneCode &&
+      !!captcha
     );
-  };
-
-  const clearGoogleRecaptcha = () => {
-    // remove google recaptcha
-    for (
-      let i = document.getElementsByTagName('script').length - 1;
-      i >= 0;
-      i -= 1
-    ) {
-      const scriptNode = document.getElementsByTagName('script')[i];
-      if (scriptNode.src.includes('recaptcha')) {
-        scriptNode.parentNode.removeChild(scriptNode);
-      }
-    }
-    delete window.grecaptcha;
-    delete window.onloadcallback;
   };
 
   const validateEmail = (_, value) => {
@@ -139,6 +131,7 @@ const UserInfo = ({
         apiCall('/api/check_username', { username: value })
           .then(() => {
             setCheckUsername(true);
+            logCheckpoint(CHECKPOINTS.username_checked);
             resolve();
           })
           .catch((error) => {
@@ -161,6 +154,7 @@ const UserInfo = ({
       apiCall('/api/check_email_code', { code: value, email })
         .then(() => {
           setCheckEmailCode(true);
+          logCheckpoint(CHECKPOINTS.email_checked);
           resolve();
         })
         .catch((error) => {
@@ -182,6 +176,7 @@ const UserInfo = ({
       );
     }
     setCheckPhone(true);
+    logCheckpoint(CHECKPOINTS.phone_checked);
     return Promise.resolve();
   };
 
@@ -198,7 +193,10 @@ const UserInfo = ({
         );
       }
       const phoneNumber = form.getFieldValue('phone');
-      apiCall('/api/check_phone_code', { code: value, phoneNumber })
+      apiCall('/api/check_phone_code', {
+        code: value,
+        phoneNumber,
+      })
         .then(() => {
           setCheckPhoneCode(true);
           return resolve();
@@ -241,21 +239,22 @@ const UserInfo = ({
   };
 
   const SendPhoneCodeWrapper = () => {
-    if (!check_phone) return;
-    if (phone_code_sending) return;
-    if (window.config.RECAPTCHA_SWITCH !== 'OFF') {
-      setRecaptchaModalVisible(true);
+    if (!checkPhone) return;
+    if (phoneCodeSending) return;
+    if (captchaSwitch) {
+      refOfTurnstileInModal.current?.reset();
+      setCaptchaModalVisible(true);
     } else {
       SendPhoneCode();
     }
   };
 
   const SendPhoneCode = () => {
-    if (phone_code_sending) return;
+    if (phoneCodeSending) return;
     // clear input error
     form.setFields([
       {
-        name: 'phone',
+        name: 'phone_code',
         errors: [],
       },
     ]);
@@ -265,7 +264,7 @@ const UserInfo = ({
     apiCall('/api/request_sms', {
       phoneNumber: form.getFieldValue('phone'),
       locale,
-      phone_recaptcha,
+      phoneCaptcha,
     })
       .then(() => {
         messageApi.open({
@@ -277,48 +276,50 @@ const UserInfo = ({
       .catch((error) => {
         form.setFields([
           {
-            name: 'phone',
+            name: 'phone_code',
             errors: [intl.formatMessage({ id: error.type })],
           },
         ]);
+        setCheckPhoneCode(false);
         setPhoneCodeSending(false);
       });
   };
 
   const handleFinish = (values) => {
     console.log('form values:', values);
-    if (pending_create_user) return;
+    if (pendingCreateUser) return;
     setPendingCreateUser(true);
     const data = {
-      recaptcha:
-        window.config.RECAPTCHA_SITE_KEY !== ''
-          ? form.getFieldValue('recaptcha')
-          : '',
+      captcha: captchaSwitch ? form.getFieldValue('captcha') : '',
       email: form.getFieldValue('email'),
       emailCode: form.getFieldValue('email_code'),
-      phoneNumber: `+${form.getFieldValue('phone')}`,
+      phoneNumber: form.getFieldValue('phone'),
       phoneCode: form.getFieldValue('phone_code'),
       username: form.getFieldValue('username'),
     };
     apiCall('/api/create_user', data)
       .then((result) => {
         setPendingCreateUser(false);
-        data.token = result.token;
-        handleSubmitUserInfo(data);
+        dispatch(setUsername(form.getFieldValue('username')));
+        dispatch(setToken(result.token));
+        logCheckpoint(CHECKPOINTS.user_info_submitted);
+        setStep('savePassword');
       })
       .catch((error) => {
         setPendingCreateUser(false);
-        message.error(intl.formatMessage({ id: error.type }));
+        messageApi.open({
+          type: 'error',
+          content: intl.formatMessage({ id: error.type }),
+        });
       });
   };
 
-  const hideRecaptchaModal = () => {
-    setRecaptchaModalVisible(false);
+  const hideCaptchaModal = () => {
+    setCaptchaModalVisible(false);
   };
 
   return (
     <div className="user-info-wrap">
-      {contextHolder}
       <Form
         form={form}
         onFinish={handleFinish}
@@ -406,8 +407,8 @@ const UserInfo = ({
             })}
             addonAfter={
               <SendCode
-                checked={check_email}
-                btnText={email_send_code_txt}
+                checked={checkEmail}
+                btnText={emailSendCodeTxt}
                 onClick={() => SendEmailCode(form.getFieldValue('email'))}
               />
             }
@@ -447,7 +448,7 @@ const UserInfo = ({
             withCountryCallingCode
             inputComponent={AntdInputForPhoneNumber}
             size="large"
-            disabled={phone_code_sending}
+            disabled={phoneCodeSending}
           />
         </Form.Item>
         <Form.Item
@@ -470,8 +471,8 @@ const UserInfo = ({
             })}
             addonAfter={
               <SendCode
-                checked={check_phone}
-                btnText={phone_send_code_txt}
+                checked={checkPhone}
+                btnText={phoneSendCodeTxt}
                 onClick={() => SendPhoneCodeWrapper()}
               />
             }
@@ -481,19 +482,49 @@ const UserInfo = ({
           />
         </Form.Item>
         <Placeholder height="14px" />
-        {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
-          <Form.Item>
-            <div className="recaptcha-wrapper">
-              <div className="recaptcha">
-                <ReCAPTCHA
-                  ref={(el) => {
-                    this.captcha = el;
+        {captchaSwitch && (
+          <Form.Item
+            name="captcha"
+            rules={[
+              {
+                required: true,
+                message: intl.formatMessage({ id: 'error_captcha_required' }),
+              },
+            ]}
+          >
+            <div className="captcha-wrapper">
+              <div className="captcha">
+                <Turnstile
+                  siteKey={captchaSiteKey}
+                  options={captchaRenderOptions}
+                  onSuccess={(token) => {
+                    setFormCaptcha(token);
                   }}
-                  sitekey={window.config.RECAPTCHA_SITE_KEY}
-                  type="image"
-                  size="normal"
-                  hl={change_locale_to === 'zh' ? 'zh_CN' : 'en'}
-                  onChange={() => {}}
+                  onExpire={() => {
+                    console.log('captcha expired');
+                    messageApi.open({
+                      type: 'warning',
+                      content: intl.formatMessage({
+                        id: 'error_captcha_expired',
+                      }),
+                    });
+                  }}
+                  onError={(captchaError) => {
+                    console.log('captcha error:', captchaError);
+                    messageApi.open({
+                      type: 'error',
+                      content: captchaError.message,
+                    });
+                  }}
+                  onTimeout={() => {
+                    console.log('captcha timeout');
+                    messageApi.open({
+                      type: 'warning',
+                      content: intl.formatMessage({
+                        id: 'error_captcha_timeout',
+                      }),
+                    });
+                  }}
                 />
               </div>
             </div>
@@ -507,7 +538,7 @@ const UserInfo = ({
                 type="primary"
                 htmlType="submit"
                 size="large"
-                loading={pending_create_user}
+                loading={pendingCreateUser}
                 disabled={getBtnStatus()}
               >
                 <FormattedMessage id="continue" />
@@ -535,27 +566,32 @@ const UserInfo = ({
       </Form>
       <Modal
         title={null}
-        open={recaptcha_modal_visible}
-        onCancel={hideRecaptchaModal}
+        open={captchaModalVisible}
+        onCancel={hideCaptchaModal}
         footer={null}
         closable={false}
       >
-        {recaptcha_modal_visible === true && (
-          <ReCAPTCHA
-            ref={(el) => {
-              this.captcha = el;
-            }}
-            sitekey={window.config.RECAPTCHA_SITE_KEY}
-            type="image"
-            size="normal"
-            hl={change_locale_to === 'zh' ? 'zh_CN' : 'en'}
-            onChange={(recaptcha) => {
-              setPhoneRecaptcha(recaptcha);
-              setRecaptchaModalVisible(false);
-              SendPhoneCode();
-            }}
-          />
-        )}
+        <Turnstile
+          ref={refOfTurnstileInModal}
+          siteKey={captchaSiteKey}
+          options={captchaRenderOptions}
+          onSuccess={(token) => {
+            setPhoneCaptcha(token);
+            hideCaptchaModal();
+          }}
+          onExpire={() => {
+            messageApi.open({
+              type: 'warning',
+              content: intl.formatMessage({ id: 'error_captcha_expired' }),
+            });
+          }}
+          onError={(captchaError) => {
+            messageApi.open({
+              type: 'error',
+              content: captchaError.message,
+            });
+          }}
+        />
       </Modal>
     </div>
   );
