@@ -125,7 +125,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', require('./routes/api'));
-app.use('/admin', require('./routes/admin'));
 app.use('/', require('./routes'));
 
 // catch 404 and forward to error handler
