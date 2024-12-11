@@ -1550,11 +1550,21 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
+    req.log.debug({ prefix: req.body.prefix, phoneNumber: req.body.phoneNumber }, 'debug');
+    const countryCode = req.body.prefix.split('_')[1];
+    if (!countryCode) {
+        throw new ApiError({
+            field: 'phoneNumber',
+            type: 'error_api_prefix_invalid',
+        });
+    }
+    let phoneNumber = phoneUtil.parse(req.body.phoneNumber, countryCode);
+    phoneNumber = phoneUtil.format(phoneNumber, PNF.E164);
     let record = null;
 
     try {
         record = await database.findPhoneRecord({
-            where: { phone_number: req.body.phoneNumber },
+            where: { phone_number: phoneNumber },
         });
     } catch (cause) {
         req.log.warn({ cause }, 'error_api_findPhoneRecord_failed');
