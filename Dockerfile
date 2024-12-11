@@ -25,15 +25,6 @@ RUN yarn build
 # prune modules
 RUN yarn install --non-interactive --frozen-lockfile --production
 
-# build and test admin interface
-FROM node:10-alpine as admin-stage
-COPY admin /app/admin
-WORKDIR /app/admin
-ENV REACT_APP_SERVER_ADDRESS /admin
-RUN JOBS=max yarn install --non-interactive --frozen-lockfile && \
-    CI=1 yarn test && \
-    yarn build
-
 # copy built application to runtime image
 FROM node:10-alpine
 WORKDIR /app
@@ -50,7 +41,6 @@ COPY --from=build-stage /app/public public
 COPY --from=build-stage /app/routes routes
 COPY --from=build-stage /app/src src
 COPY --from=build-stage /app/views views
-COPY --from=admin-stage /app/admin/build public/admin
 
 # run on port 3001
 ENV NODE_ENV production

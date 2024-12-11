@@ -255,6 +255,7 @@ class UserInfo extends React.Component {
     };
 
     validatePhoneCode = (rule, value, callback) => {
+        const { prefix } = this.state;
         if (value) {
             const { intl, form } = this.props;
             if (value.length !== 6) {
@@ -267,7 +268,7 @@ class UserInfo extends React.Component {
                 return;
             }
             const phoneNumber = `+${form.getFieldValue('phone')}`;
-            apiCall('/api/check_phone_code', { code: value, phoneNumber })
+            apiCall('/api/check_phone_code', { code: value, phoneNumber, prefix })
                 .then(() => {
                     this.setState({
                         check_phone_code: true,
