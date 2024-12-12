@@ -1,4 +1,4 @@
-FROM node:10-alpine as build-stage
+FROM node:10-alpine AS build-stage
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY . .
 RUN yarn test
 
 # set node env for webpack build
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # build webpack bundle
 RUN yarn build
@@ -43,7 +43,7 @@ COPY --from=build-stage /app/src src
 COPY --from=build-stage /app/views views
 
 # run on port 3001
-ENV NODE_ENV production
-ENV PORT 3001
+ENV NODE_ENV=production
+ENV PORT=3001
 
 CMD [ "node", "bin/www" ]

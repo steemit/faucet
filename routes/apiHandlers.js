@@ -974,38 +974,38 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         }
     }
 
-    const minusOneMinute = Date.now() - 60000;
-    const minusOneDay = Date.now() - 86400000;
+    // const minusOneMinute = Date.now() - 60000;
+    // const minusOneDay = Date.now() - 86400000;
 
-    const usersLastAttempt = record.last_attempt_verify_email
-        ? record.last_attempt_verify_email.getTime()
-        : undefined;
+    // const usersLastAttempt = record.last_attempt_verify_email
+    //     ? record.last_attempt_verify_email.getTime()
+    //     : undefined;
 
-    const dailySentTimes = record.email_code_sent
-        ? record.email_code_sent
-        : undefined;
+    // const dailySentTimes = record.email_code_sent
+    //     ? record.email_code_sent
+    //     : undefined;
 
-    const lastRequestTime = record.email_code_first_sent
-        ? record.email_code_first_sent.getTime()
-        : undefined;
+    // const lastRequestTime = record.email_code_first_sent
+    //     ? record.email_code_first_sent.getTime()
+    //     : undefined;
 
-    // if an email has requested code over 5 times with 24 hours, throw an error.
-    if (dailySentTimes && lastRequestTime) {
-        if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-            throw new ApiError({
-                field: 'email',
-                type: 'error_api_request_too_much',
-            });
-        }
-    }
+    // // if an email has requested code over 5 times with 24 hours, throw an error.
+    // if (dailySentTimes && lastRequestTime) {
+    //     if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
+    //         throw new ApiError({
+    //             field: 'email',
+    //             type: 'error_api_request_too_much',
+    //         });
+    //     }
+    // }
 
-    // If the user's last attempt was less than or exactly a minute ago, throw an error.
-    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
-        throw new ApiError({
-            field: 'email',
-            type: 'error_api_wait_one_minute',
-        });
-    }
+    // // If the user's last attempt was less than or exactly a minute ago, throw an error.
+    // if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+    //     throw new ApiError({
+    //         field: 'email',
+    //         type: 'error_api_wait_one_minute',
+    //     });
+    // }
 
     const captchaCode = (
         100000 + Math.round(Math.random() * 899999)
@@ -1023,24 +1023,24 @@ async function handleRequestEmailCode(ip, email, log, locale) {
     }
 
     // Update the user to reflect that the verification email was sent.
-    record.email_code_attempts = 0;
+    // record.email_code_attempts = 0;
     record.email_code = captchaCode;
     record.email_code_generated = new Date();
-    // count every 24 hours
-    if (record.email_code_generated >= minusOneDay) {
-        record.email_code_sent += 1;
-    } else {
-        record.email_code_sent = 1;
-        record.email_code_first_sent = new Date();
-    }
-    if (
-        !record.email_code_first_sent ||
-        record.email_code_first_sent < minusOneDay
-    ) {
-        record.email_code_first_sent = new Date();
-        record.email_code_sent = 1;
-    }
-    record.last_attempt_verify_email = new Date();
+    // // count every 24 hours
+    // if (record.email_code_generated >= minusOneDay) {
+    //     record.email_code_sent += 1;
+    // } else {
+    //     record.email_code_sent = 1;
+    //     record.email_code_first_sent = new Date();
+    // }
+    // if (
+    //     !record.email_code_first_sent ||
+    //     record.email_code_first_sent < minusOneDay
+    // ) {
+    //     record.email_code_first_sent = new Date();
+    //     record.email_code_sent = 1;
+    // }
+    // record.last_attempt_verify_email = new Date();
     await record.save();
 
     return { success: true, email, xref: record.ref_code };
@@ -1183,7 +1183,7 @@ async function handleRequestSmsNew(req) {
     }
 
     // same ip policy
-    await database.actionLimitNew(req.ip, 'try_number');
+    // await database.actionLimitNew(req.ip, 'try_number');
 
     let record = null;
 
@@ -1208,167 +1208,167 @@ async function handleRequestSmsNew(req) {
         });
         record = newPhoneRecord;
     }
-    const now = Date.now();
-    const minusOneDay = now - 24 * 60 * 60 * 1000;
-    const minusOneHour = now - 60 * 60 * 1000;
-    const minusOneMinute = now - 60 * 1000;
+    // const now = Date.now();
+    // const minusOneDay = now - 24 * 60 * 60 * 1000;
+    // const minusOneHour = now - 60 * 60 * 1000;
+    // const minusOneMinute = now - 60 * 1000;
 
-    const usersLastAttempt = record.last_attempt_verify_phone_number
-        ? record.last_attempt_verify_phone_number.getTime()
-        : undefined;
+    // const usersLastAttempt = record.last_attempt_verify_phone_number
+    //     ? record.last_attempt_verify_phone_number.getTime()
+    //     : undefined;
 
-    const dailySentTimes = record.phone_code_sent
-        ? record.phone_code_sent
-        : undefined;
+    // const dailySentTimes = record.phone_code_sent
+    //     ? record.phone_code_sent
+    //     : undefined;
 
-    // the first time send code time in one day
-    const lastRequestTime = record.phone_code_first_sent
-        ? record.phone_code_first_sent.getTime()
-        : undefined;
+    // // the first time send code time in one day
+    // const lastRequestTime = record.phone_code_first_sent
+    //     ? record.phone_code_first_sent.getTime()
+    //     : undefined;
 
     // if an phone has requested code over 5 times with 24 hours, throw an error.
-    if (dailySentTimes && lastRequestTime) {
-        if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-            throw new ApiError({
-                field: 'phone',
-                type: 'error_api_request_too_much',
-            });
-        }
-    }
+    // if (dailySentTimes && lastRequestTime) {
+    //     if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
+    //         throw new ApiError({
+    //             field: 'phone',
+    //             type: 'error_api_request_too_much',
+    //         });
+    //     }
+    // }
 
     // If the user's last attempt was less than or exactly a minute ago, throw an error.
-    if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
-        throw new ApiError({
-            field: 'phone',
-            type: 'error_api_wait_one_minute',
-        });
-    }
+    // if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
+    //     throw new ApiError({
+    //         field: 'phone',
+    //         type: 'error_api_wait_one_minute',
+    //     });
+    // }
 
-    const hitNumbers = await database.findLastSendSmsByCountryNumber(
-        countryNumber,
-        phoneNumber
-    );
-    let lastPhoneCodeRecord = null;
+    // const hitNumbers = await database.findLastSendSmsByCountryNumber(
+    //     countryNumber,
+    //     phoneNumber
+    // );
+    // let lastPhoneCodeRecord = null;
     // high frequency policy for all countries (hfp)
-    const highFrequencyRange = process.env.HIGH_FREQUENCY_TIME_RANGE
-        ? parseInt(process.env.HIGH_FREQUENCY_TIME_RANGE, 10)
-        : 2;
-    const highFrequencyCount = process.env.HIGH_FREQUENCY_COUNT
-        ? parseInt(process.env.HIGH_FREQUENCY_COUNT, 10)
-        : 10;
-    if (hitNumbers.length > 0) {
-        const tempNumber = hitNumbers[0];
-        lastPhoneCodeRecord = await database.findPhoneRecord({
-            where: { phone_number: tempNumber.metadata.phoneNumber },
-        });
-        if (lastPhoneCodeRecord != null && !lastPhoneCodeRecord.phone_code) {
-            if (
-                lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
-                minusOneMinute
-            ) {
-                req.log.warn({ phoneNumber }, 'hfp:lower_than_one_minute');
-                services.recordSmsTracker({
-                    sendType: 'hit_hfp_1',
-                    countryCode: req.body.prefix,
-                    phoneNumber: req.body.phoneNumber,
-                });
-                throw new ApiError({
-                    field: 'phone',
-                    type: 'error_api_wait_one_minute',
-                });
-            }
-            const count = await database.countTryNumber(
-                countryNumber,
-                highFrequencyRange
-            );
-            if (
-                count >= highFrequencyCount &&
-                lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
-                    minusOneHour
-            ) {
-                req.log.warn({ phoneNumber }, 'hfp:lower_than_one_hour');
-                services.recordSmsTracker({
-                    sendType: 'hit_hfp_2',
-                    countryCode: req.body.prefix,
-                    phoneNumber: req.body.phoneNumber,
-                });
-                throw new ApiError({
-                    field: 'phone',
-                    type: 'error_api_wait_one_minute',
-                });
-            }
-        }
-    }
+    // const highFrequencyRange = process.env.HIGH_FREQUENCY_TIME_RANGE
+    //     ? parseInt(process.env.HIGH_FREQUENCY_TIME_RANGE, 10)
+    //     : 2;
+    // const highFrequencyCount = process.env.HIGH_FREQUENCY_COUNT
+    //     ? parseInt(process.env.HIGH_FREQUENCY_COUNT, 10)
+    //     : 10;
+    // if (hitNumbers.length > 0) {
+    //     const tempNumber = hitNumbers[0];
+    //     lastPhoneCodeRecord = await database.findPhoneRecord({
+    //         where: { phone_number: tempNumber.metadata.phoneNumber },
+    //     });
+    //     if (lastPhoneCodeRecord != null && !lastPhoneCodeRecord.phone_code) {
+    //         if (
+    //             lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
+    //             minusOneMinute
+    //         ) {
+    //             req.log.warn({ phoneNumber }, 'hfp:lower_than_one_minute');
+    //             services.recordSmsTracker({
+    //                 sendType: 'hit_hfp_1',
+    //                 countryCode: req.body.prefix,
+    //                 phoneNumber: req.body.phoneNumber,
+    //             });
+    //             throw new ApiError({
+    //                 field: 'phone',
+    //                 type: 'error_api_wait_one_minute',
+    //             });
+    //         }
+    //         const count = await database.countTryNumber(
+    //             countryNumber,
+    //             highFrequencyRange
+    //         );
+    //         if (
+    //             count >= highFrequencyCount &&
+    //             lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() >=
+    //                 minusOneHour
+    //         ) {
+    //             req.log.warn({ phoneNumber }, 'hfp:lower_than_one_hour');
+    //             services.recordSmsTracker({
+    //                 sendType: 'hit_hfp_2',
+    //                 countryCode: req.body.prefix,
+    //                 phoneNumber: req.body.phoneNumber,
+    //             });
+    //             throw new ApiError({
+    //                 field: 'phone',
+    //                 type: 'error_api_wait_one_minute',
+    //             });
+    //         }
+    //     }
+    // }
 
     // delay sending code when the country number in the block list
-    const delaySendBlockCountryNumbers = process.env
-        .DELAY_SEND_SMS_COUNTRY_NUMBER
-        ? process.env.DELAY_SEND_SMS_COUNTRY_NUMBER.split(',')
-        : '';
-    if (delaySendBlockCountryNumbers.indexOf(countryNumber) !== -1) {
-        const delaySendTimeout = process.env.DELAY_SEND_SMS_TIMEOUT
-            ? parseInt(process.env.DELAY_SEND_SMS_TIMEOUT.split(','), 10) * 1000
-            : 3600 * 1000;
-        if (hitNumbers.length > 0) {
-            const tempNumber = hitNumbers[0];
-            // if sending interval time lower than delaySendTimeout, throw err
-            if (now - tempNumber.created_at.getTime() <= delaySendTimeout) {
-                req.log.warn(
-                    { phoneNumber },
-                    'delay sending code, lower than DELAY_SEND_SMS_TIMEOUT'
-                );
-                services.recordSmsTracker({
-                    sendType: 'hit_delay_sending_1',
-                    countryCode: req.body.prefix,
-                    phoneNumber: req.body.phoneNumber,
-                });
-                throw new ApiError({
-                    field: 'phone',
-                    type: 'error_api_wait_one_minute',
-                });
-            }
-            // if there is one phone not registering success in 24 hours,
-            // the same country number will be delayed.
-            const delaySendTimeoutNotRegSuccess = process.env
-                .DELAY_SEND_SMS_TIMEOUT_WHEN_REG_NOT_SUCCESS
-                ? parseInt(
-                      process.env.DELAY_SEND_SMS_TIMEOUT_WHEN_REG_NOT_SUCCESS.split(
-                          ','
-                      ),
-                      10
-                  ) * 1000
-                : 7200 * 1000;
-            if (
-                lastPhoneCodeRecord != null &&
-                now -
-                    lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() <=
-                    delaySendTimeoutNotRegSuccess
-            ) {
-                req.log.warn(
-                    { phoneNumber },
-                    'delay sending code when last same country number does not register success'
-                );
-                services.recordSmsTracker({
-                    sendType: 'hit_delay_sending_2',
-                    countryCode: req.body.prefix,
-                    phoneNumber: req.body.phoneNumber,
-                });
-                throw new ApiError({
-                    field: 'phone',
-                    type: 'error_api_wait_one_minute',
-                });
-            }
-        }
-    }
+    // const delaySendBlockCountryNumbers = process.env
+    //     .DELAY_SEND_SMS_COUNTRY_NUMBER
+    //     ? process.env.DELAY_SEND_SMS_COUNTRY_NUMBER.split(',')
+    //     : '';
+    // if (delaySendBlockCountryNumbers.indexOf(countryNumber) !== -1) {
+    //     const delaySendTimeout = process.env.DELAY_SEND_SMS_TIMEOUT
+    //         ? parseInt(process.env.DELAY_SEND_SMS_TIMEOUT.split(','), 10) * 1000
+    //         : 3600 * 1000;
+    //     if (hitNumbers.length > 0) {
+    //         const tempNumber = hitNumbers[0];
+    //         // if sending interval time lower than delaySendTimeout, throw err
+    //         if (now - tempNumber.created_at.getTime() <= delaySendTimeout) {
+    //             req.log.warn(
+    //                 { phoneNumber },
+    //                 'delay sending code, lower than DELAY_SEND_SMS_TIMEOUT'
+    //             );
+    //             services.recordSmsTracker({
+    //                 sendType: 'hit_delay_sending_1',
+    //                 countryCode: req.body.prefix,
+    //                 phoneNumber: req.body.phoneNumber,
+    //             });
+    //             throw new ApiError({
+    //                 field: 'phone',
+    //                 type: 'error_api_wait_one_minute',
+    //             });
+    //         }
+    //         // if there is one phone not registering success in 24 hours,
+    //         // the same country number will be delayed.
+    //         const delaySendTimeoutNotRegSuccess = process.env
+    //             .DELAY_SEND_SMS_TIMEOUT_WHEN_REG_NOT_SUCCESS
+    //             ? parseInt(
+    //                   process.env.DELAY_SEND_SMS_TIMEOUT_WHEN_REG_NOT_SUCCESS.split(
+    //                       ','
+    //                   ),
+    //                   10
+    //               ) * 1000
+    //             : 7200 * 1000;
+    //         if (
+    //             lastPhoneCodeRecord != null &&
+    //             now -
+    //                 lastPhoneCodeRecord.last_attempt_verify_phone_number.getTime() <=
+    //                 delaySendTimeoutNotRegSuccess
+    //         ) {
+    //             req.log.warn(
+    //                 { phoneNumber },
+    //                 'delay sending code when last same country number does not register success'
+    //             );
+    //             services.recordSmsTracker({
+    //                 sendType: 'hit_delay_sending_2',
+    //                 countryCode: req.body.prefix,
+    //                 phoneNumber: req.body.phoneNumber,
+    //             });
+    //             throw new ApiError({
+    //                 field: 'phone',
+    //                 type: 'error_api_wait_one_minute',
+    //             });
+    //         }
+    //     }
+    // }
 
-    await database.logAction({
-        action: 'send_sms',
-        ip: req.ip,
-        metadata: {
-            phoneNumber,
-            countryNumber,
-        },
-    });
+    // await database.logAction({
+    //     action: 'send_sms',
+    //     ip: req.ip,
+    //     metadata: {
+    //         phoneNumber,
+    //         countryNumber,
+    //     },
+    // });
     services.recordSmsTracker({
         sendType: 'before_send_sms',
         countryCode: req.body.prefix,
@@ -1441,26 +1441,26 @@ async function handleRequestSmsNew(req) {
         }
     }
 
-    record.phone_code_attempts = 0;
-    if (countryCodeList.indexOf(countryCode) !== -1) {
-        record.phone_code = phoneCode;
-    }
+    // record.phone_code_attempts = 0;
+    // if (countryCodeList.indexOf(countryCode) !== -1) {
+    //     record.phone_code = phoneCode;
+    // }
     record.phone_code_generated = new Date();
-    // count every 24 hours
-    if (record.phone_code_generated >= minusOneDay) {
-        record.phone_code_sent += 1;
-    } else {
-        record.phone_code_sent = 1;
-        record.phone_code_first_sent = new Date();
-    }
-    if (
-        !record.phone_code_first_sent ||
-        record.phone_code_first_sent < minusOneDay
-    ) {
-        record.phone_code_first_sent = new Date();
-        record.phone_code_sent = 1;
-    }
-    record.last_attempt_verify_phone_number = new Date();
+    // // count every 24 hours
+    // if (record.phone_code_generated >= minusOneDay) {
+    //     record.phone_code_sent += 1;
+    // } else {
+    //     record.phone_code_sent = 1;
+    //     record.phone_code_first_sent = new Date();
+    // }
+    // if (
+    //     !record.phone_code_first_sent ||
+    //     record.phone_code_first_sent < minusOneDay
+    // ) {
+    //     record.phone_code_first_sent = new Date();
+    //     record.phone_code_sent = 1;
+    // }
+    // record.last_attempt_verify_phone_number = new Date();
     await record.save();
 
     return { success: true, phoneNumber, ref: record.ref_code };
