@@ -200,11 +200,29 @@ export async function verifyCaptcha(captcha, ip) {
     logger.warn('Verify captcha for %s', ip);
   } else {
     const site = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-    const url = `${site}?secret=${captchaSecret}&response=${captcha}&remoteip=${ip}`;
-    const response = await (await fetch(url)).json();
+
+    const req = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        secret: captchaSecret,
+        response: captcha,
+        remoteip: ip,
+      }),
+    };
+    const res = await fetch(site, req);
+    if (res.status !== 200) {
+      throw new Error(`Captcha verification HTTP error: ${res.status}`);
+    }
+
+    const response = await res.json();
     if (!response.success) {
       const codes = response['error-codes'] || ['unknown'];
       throw new Error(`Captcha verification failed: ${codes.join()}`);
+    } else {
+      logger.info({ response, ip }, 'Captcha verification success');
     }
   }
 }
