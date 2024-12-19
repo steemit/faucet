@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, Icon, message, Modal } from 'antd';
 import SendCode from './SendCode';
 import apiCall from '../../../utils/api';
@@ -11,6 +10,7 @@ import getFingerprint from '../../../../helpers/fingerprint';
 import { accountNameIsValid, emailValid } from '../../../../helpers/validator';
 import badDomains from '../../../../bad-domains';
 import Placeholder from '../../Placeholder';
+import Turnstile from '../../Turnstile';
 
 class UserInfo extends React.Component {
     constructor(props) {
@@ -37,6 +37,15 @@ class UserInfo extends React.Component {
             change_locale_to: this.props.locale,
             recaptcha_modal_visible: false,
             phone_recaptcha: null,
+            email_validate_status: '',
+            email_validate_help: '',
+            phone_validate_status: '',
+            phone_validate_help: '',
+        };
+        this.captchaRenderOptions = {
+            language: this.props.locale,
+            size: 'flexible',
+            theme: 'light',
         };
     }
 
@@ -70,7 +79,7 @@ class UserInfo extends React.Component {
             if (Object.keys(newState).length > 0) {
                 this.setState(newState);
             }
-            this.clearGoogleRecaptcha();
+            // this.clearGoogleRecaptcha();
         }
     }
 
@@ -108,21 +117,21 @@ class UserInfo extends React.Component {
         cn: '... .... ....',
     });
 
-    clearGoogleRecaptcha = () => {
-        // remove google recaptcha
-        for (
-            let i = document.getElementsByTagName('script').length - 1;
-            i >= 0;
-            i -= 1
-        ) {
-            const scriptNode = document.getElementsByTagName('script')[i];
-            if (scriptNode.src.includes('recaptcha')) {
-                scriptNode.parentNode.removeChild(scriptNode);
-            }
-        }
-        delete window.grecaptcha;
-        delete window.onloadcallback;
-    };
+    // clearGoogleRecaptcha = () => {
+    //     // remove google recaptcha
+    //     for (
+    //         let i = document.getElementsByTagName('script').length - 1;
+    //         i >= 0;
+    //         i -= 1
+    //     ) {
+    //         const scriptNode = document.getElementsByTagName('script')[i];
+    //         if (scriptNode.src.includes('recaptcha')) {
+    //             scriptNode.parentNode.removeChild(scriptNode);
+    //         }
+    //     }
+    //     delete window.grecaptcha;
+    //     delete window.onloadcallback;
+    // };
 
     validateAccountNameIntl = (rule, value, callback) => {
         try {
@@ -268,7 +277,11 @@ class UserInfo extends React.Component {
                 return;
             }
             const phoneNumber = `+${form.getFieldValue('phone')}`;
-            apiCall('/api/check_phone_code', { code: value, phoneNumber, prefix })
+            apiCall('/api/check_phone_code', {
+                code: value,
+                phoneNumber,
+                prefix,
+            })
                 .then(() => {
                     this.setState({
                         check_phone_code: true,
@@ -300,10 +313,8 @@ class UserInfo extends React.Component {
             locale,
         })
             .then(() => {
-                this.props.form.setFields({
-                    email: {
-                        value: email,
-                    },
+                this.props.form.setFieldsValue({
+                    email,
                 });
                 window.email_code_count_seconds = 60;
                 window.email_code_interval = setInterval(() => {
@@ -326,13 +337,8 @@ class UserInfo extends React.Component {
                 }, 1000);
             })
             .catch(error => {
-                this.props.form.setFields({
-                    email: {
-                        value: email,
-                        errors: [
-                            new Error(intl.formatMessage({ id: error.type })),
-                        ],
-                    },
+                this.props.form.setFieldsValue({
+                    email,
                 });
                 window.email_code_count_seconds = 0;
                 clearInterval(window.email_code_interval);
@@ -341,6 +347,10 @@ class UserInfo extends React.Component {
                         id: 'send_code',
                     }),
                     email_code_sending: false,
+                    email_validate_status: 'error',
+                    email_validate_help: intl.formatMessage({
+                        id: error.type,
+                    }),
                 });
             });
     };
@@ -371,10 +381,8 @@ class UserInfo extends React.Component {
             phone_recaptcha,
         })
             .then(() => {
-                this.props.form.setFields({
-                    phone: {
-                        value: phone,
-                    },
+                this.props.form.setFieldsValue({
+                    phone,
                 });
                 window.phone_code_count_seconds = 60;
                 window.phone_code_interval = setInterval(() => {
@@ -397,13 +405,8 @@ class UserInfo extends React.Component {
                 }, 1000);
             })
             .catch(error => {
-                this.props.form.setFields({
-                    phone: {
-                        value: phone,
-                        errors: [
-                            new Error(intl.formatMessage({ id: error.type })),
-                        ],
-                    },
+                this.props.form.setFieldsValue({
+                    phone,
                 });
                 window.phone_code_count_seconds = 0;
                 clearInterval(window.phone_code_interval);
@@ -412,6 +415,10 @@ class UserInfo extends React.Component {
                         id: 'send_code',
                     }),
                     phone_code_sending: false,
+                    phone_validate_status: 'error',
+                    phone_validate_help: intl.formatMessage({
+                        id: error.type,
+                    }),
                 });
             });
     };
@@ -507,7 +514,11 @@ class UserInfo extends React.Component {
                     <p className="text">
                         <FormattedMessage id="email_description" />
                     </p>
-                    <Form.Item hasFeedback>
+                    <Form.Item
+                        validateStatus={this.state.email_validate_status}
+                        help={this.state.email_validate_help}
+                        hasFeedback
+                    >
                         {getFieldDecorator('email', {
                             validateFirst: true,
                             rules: [
@@ -622,7 +633,11 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
-                    <Form.Item hasFeedback>
+                    <Form.Item
+                        validateStatus={this.state.phone_validate_status}
+                        help={this.state.phone_validate_help}
+                        hasFeedback
+                    >
                         {getFieldDecorator('phone_code', {
                             normalize: this.normalizeUsername,
                             validateFirst: true,
@@ -663,32 +678,54 @@ class UserInfo extends React.Component {
                     <Placeholder height="14px" />
                     {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
                         <Form.Item>
-                            <div className="recaptcha-wrapper">
-                                <div className="recaptcha">
-                                    {getFieldDecorator('recaptcha', {
-                                        rules: [{}],
-                                        validateTrigger: '',
-                                    })(
-                                        <ReCAPTCHA
-                                            ref={el => {
-                                                this.captcha = el;
-                                            }}
-                                            sitekey={
+                            {getFieldDecorator('recaptcha', {
+                                rules: [],
+                            })(
+                                <div className="recaptcha-wrapper">
+                                    <div className="recaptcha">
+                                        <Turnstile
+                                            action="form-recaptcha"
+                                            siteKey={
                                                 window.config.RECAPTCHA_SITE_KEY
                                             }
-                                            type="image"
-                                            size="normal"
-                                            hl={
-                                                this.state.change_locale_to ===
-                                                'zh'
-                                                    ? 'zh_CN'
-                                                    : 'en'
-                                            }
-                                            onChange={() => {}}
+                                            options={this.captchaRenderOptions}
+                                            onSuccess={token => {
+                                                // console.log('test form token', token);
+                                                this.props.form.setFieldsValue({
+                                                    recaptcha: token,
+                                                });
+                                            }}
+                                            onExpire={() => {
+                                                message.warning(
+                                                    intl.formatMessage({
+                                                        id:
+                                                            'error_captcha_expired',
+                                                    })
+                                                );
+                                            }}
+                                            onError={captchaError => {
+                                                // console.log(
+                                                //     'captcha error:',
+                                                //     captchaError
+                                                // );
+                                                message.error(
+                                                    captchaError.message
+                                                );
+                                            }}
+                                            onTimeout={() => {
+                                                message.warning(
+                                                    intl.formatMessage({
+                                                        id:
+                                                            'error_captcha_timeout',
+                                                    })
+                                                );
+                                            }}
+                                            responseField
+                                            responseFieldName="recaptcha"
                                         />
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </Form.Item>
                     )}
                     {origin === 'steemit' && (
@@ -736,25 +773,36 @@ class UserInfo extends React.Component {
                     closable={false}
                 >
                     {recaptcha_modal_visible === true && (
-                        <ReCAPTCHA
-                            ref={el => {
-                                this.captcha = el;
-                            }}
-                            sitekey={window.config.RECAPTCHA_SITE_KEY}
-                            type="image"
-                            size="normal"
-                            hl={
-                                this.state.change_locale_to === 'zh'
-                                    ? 'zh_CN'
-                                    : 'en'
-                            }
-                            onChange={recaptcha => {
+                        <Turnstile
+                            action="phone-recaptcha"
+                            siteKey={window.config.RECAPTCHA_SITE_KEY}
+                            options={this.captchaRenderOptions}
+                            onSuccess={token => {
+                                // console.log('test phone token', token);
                                 this.setState({
-                                    phone_recaptcha: recaptcha,
+                                    phone_recaptcha: token,
                                     recaptcha_modal_visible: false,
                                 });
                                 this.SendPhoneCode();
                             }}
+                            onExpire={() => {
+                                message.warning(
+                                    intl.formatMessage({
+                                        id: 'error_captcha_expired',
+                                    })
+                                );
+                            }}
+                            onError={captchaError => {
+                                message.error(captchaError.message);
+                            }}
+                            onTimeout={() => {
+                                message.warning(
+                                    intl.formatMessage({
+                                        id: 'error_captcha_timeout',
+                                    })
+                                );
+                            }}
+                            responseField={false}
                         />
                     )}
                 </Modal>
@@ -767,7 +815,7 @@ UserInfo.propTypes = {
     intl: intlShape.isRequired,
     locale: PropTypes.string,
     form: PropTypes.shape({
-        setFields: PropTypes.func.isRequired,
+        setFieldsValue: PropTypes.func.isRequired,
         getFieldValue: PropTypes.func.isRequired,
     }).isRequired,
     countryCode: PropTypes.string,

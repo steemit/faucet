@@ -98,7 +98,7 @@ const hbs = require('hbs');
 hbs.registerHelper('clientConfig', () => clientConfig);
 hbs.registerHelper('baseCss', () => new hbs.SafeString(process.env.NODE_ENV !== 'production' ? '' : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'));
 hbs.registerHelper('baseJs', () => new hbs.SafeString(`<script type="text/javascript" src="/js/${baseJsFile}"></script>`));
-hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(process.env.RECAPTCHA_SWITCH !== 'OFF' ? '<script src="//www.google.com/recaptcha/api.js"></script>' : ''));
+hbs.registerHelper('recaptchaJs', () => new hbs.SafeString(process.env.RECAPTCHA_SWITCH !== 'OFF' ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' : ''));
 hbs.registerHelper('gaCode', () => {
   let gaCode = '';
   if (clientConfigObject) {
