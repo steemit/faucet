@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, { PropTypes } from 'react';
-import { FormattedMessage, injectIntl } from 'react-intl';
-import ReCAPTCHA from 'react-google-recaptcha';
-import { Form, Icon, Input, Button } from 'antd';
+import { injectIntl } from 'react-intl';
+// import ReCAPTCHA from 'react-google-recaptcha';
+import { Form, Icon, Input } from 'antd';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
 import {
@@ -122,7 +122,7 @@ class Email extends React.Component {
     };
 
     render() {
-        const { form: { getFieldDecorator }, intl, email, goBack } = this.props;
+        const { form: { getFieldDecorator }, intl, email } = this.props;
         return (
             <Form
                 onSubmit={e => {
@@ -164,49 +164,6 @@ class Email extends React.Component {
                         />
                     )}
                 </Form.Item>
-                {getFieldDecorator('recaptcha', {
-                    rules: [
-                        {
-                            validator: this.validateRecaptcha,
-                            message: intl.formatMessage({
-                                id: 'error_api_recaptcha_required',
-                            }),
-                        },
-                    ],
-                    validateTrigger: '',
-                })(
-                    <ReCAPTCHA
-                        ref={el => {
-                            this.captcha = el;
-                        }}
-                        sitekey={window.config.RECAPTCHA_SITE_KEY}
-                        type="image"
-                        size="invisible"
-                        onChange={() => {}}
-                    />
-                )}
-                <div className="form-actions">
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            loading={this.state.submitting}
-                        >
-                            <FormattedMessage id="continue" />
-                        </Button>
-                    </Form.Item>
-                    {goBack && (
-                        <Form.Item>
-                            <Button
-                                htmlType="button"
-                                className="back"
-                                onClick={() => goBack('username', 0)}
-                            >
-                                <FormattedMessage id="go_back" />
-                            </Button>
-                        </Form.Item>
-                    )}
-                </div>
             </Form>
         );
     }

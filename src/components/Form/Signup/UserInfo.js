@@ -37,10 +37,6 @@ class UserInfo extends React.Component {
             change_locale_to: this.props.locale,
             recaptcha_modal_visible: false,
             phone_recaptcha: null,
-            email_validate_status: '',
-            email_validate_help: '',
-            phone_validate_status: '',
-            phone_validate_help: '',
         };
         this.captchaRenderOptions = {
             language: this.props.locale,
@@ -79,7 +75,6 @@ class UserInfo extends React.Component {
             if (Object.keys(newState).length > 0) {
                 this.setState(newState);
             }
-            // this.clearGoogleRecaptcha();
         }
     }
 
@@ -87,8 +82,6 @@ class UserInfo extends React.Component {
         // remove interval
         clearInterval(window.email_code_interval);
         clearInterval(window.phone_code_interval);
-        // remove google recaptcha
-        // this.clearGoogleRecaptcha();
     }
 
     getBtnStatus = () => {
@@ -116,22 +109,6 @@ class UserInfo extends React.Component {
     getPhoneMasks = () => ({
         cn: '... .... ....',
     });
-
-    // clearGoogleRecaptcha = () => {
-    //     // remove google recaptcha
-    //     for (
-    //         let i = document.getElementsByTagName('script').length - 1;
-    //         i >= 0;
-    //         i -= 1
-    //     ) {
-    //         const scriptNode = document.getElementsByTagName('script')[i];
-    //         if (scriptNode.src.includes('recaptcha')) {
-    //             scriptNode.parentNode.removeChild(scriptNode);
-    //         }
-    //     }
-    //     delete window.grecaptcha;
-    //     delete window.onloadcallback;
-    // };
 
     validateAccountNameIntl = (rule, value, callback) => {
         try {
@@ -313,8 +290,10 @@ class UserInfo extends React.Component {
             locale,
         })
             .then(() => {
-                this.props.form.setFieldsValue({
-                    email,
+                this.props.form.setFields({
+                    email: {
+                        value: email,
+                    },
                 });
                 window.email_code_count_seconds = 60;
                 window.email_code_interval = setInterval(() => {
@@ -337,8 +316,13 @@ class UserInfo extends React.Component {
                 }, 1000);
             })
             .catch(error => {
-                this.props.form.setFieldsValue({
-                    email,
+                this.props.form.setFields({
+                    email: {
+                        value: email,
+                        errors: [
+                            new Error(intl.formatMessage({ id: error.type })),
+                        ],
+                    },
                 });
                 window.email_code_count_seconds = 0;
                 clearInterval(window.email_code_interval);
@@ -347,10 +331,6 @@ class UserInfo extends React.Component {
                         id: 'send_code',
                     }),
                     email_code_sending: false,
-                    email_validate_status: 'error',
-                    email_validate_help: intl.formatMessage({
-                        id: error.type,
-                    }),
                 });
             });
     };
@@ -381,8 +361,10 @@ class UserInfo extends React.Component {
             phone_recaptcha,
         })
             .then(() => {
-                this.props.form.setFieldsValue({
-                    phone,
+                this.props.form.setFields({
+                    phone: {
+                        value: phone,
+                    },
                 });
                 window.phone_code_count_seconds = 60;
                 window.phone_code_interval = setInterval(() => {
@@ -405,8 +387,13 @@ class UserInfo extends React.Component {
                 }, 1000);
             })
             .catch(error => {
-                this.props.form.setFieldsValue({
-                    phone,
+                this.props.form.setFields({
+                    phone: {
+                        value: phone,
+                        errors: [
+                            new Error(intl.formatMessage({ id: error.type })),
+                        ],
+                    },
                 });
                 window.phone_code_count_seconds = 0;
                 clearInterval(window.phone_code_interval);
@@ -415,10 +402,6 @@ class UserInfo extends React.Component {
                         id: 'send_code',
                     }),
                     phone_code_sending: false,
-                    phone_validate_status: 'error',
-                    phone_validate_help: intl.formatMessage({
-                        id: error.type,
-                    }),
                 });
             });
     };
@@ -514,11 +497,7 @@ class UserInfo extends React.Component {
                     <p className="text">
                         <FormattedMessage id="email_description" />
                     </p>
-                    <Form.Item
-                        validateStatus={this.state.email_validate_status}
-                        help={this.state.email_validate_help}
-                        hasFeedback
-                    >
+                    <Form.Item hasFeedback>
                         {getFieldDecorator('email', {
                             validateFirst: true,
                             rules: [
@@ -633,11 +612,7 @@ class UserInfo extends React.Component {
                             />
                         )}
                     </Form.Item>
-                    <Form.Item
-                        validateStatus={this.state.phone_validate_status}
-                        help={this.state.phone_validate_help}
-                        hasFeedback
-                    >
+                    <Form.Item hasFeedback>
                         {getFieldDecorator('phone_code', {
                             normalize: this.normalizeUsername,
                             validateFirst: true,
@@ -691,8 +666,10 @@ class UserInfo extends React.Component {
                                             options={this.captchaRenderOptions}
                                             onSuccess={token => {
                                                 // console.log('test form token', token);
-                                                this.props.form.setFieldsValue({
-                                                    recaptcha: token,
+                                                this.props.form.setFields({
+                                                    recaptcha: {
+                                                        value: token,
+                                                    },
                                                 });
                                             }}
                                             onExpire={() => {
@@ -815,7 +792,7 @@ UserInfo.propTypes = {
     intl: intlShape.isRequired,
     locale: PropTypes.string,
     form: PropTypes.shape({
-        setFieldsValue: PropTypes.func.isRequired,
+        setFields: PropTypes.func.isRequired,
         getFieldValue: PropTypes.func.isRequired,
     }).isRequired,
     countryCode: PropTypes.string,

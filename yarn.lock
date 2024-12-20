@@ -8753,12 +8753,6 @@ react-element-to-jsx-string@^3.0.0:
     stringify-object "^2.3.1"
     traverse "^0.6.6"
 
-"react-google-recaptcha@https://github.com/steemit/react-google-recaptcha.git#2b8d5d7":
-  version "0.9.7"
-  resolved "https://github.com/steemit/react-google-recaptcha.git#2b8d5d722f94da68a32b05bdf3dfe624ea8c7c8f"
-  dependencies:
-    prop-types ">=15.5.0"
-
 react-hot-loader@4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/react-hot-loader/-/react-hot-loader-4.0.1.tgz#48284350ae5d7ba07dac872bd5bbc6e477352593"
