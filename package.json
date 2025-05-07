@@ -85,7 +85,7 @@
     "@marsidev/react-turnstile": "^1.0.2",
     "@reduxjs/toolkit": "^2.2.7",
     "@sendgrid/mail": "^8.1.3",
-    "@steemit/steem-js": "^0.7.11",
+    "@steemit/steem-js": "^0.8.0",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "hbs": "^4.2.0",
