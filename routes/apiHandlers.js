@@ -7,7 +7,6 @@ const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance()
 const needle = require('needle');
 
 const generateCode = require('../src/utils/phone-utils').generateCode;
-const badDomains = require('../bad-domains');
 const logger = require('../helpers/logger');
 const services = require('../helpers/services');
 const database = require('../helpers/database');
