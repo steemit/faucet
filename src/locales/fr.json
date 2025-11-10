@@ -38,6 +38,8 @@
         "Une erreur est survenue lors de la création du compte",
     "error_api_domain_blacklisted":
         "Ce domaine est sur liste noire, veuillez fournir un autre email",
+    "error_api_email_domain":
+        "Ce domaine email n'est pas autorisé. Veuillez utiliser un email d'un domaine autorisé",
     "error_api_email_exists_not": "L'email n'existe pas",
     "error_api_email_format": "Veuillez saisir un email valide",
     "error_api_email_length":

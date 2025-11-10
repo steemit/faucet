@@ -1,6 +1,6 @@
 const { hash } = require('@steemit/steem-js/lib/auth/ecc');
 const crypto = require('crypto');
-const validator = require('validator');
+// const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
@@ -123,6 +123,7 @@ async function finalizeSignup(user, req) {
  * @returns {Promise}
  * @throws {ApiError}
  */
+/*
 async function handleRequestEmail(
     ip,
     recaptcha,
@@ -283,6 +284,7 @@ async function handleRequestEmail(
 
     return { success: true, token, xref: user.tracking_id };
 }
+*/
 
 /**
  * Checks the phone validity and use with the conveyor
@@ -909,10 +911,14 @@ async function handleRequestEmailCode(ip, email, log, locale) {
             field: 'email',
         });
     }
-    // bad domains check
-    if (badDomains.includes(email.split('@')[1])) {
-        logger.warn({ email }, 'error_api_domain_blacklisted');
-        return { success: true, token: null, xref: null };
+    // white list check
+    const emailDomain = email.split('@')[1];
+    const whiteEmailDomains = await database.getWhiteEmailDomain();
+    if (!whiteEmailDomains.includes(emailDomain)) {
+        throw new ApiError({
+            type: 'error_api_email_domain',
+            field: 'email',
+        });
     }
 
     await database.actionLimitNew(ip, 'request_email_code');
@@ -1550,7 +1556,10 @@ async function handleConfirmSmsNew(req) {
         });
     }
 
-    req.log.debug({ prefix: req.body.prefix, phoneNumber: req.body.phoneNumber }, 'debug');
+    req.log.debug(
+        { prefix: req.body.prefix, phoneNumber: req.body.phoneNumber },
+        'debug'
+    );
     const countryCode = req.body.prefix.split('_')[1];
     if (!countryCode) {
         throw new ApiError({
@@ -1633,15 +1642,7 @@ async function handleConfirmSmsNew(req) {
     return { success: true };
 }
 
-async function finalizeSignupNew(
-    ip,
-    recaptcha,
-    email,
-    emailCode,
-    phoneNumber,
-    phoneCode,
-    username
-) {
+async function finalizeSignupNew(ip, recaptcha, email, emailCode, username) {
     if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
         if (!recaptcha) {
             throw new ApiError({
@@ -1674,32 +1675,10 @@ async function finalizeSignupNew(
         });
     }
 
-    if (!phoneNumber) {
-        throw new ApiError({
-            field: 'phone',
-            type: 'error_api_phone_required',
-        });
-    }
-
     if (!emailCode) {
         throw new ApiError({
             field: 'email_code',
             type: 'error_api_code_required',
-        });
-    }
-
-    if (!phoneCode) {
-        throw new ApiError({
-            field: 'phone_code',
-            type: 'error_api_code_required',
-        });
-    }
-
-    const phoneExists = await database.phoneIsInUse(phoneNumber);
-    if (phoneExists) {
-        throw new ApiError({
-            field: 'phoneNumber',
-            type: 'error_api_phone_used',
         });
     }
 
@@ -1711,35 +1690,16 @@ async function finalizeSignupNew(
         });
     }
 
-    const phoneRecord = await database.findPhoneRecord({
-        where: {
-            phone_number: phoneNumber,
-        },
-    });
     const emailRecord = await database.findEmailRecord({
         where: {
             email,
         },
     });
 
-    if (!phoneRecord) {
-        throw new ApiError({
-            field: 'phone_code',
-            type: 'error_api_unknown_phone_number',
-        });
-    }
-
     if (!emailRecord) {
         throw new ApiError({
             field: 'email_code',
             type: 'error_api_unknown_email',
-        });
-    }
-
-    if (phoneRecord.phone_code !== phoneCode) {
-        throw new ApiError({
-            field: 'phone_code',
-            type: 'error_api_phone_code_invalid',
         });
     }
 
@@ -1780,7 +1740,6 @@ async function finalizeSignupNew(
             type: 'signup_new',
             username,
             email,
-            phoneNumber,
         },
         process.env.JWT_SECRET
     );
@@ -1880,34 +1839,6 @@ async function handleCreateAccountNew(req) {
             field: 'email',
         });
     }
-    const phoneExists = await database.phoneIsInUse(decoded.phoneNumber);
-    if (phoneExists) {
-        throw new ApiError({
-            field: 'phoneNumber',
-            type: 'error_api_phone_used',
-        });
-    }
-    const phoneRegistered = await services.conveyorCall('is_phone_registered', [
-        decoded.phoneNumber,
-    ]);
-    if (phoneRegistered) {
-        throw new ApiError({
-            field: 'phoneNumber',
-            type: 'error_api_phone_used',
-        });
-    }
-
-    // let user = await database.findUser({
-    //     where: {
-    //         username: decoded.username,
-    //         email: decoded.email,
-    //         phone_number: decoded.phoneNumber,
-    //     },
-    // });
-
-    // if (user) {
-    //     throw new ApiError({ type: 'error_api_user_exist' });
-    // }
 
     const weightThreshold = 1;
     const accountAuths = [];
@@ -1958,8 +1889,6 @@ async function handleCreateAccountNew(req) {
             email: decoded.email,
             email_normalized: normalizeEmail(decoded.email),
             email_is_verified: true,
-            phone_number: decoded.phoneNumber,
-            phone_number_is_verified: true,
             ip: req.ip,
             account_is_created: true,
             status: 'created',
@@ -2008,7 +1937,6 @@ async function handleCreateAccountNew(req) {
     const params = [
         decoded.username,
         {
-            phone: user.phone_number.replace(/[^+0-9]+/g, ''),
             email: user.email,
         },
     ];
@@ -2073,7 +2001,6 @@ async function handleCreateAccountNew(req) {
 
     try {
         await database.deleteEmailRecord({ email: user.email });
-        await database.deletePhoneRecord({ phone_number: user.phone_number });
     } catch (err) {
         req.log.warn(err, 'remove email or phone code record error');
     }
@@ -2110,7 +2037,7 @@ async function handleCreateTronAddr() {
 }
 
 module.exports = {
-    handleRequestEmail,
+    // handleRequestEmail,
     handleRequestSms,
     handleConfirmEmail,
     handleConfirmSms,

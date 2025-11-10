@@ -88,15 +88,15 @@ router.post(
         )
     )
 );
-router.post('/request_sms_new', apiMiddleware(apiHandlers.handleRequestSmsNew));
+// router.post('/request_sms_new', apiMiddleware(apiHandlers.handleRequestSmsNew));
 router.post(
     '/check_email_code',
     apiMiddleware(apiHandlers.handleConfirmEmailCode)
 );
-router.post(
-    '/check_phone_code',
-    apiMiddleware(apiHandlers.handleConfirmSmsNew)
-);
+// router.post(
+//     '/check_phone_code',
+//     apiMiddleware(apiHandlers.handleConfirmSmsNew)
+// );
 router.post(
     '/create_user_new',
     apiMiddleware(req =>
@@ -105,8 +105,6 @@ router.post(
             req.body.recaptcha,
             req.body.email,
             req.body.emailCode,
-            req.body.phoneNumber,
-            req.body.phoneCode,
             req.body.username
         )
     )
