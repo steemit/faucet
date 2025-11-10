@@ -119,6 +119,25 @@ const deletePhoneRecord = async where => db.phonecode.destroy({ where });
 const deleteEmailRecord = async where => db.emailcode.destroy({ where });
 
 /**
+ * Get white email domain list from config table
+ * Returns default ['gmail.com'] if config not found or parse fails
+ */
+async function getWhiteEmailDomain() {
+    try {
+        const config = await db.config.findOne({
+            where: { c_key: 'white_email_domain' },
+        });
+        if (config && config.c_val) {
+            const domains = JSON.parse(config.c_val);
+            return Array.isArray(domains) ? domains : ['gmail.com'];
+        }
+        return ['gmail.com'];
+    } catch (error) {
+        return ['gmail.com'];
+    }
+}
+
+/**
  * remove user id references
  * to remove username reserve mechanism
  */
@@ -209,4 +228,5 @@ module.exports = {
     deleteEmailRecord,
     findLastSendSmsByCountryNumber,
     countTryNumber,
+    getWhiteEmailDomain,
 };
