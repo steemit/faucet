@@ -227,12 +227,22 @@ class UserInfo extends React.Component {
                 }, 1000);
             })
             .catch(error => {
+                let errorMessage = intl.formatMessage({ id: error.type });
+                // If email domain error and contains allowed domain list, show domain list
+                if (
+                    error.type === 'error_api_email_domain' &&
+                    error.data &&
+                    error.data.whiteEmailDomains &&
+                    Array.isArray(error.data.whiteEmailDomains) &&
+                    error.data.whiteEmailDomains.length > 0
+                ) {
+                    const domainsList = error.data.whiteEmailDomains.join(', ');
+                    errorMessage = `${errorMessage} (${domainsList})`;
+                }
                 this.props.form.setFields({
                     email: {
                         value: email,
-                        errors: [
-                            new Error(intl.formatMessage({ id: error.type })),
-                        ],
+                        errors: [new Error(errorMessage)],
                     },
                 });
                 window.email_code_count_seconds = 0;

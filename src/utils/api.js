@@ -30,6 +30,7 @@ export default async function apiCall(path, payload, reqType = 'POST') {
         const error = new Error('ApiError');
         error.type = responseData.error.type;
         error.field = responseData.error.field;
+        error.data = responseData.error.data;
         throw error;
     }
     return responseData;

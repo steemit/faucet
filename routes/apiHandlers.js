@@ -917,6 +917,7 @@ async function handleRequestEmailCode(ip, email, log, locale) {
         throw new ApiError({
             type: 'error_api_email_domain',
             field: 'email',
+            data: { whiteEmailDomains },
         });
     }
 
