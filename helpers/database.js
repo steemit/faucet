@@ -6,6 +6,7 @@ const { Op } = Sequelize;
 
 const { ApiError } = require('./errortypes');
 const { normalizeEmail } = require('./validator');
+const cache = require('./cache');
 
 /**
  * Throws if user or ip exceeds number of allowed actions within time period.
@@ -119,22 +120,67 @@ const deletePhoneRecord = async where => db.phonecode.destroy({ where });
 const deleteEmailRecord = async where => db.emailcode.destroy({ where });
 
 /**
+ * Get config value from config table (with cache)
+ * @param {string} key - Config key name
+ * @param {*} defaultValue - Default value returned if config not found
+ * @param {number} ttl - Cache expiration time in seconds, default 300 seconds (5 minutes)
+ * @returns {Promise<*>} Config value
+ */
+async function getConfigValue(key, defaultValue = null, ttl = 300) {
+    const cacheKey = `config:${key}`;
+
+    // Try to get from cache first
+    const cachedValue = cache.get(cacheKey);
+    if (cachedValue !== undefined) {
+        return cachedValue;
+    }
+
+    // Cache miss, query from database
+    try {
+        const config = await db.config.findOne({
+            where: { c_key: key },
+        });
+
+        let value = defaultValue;
+        if (config && config.c_val) {
+            // Try to parse JSON, return raw string if parsing fails
+            try {
+                value = JSON.parse(config.c_val);
+            } catch (e) {
+                value = config.c_val;
+            }
+        }
+
+        // Store in cache
+        cache.set(cacheKey, value, ttl);
+
+        return value;
+    } catch (error) {
+        // Return default value on query failure, but don't cache error result
+        return defaultValue;
+    }
+}
+
+/**
+ * Clear cache for specified config
+ * @param {string} key - Config key name
+ */
+function clearConfigCache(key) {
+    const cacheKey = `config:${key}`;
+    cache.delete(cacheKey);
+}
+
+/**
  * Get white email domain list from config table
  * Returns default ['gmail.com'] if config not found or parse fails
  */
 async function getWhiteEmailDomain() {
-    try {
-        const config = await db.config.findOne({
-            where: { c_key: 'white_email_domain' },
-        });
-        if (config && config.c_val) {
-            const domains = JSON.parse(config.c_val);
-            return Array.isArray(domains) ? domains : ['gmail.com'];
-        }
-        return ['gmail.com'];
-    } catch (error) {
-        return ['gmail.com'];
-    }
+    const domains = await getConfigValue(
+        'white_email_domain',
+        ['gmail.com'],
+        300
+    );
+    return Array.isArray(domains) ? domains : ['gmail.com'];
 }
 
 /**
@@ -229,4 +275,6 @@ module.exports = {
     findLastSendSmsByCountryNumber,
     countTryNumber,
     getWhiteEmailDomain,
+    getConfigValue,
+    clearConfigCache,
 };
