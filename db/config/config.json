@@ -3,9 +3,7 @@
     "use_env_variable": "DATABASE_URL",
     "operatorsAliases": "0",
     "dialectOptions": {
-      "ssl" : {
-        "rejectUnauthorized": false
-      }
+      "ssl": false
     }
   },
   "staging": {
