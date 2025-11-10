@@ -41,7 +41,7 @@ const condenserSecret = getEnv('CREATE_USER_SECRET');
 const condenserUrl = getEnv('CREATE_USER_URL');
 const conveyorAccount = getEnv('CONVEYOR_USERNAME');
 const conveyorKey = getEnv('CONVEYOR_POSTING_WIF');
-const recaptchaSecret = getEnv('RECAPTCHA_SECRET');
+const turnstileSecret = getEnv('TURNSTILE_SECRET');
 // const analyticsIpLimitTime = getEnv('ANALYTICS_IP_LIMIT_TIME');
 
 const rpcNode = getEnv('STEEMJS_URL');
@@ -186,19 +186,32 @@ async function conveyorCall(method, params) {
 }
 
 /**
- * Verify Google recaptcha.
- * @param recaptcha Challenge.
+ * Verify Cloudflare Turnstile.
+ * @param turnstileToken Turnstile token.
  * @param ip Remote addr of client.
  */
-async function verifyCaptcha(recaptcha, ip) {
+async function verifyCaptcha(turnstileToken, ip) {
     if (DEBUG_MODE) {
         logger.warn('Verify captcha for %s', ip);
     } else {
-        const url = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptcha}&remoteip=${ip}`;
-        const response = await (await fetch(url)).json();
+        const url = `https://challenges.cloudflare.com/turnstile/v0/siteverify`;
+        const formData = `secret=${encodeURIComponent(
+            turnstileSecret
+        )}&response=${encodeURIComponent(
+            turnstileToken
+        )}&remoteip=${encodeURIComponent(ip)}`;
+
+        const response = await (await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData,
+        })).json();
+
         if (!response.success) {
-            const codes = response['error-codes'] || ['unknown'];
-            throw new Error(`Captcha verification failed: ${codes.join()}`);
+            const errors = response['error-codes'] || ['unknown'];
+            throw new Error(`Turnstile verification failed: ${errors.join()}`);
         }
     }
 }
@@ -383,12 +396,12 @@ function locationFromIp(ip) {
 }
 
 /**
- * Should recaptcha be required for this IP address?
+ * Should turnstile be required for this IP address?
  *
  * @param {string} ip ip address
  * @return {boolean}
  */
-function recaptchaRequiredForIp(ip) {
+function turnstileRequiredForIp(ip) {
     const location = locationFromIp(ip);
     return location && location.country && location.country.iso_code !== 'CN';
 }
@@ -584,7 +597,7 @@ module.exports = {
     gatekeeperMarkSignupCreated,
     getOverseerStats,
     locationFromIp,
-    recaptchaRequiredForIp,
+    turnstileRequiredForIp,
     sendApprovalEmail,
     sendEmail,
     sendSMS,

@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { Form, Input, Button, Icon, message } from 'antd';
+import Turnstile from '../../Turnstile';
 import SendCode from './SendCode';
 import apiCall from '../../../utils/api';
 import getFingerprint from '../../../../helpers/fingerprint';
@@ -61,15 +61,15 @@ class UserInfo extends React.Component {
 
     getBtnStatus = () => {
         const { check_username, check_email, check_email_code } = this.state;
-        const recaptcha =
-            window.config.RECAPTCHA_SWITCH !== 'OFF'
-                ? this.props.form.getFieldValue('recaptcha')
+        const turnstile =
+            window.config.TURNSTILE_SWITCH !== 'OFF'
+                ? this.props.form.getFieldValue('turnstile')
                 : true;
         return !(
             check_username &&
             check_email &&
             check_email_code &&
-            !!recaptcha
+            !!turnstile
         );
     };
 
@@ -264,9 +264,9 @@ class UserInfo extends React.Component {
         });
         const { form, intl, handleSubmitUserInfo } = this.props;
         const data = {
-            recaptcha:
-                window.config.RECAPTCHA_SITE_KEY !== ''
-                    ? form.getFieldValue('recaptcha')
+            turnstile:
+                window.config.TURNSTILE_SITE_KEY !== ''
+                    ? form.getFieldValue('turnstile')
                     : '',
             email: form.getFieldValue('email'),
             emailCode: form.getFieldValue('email_code'),
@@ -409,30 +409,43 @@ class UserInfo extends React.Component {
                         )}
                     </Form.Item>
                     <Placeholder height="14px" />
-                    {window.config.RECAPTCHA_SWITCH !== 'OFF' && (
+                    {window.config.TURNSTILE_SWITCH !== 'OFF' && (
                         <Form.Item>
                             <div className="recaptcha-wrapper">
                                 <div className="recaptcha">
-                                    {getFieldDecorator('recaptcha', {
+                                    {getFieldDecorator('turnstile', {
                                         rules: [{}],
                                         validateTrigger: '',
                                     })(
-                                        <ReCAPTCHA
+                                        <Turnstile
                                             ref={el => {
                                                 this.captcha = el;
                                             }}
                                             sitekey={
-                                                window.config.RECAPTCHA_SITE_KEY
+                                                window.config.TURNSTILE_SITE_KEY
                                             }
-                                            type="image"
-                                            size="normal"
-                                            hl={
+                                            language={
                                                 this.state.change_locale_to ===
                                                 'zh'
-                                                    ? 'zh_CN'
+                                                    ? 'zh-CN'
                                                     : 'en'
                                             }
-                                            onChange={() => {}}
+                                            onSuccess={token => {
+                                                const { form } = this.props;
+                                                form.setFields({
+                                                    turnstile: {
+                                                        value: token,
+                                                    },
+                                                });
+                                            }}
+                                            onError={() => {
+                                                const { form } = this.props;
+                                                form.setFields({
+                                                    turnstile: {
+                                                        value: '',
+                                                    },
+                                                });
+                                            }}
                                         />
                                     )}
                                 </div>

@@ -102,7 +102,7 @@ router.post(
     apiMiddleware(req =>
         apiHandlers.finalizeSignupNew(
             req.ip,
-            req.body.recaptcha,
+            req.body.turnstile,
             req.body.email,
             req.body.emailCode,
             req.body.username

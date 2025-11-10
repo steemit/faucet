@@ -6,12 +6,12 @@
  */
 function getClientConfig() {
     const envVars = [
-        'RECAPTCHA_SITE_KEY',
+        'TURNSTILE_SITE_KEY',
         'STEEMJS_URL',
         'DEFAULT_REDIRECT_URI',
         'SIFTSCIENCE_JS_SNIPPET_KEY',
         'REACT_DISABLE_ACCOUNT_CREATION',
-        'RECAPTCHA_SWITCH',
+        'TURNSTILE_SWITCH',
         'PENDING_CLAIMED_ACCOUNTS_THRESHOLD',
         'CREATOR_INFO',
         'GOOGLE_ANALYTICS_ID',

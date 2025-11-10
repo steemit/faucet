@@ -110,7 +110,7 @@ async function finalizeSignup(user, req) {
  *
  * @async
  * @param {string} ip
- * @param {string} recaptcha
+ * @param {string} turnstile
  * @param {string} email
  * @param {string} fingerprint
  * @param {object} query
@@ -125,7 +125,7 @@ async function finalizeSignup(user, req) {
 /*
 async function handleRequestEmail(
     ip,
-    recaptcha,
+    turnstile,
     email,
     fingerprint,
     query,
@@ -134,22 +134,22 @@ async function handleRequestEmail(
     protocol,
     host
 ) {
-    const recaptchaRequired = services.recaptchaRequiredForIp(ip);
+    const turnstileRequired = services.turnstileRequiredForIp(ip);
 
-    if (recaptchaRequired && !recaptcha) {
+    if (turnstileRequired && !turnstile) {
         throw new ApiError({
             type: 'error_api_recaptcha_required',
-            field: 'recaptcha',
+            field: 'turnstile',
         });
     }
 
-    if (recaptchaRequired) {
+    if (turnstileRequired) {
         try {
-            await services.verifyCaptcha(recaptcha, ip);
+            await services.verifyCaptcha(turnstile, ip);
         } catch (cause) {
             throw new ApiError({
                 type: 'error_api_recaptcha_invalid',
-                field: 'recaptcha',
+                field: 'turnstile',
                 cause,
             });
         }
@@ -1073,16 +1073,16 @@ async function handleRequestSmsNew(req) {
             type: 'signup_free_tip3',
         });
     }
-    if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
-        const recaptcha = req.body.phone_recaptcha;
-        if (!recaptcha) {
+    if (process.env.TURNSTILE_SWITCH !== 'OFF') {
+        const turnstile = req.body.phone_turnstile;
+        if (!turnstile) {
             throw new ApiError({
                 field: 'code',
                 type: 'error_api_recaptcha_required',
             });
         }
         try {
-            await services.verifyCaptcha(recaptcha, req.ip);
+            await services.verifyCaptcha(turnstile, req.ip);
         } catch (cause) {
             throw new ApiError({
                 field: 'code',
@@ -1642,16 +1642,16 @@ async function handleConfirmSmsNew(req) {
     return { success: true };
 }
 
-async function finalizeSignupNew(ip, recaptcha, email, emailCode, username) {
-    if (process.env.RECAPTCHA_SWITCH !== 'OFF') {
-        if (!recaptcha) {
+async function finalizeSignupNew(ip, turnstile, email, emailCode, username) {
+    if (process.env.TURNSTILE_SWITCH !== 'OFF') {
+        if (!turnstile) {
             throw new ApiError({
                 field: 'code',
                 type: 'error_api_recaptcha_required',
             });
         }
         try {
-            await services.verifyCaptcha(recaptcha, ip);
+            await services.verifyCaptcha(turnstile, ip);
         } catch (cause) {
             throw new ApiError({
                 field: 'code',
