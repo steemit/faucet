@@ -87,4 +87,10 @@ Turnstile.propTypes = {
     language: PropTypes.string,
 };
 
+Turnstile.defaultProps = {
+    onSuccess: null,
+    onError: null,
+    language: null,
+};
+
 export default Turnstile;
