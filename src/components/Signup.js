@@ -5,9 +5,6 @@ import { FormattedMessage } from 'react-intl';
 import { Button, Icon, Popover } from 'antd';
 import { CHECKPOINTS } from '../../constants';
 import FormSignupUsername from './Form/Signup/Username';
-import FormSignupEmail from './Form/Signup/Email';
-import FormSignupEmailChinese from './Form/Signup/EmailChinese';
-import FormSignupPhoneNumber from './Form/Signup/PhoneNumber';
 import FormSignupConfirmPhoneNumber from './Form/Signup/ConfirmPhoneNumber';
 import FormSignupUserInfo from './Form/Signup/UserInfo';
 import LanguageItem from './LanguageItem';
@@ -495,51 +492,6 @@ class Signup extends Component {
                                     username={currentUsername}
                                     email={currentEmail}
                                     origin={currentReferrer}
-                                />
-                            </div>
-                        )}
-                        {step === 'email' && (
-                            <div className="form-content two-actions">
-                                <h1>
-                                    <FormattedMessage id="enter_email" />
-                                </h1>
-                                <p>
-                                    <FormattedMessage id="confirm_existence" />
-                                </p>
-                                {countryCode !== 'CN' && (
-                                    <FormSignupEmail
-                                        onSubmit={this.handleSubmitEmail}
-                                        username={currentUsername}
-                                        email={currentEmail}
-                                        goBack={this.goBack}
-                                        trackingId={trackingId}
-                                    />
-                                )}
-                                {countryCode === 'CN' && (
-                                    <FormSignupEmailChinese
-                                        onSubmit={this.handleSubmitEmail}
-                                        username={currentUsername}
-                                        email={currentEmail}
-                                        goBack={this.goBack}
-                                        trackingId={trackingId}
-                                    />
-                                )}
-                            </div>
-                        )}
-                        {step === 'phoneNumber' && (
-                            <div className="form-content two-actions">
-                                <h1>
-                                    <FormattedMessage id="enter_phone" />
-                                </h1>
-                                <p>
-                                    <FormattedMessage id="send_sms" />
-                                </p>
-                                <FormSignupPhoneNumber
-                                    onSubmit={this.handleSubmitPhoneNumber}
-                                    token={currentToken}
-                                    countryCode={countryCode}
-                                    prefix={prefix}
-                                    phoneNumber={phoneNumber}
                                 />
                             </div>
                         )}
