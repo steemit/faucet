@@ -114,6 +114,10 @@ const accountNameIsValid = name => {
 };
 
 const isEmail = email => {
+    // Explicitly reject email addresses containing '+' character
+    if (email.includes('+')) {
+        return false;
+    }
     const reg = /^[\w]{1,20}([0-9.]{0,10})+[a-zA-Z0-9]{0,20}@[a-zA-Z0-9]{2,20}(?:\.[a-z]{2,20}){1,3}$/;
     return reg.test(email);
 };
