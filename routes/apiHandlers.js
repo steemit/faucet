@@ -17,7 +17,7 @@ const {
     isEmail,
 } = require('../helpers/validator');
 const { ApiError } = require('../helpers/errortypes.js');
-const { getTronAccount, updateTronUser } = require('../helpers/tron');
+const { getTronAccount } = require('../helpers/tron');
 
 /**
  * Verifies that the json webtoken passed was signed by us and
