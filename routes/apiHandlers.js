@@ -1763,7 +1763,6 @@ async function handleCreateAccountNew(req) {
         xref,
         locale,
         activityTags,
-        tron_bind_data,
         source, // format: app|tag (eg. condenser|submit_post)
     } = req.body; // eslint-disable-line camelcase
 
@@ -1775,11 +1774,6 @@ async function handleCreateAccountNew(req) {
     if (!token) {
         throw new ApiError({ type: 'error_api_token_required' });
     }
-
-    if (!tron_bind_data) {
-        throw new ApiError({ type: 'error_api_tron_bind_data_required' });
-    }
-    const tronBindData = JSON.parse(tron_bind_data);
 
     let decoded;
 
@@ -1902,27 +1896,6 @@ async function handleCreateAccountNew(req) {
         req.log.error({ decoded, cause }, 'create user in database error');
         throw new ApiError({
             type: 'error_api_insert_user_into_db_failed',
-            cause,
-            status: 500,
-        });
-    }
-
-    try {
-        const updateTronUserResult = await updateTronUser(
-            decoded.username,
-            tronBindData
-        );
-        req.log.info(
-            { decoded, updateTronUserResult },
-            'bind_tron_address_success'
-        );
-    } catch (cause) {
-        req.log.error(
-            { decoded, tronBindData, cause },
-            'error_api_bind_tron_addr_failed'
-        );
-        throw new ApiError({
-            type: 'error_api_bind_tron_addr_failed',
             cause,
             status: 500,
         });

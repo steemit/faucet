@@ -194,6 +194,15 @@ async function verifyCaptcha(turnstileToken, ip) {
     if (DEBUG_MODE) {
         logger.warn('Verify captcha for %s', ip);
     } else {
+        if (!turnstileSecret || turnstileSecret.trim() === '') {
+            logger.error('TURNSTILE_SECRET is not configured');
+            throw new Error('Turnstile secret key is not configured');
+        }
+
+        if (!turnstileToken || turnstileToken.trim() === '') {
+            throw new Error('Turnstile token is required');
+        }
+
         const url = `https://challenges.cloudflare.com/turnstile/v0/siteverify`;
         const formData = `secret=${encodeURIComponent(
             turnstileSecret
@@ -201,17 +210,38 @@ async function verifyCaptcha(turnstileToken, ip) {
             turnstileToken
         )}&remoteip=${encodeURIComponent(ip)}`;
 
-        const response = await (await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData,
-        })).json();
+        let response;
+        try {
+            const fetchResponse = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData,
+            });
+            response = await fetchResponse.json();
+        } catch (error) {
+            logger.error({ error }, 'Failed to verify Turnstile token');
+            throw new Error('Failed to verify Turnstile token');
+        }
 
         if (!response.success) {
             const errors = response['error-codes'] || ['unknown'];
-            throw new Error(`Turnstile verification failed: ${errors.join()}`);
+            logger.warn(
+                { errorCodes: errors, ip },
+                'Turnstile verification failed'
+            );
+
+            // Provide more specific error messages
+            if (errors.includes('invalid-input-secret')) {
+                throw new Error(
+                    'Turnstile verification failed: Invalid secret key. Please check TURNSTILE_SECRET configuration.'
+                );
+            }
+
+            throw new Error(
+                `Turnstile verification failed: ${errors.join(', ')}`
+            );
         }
     }
 }
