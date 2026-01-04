@@ -4,16 +4,22 @@ class ApiError extends Error {
     field = 'general',
     status = 400,
     cause,
+    data,
   }) {
     super(`${field}:${type}`);
     this.type = type;
     this.field = field;
     this.status = status;
     this.cause = cause;
+    this.data = data;
   }
 
   toJSON() {
-    return { type: this.type, field: this.field };
+    const result = { type: this.type, field: this.field };
+    if (this.data !== undefined) {
+      result.data = this.data;
+    }
+    return result;
   }
 }
 

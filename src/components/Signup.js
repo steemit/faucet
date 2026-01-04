@@ -42,6 +42,39 @@ const Signup = ({ logCheckpoint }) => {
 
   // init state
   useEffect(() => {
+    const updateActivityTag = () => {
+      const cookieName = app.activityCookieName;
+      const expiresTime = app.activityCookieExpiresTime;
+      const activityTags = Cookies.get(cookieName);
+      if (activityTags !== undefined) {
+        // location info
+        const hostname = window.location.hostname;
+        const locationInfo = hostname.split('.').reverse();
+        const domain =
+          ['localhost', '127.0.0.1'].indexOf(hostname) === -1
+            ? `.${locationInfo[1]}.${locationInfo[0]}`
+            : hostname;
+        console.log(
+          'cookies:',
+          activityTags,
+          trackingId,
+          domain,
+          cookieName,
+          expiresTime
+        );
+        Object.keys(activityTags).forEach((tag) => {
+          if (activityTags[tag].isVisit === 0) {
+            recordActivityTracker({ trackingId, activityTag: tag });
+            activityTags[tag].isVisit = 1;
+          }
+        });
+        Cookies.set(cookieName, activityTags, {
+          expires: expiresTime,
+          domain,
+        });
+      }
+    };
+
     getPendingClaimedAccounts((res) => {
       if (res && Object.keys(res).length > 0) {
         setPendingClaimedAccounts(Math.max(...Object.values(res)));
@@ -50,40 +83,7 @@ const Signup = ({ logCheckpoint }) => {
     dispatch(guessCountryCode());
     updateActivityTag();
     setFingerprint(JSON.stringify(getFingerprint()));
-  }, [dispatch]);
-
-  const updateActivityTag = () => {
-    const cookieName = app.activityCookieName;
-    const expiresTime = app.activityCookieExpiresTime;
-    const activityTags = Cookies.get(cookieName);
-    if (activityTags !== undefined) {
-      // location info
-      const hostname = window.location.hostname;
-      const locationInfo = hostname.split('.').reverse();
-      const domain =
-        ['localhost', '127.0.0.1'].indexOf(hostname) === -1
-          ? `.${locationInfo[1]}.${locationInfo[0]}`
-          : hostname;
-      console.log(
-        'cookies:',
-        activityTags,
-        trackingId,
-        domain,
-        cookieName,
-        expiresTime
-      );
-      Object.keys(activityTags).forEach((tag) => {
-        if (activityTags[tag].isVisit === 0) {
-          recordActivityTracker({ trackingId, activityTag: tag });
-          activityTags[tag].isVisit = 1;
-        }
-      });
-      Cookies.set(cookieName, activityTags, {
-        expires: expiresTime,
-        domain,
-      });
-    }
-  };
+  }, [dispatch, app.activityCookieName, app.activityCookieExpiresTime, trackingId]);
 
   const handleSavePassword = (password) => {
     dispatch(setPassword(password));

@@ -13,7 +13,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    guessCountryCode: (state) => {
+    guessCountryCode: () => {
       // logic is in saga parts
     },
     setCountryCode: (state, action) => {

@@ -28,8 +28,8 @@ const LocaleWrapper = () => {
 
   // init app config
   useEffect(() => {
-    dispatch(setCaptchaSwitch(window.config.CAPTCHA_SWITCH !== 'OFF'));
-    dispatch(setCaptchaSiteKey(window.config.CAPTCHA_SITE_KEY));
+    dispatch(setCaptchaSwitch(window.config.TURNSTILE_SWITCH !== 'OFF'));
+    dispatch(setCaptchaSiteKey(window.config.TURNSTILE_SITE_KEY));
     dispatch(setReferrer(referrerMatch ? referrerMatch[1] : 'steemit'));
   }, [dispatch]);
 

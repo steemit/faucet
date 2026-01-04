@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Button } from 'antd';
-// import { key_utils } from '@steemit/steem-js/lib/auth/ecc';
+import { steem } from '@steemit/steem-js';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-
-// TODO: Mock key_utils for testing
-const key_utils = {
-  get_random_key: () => ({ toWif: () => 'P1234567890' }),
-};
 
 const SavePassword = ({ handleSavePassword, messageApi, intl }) => {
   const [newPassword, setNewPassword] = useState('');
@@ -18,7 +13,10 @@ const SavePassword = ({ handleSavePassword, messageApi, intl }) => {
   }, []);
 
   const generateWif = (isFirstTrigger) => {
-    const generatedWif = `P${key_utils.get_random_key().toWif()}`;
+    // Generate a random seed for the private key
+    const randomSeed = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`;
+    const privateKey = steem.auth.getPrivateKey(randomSeed);
+    const generatedWif = `P${privateKey}`;
     if (isFirstTrigger) {
       setNewPassword(generatedWif);
     } else {

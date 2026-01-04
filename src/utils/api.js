@@ -1,11 +1,5 @@
-// import { api } from '@steemit/steem-js';
-// TODO: for now, we don't need steem-js
-const api = {
-  call: () => {},
-  getAccounts: (accounts, callback) => {
-    callback(null, [{ name: accounts[0], pending_claimed_accounts: 100 }]);
-  },
-};
+import { steem } from '@steemit/steem-js';
+const api = steem.api;
 
 export default async function apiCall(path, payload, reqType = 'POST') {
   const reqObjs = {
@@ -35,6 +29,7 @@ export default async function apiCall(path, payload, reqType = 'POST') {
     const error = new Error('ApiError');
     error.type = responseData.error.type;
     error.field = responseData.error.field;
+    error.data = responseData.error.data;
     throw error;
   }
   return responseData;

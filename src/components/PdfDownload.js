@@ -1,22 +1,10 @@
-import { useEffect, useState } from 'react';
-// import { PrivateKey } from '@steemit/steem-js/lib/auth/ecc';
+import { useEffect } from 'react';
+import { steem } from '@steemit/steem-js';
 import QRious from 'qrious';
 import jsPDF from 'jspdf';
 import RobotoRegular from '../assets/fonts/Roboto-Regular.ttf';
 import RobotoBold from '../assets/fonts/Roboto-Bold.ttf';
 import RobotoMonoRegular from '../assets/fonts/RobotoMono-Regular.ttf';
-
-// TODO: mock steem-js PrivateKey
-const PrivateKey = {
-  fromSeed: () => {
-    return {
-      toString: () => 'test mock of PrivateKey',
-      toPublicKey: () => ({
-        toString: () => 'test mock of PrivateKey',
-      }),
-    };
-  },
-};
 
 function image2canvas(image, bgcolor) {
   const canvas = document.createElement('canvas');
@@ -32,37 +20,33 @@ function image2canvas(image, bgcolor) {
 }
 
 function PdfDownload(props) {
-  const [loaded, setLoaded] = useState(false);
+  const { dlPdf, resetDlPdf } = props;
 
   useEffect(() => {
-    const { dlPdf, resetDlPdf } = props;
     if (dlPdf === true) {
       try {
-        downloadPdf();
-      } catch (e) {
-        console.error(e);
+        const keys = generateKeys(props.name, props.password);
+        const filename = `Keys for @${props.name}.pdf`;
+        renderPdf(keys, filename).save(filename);
+      } catch (error) {
+        console.error(error);
         resetDlPdf();
       }
       resetDlPdf();
     }
-  }, [props.dlPdf]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dlPdf, resetDlPdf]);
 
   function generateKeys(name, password) {
     return ['active', 'owner', 'posting', 'memo'].reduce(
       (accum, kind) => {
-        const rawKey = PrivateKey.fromSeed(`${name}${kind}${password}`);
+        const rawKey = steem.auth.PrivateKey.fromSeed(`${name}${kind}${password}`);
         accum[`${kind}Private`] = rawKey.toString();
         accum[`${kind}Public`] = rawKey.toPublicKey().toString();
         return accum;
       },
       { master: password }
     );
-  }
-
-  function downloadPdf() {
-    const keys = generateKeys(props.name, props.password);
-    const filename = `Keys for @${props.name}.pdf`;
-    renderPdf(keys, filename).save(filename);
   }
 
   function drawFilledRect(ctx, x, y, w, h, { color }) {
@@ -78,7 +62,7 @@ function PdfDownload(props) {
 
   function drawQr(ctx, data, x, y, size, bgcolor) {
     const canvas = document.createElement('canvas');
-    const qr = new QRious({
+    new QRious({
       element: canvas,
       size: 250,
       value: data,
@@ -106,9 +90,7 @@ function PdfDownload(props) {
     const lineHeight = 1.2;
     const margin = 0.3;
     const maxLineWidth = widthInches - margin * 2.0;
-    const fontSize = 24;
     const scale = 72; // ptsPerInch
-    const oneLineHeight = (fontSize * lineHeight) / scale;
     const qrSize = 1.1;
 
     const ctx = new jsPDF({

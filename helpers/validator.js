@@ -1,22 +1,22 @@
-// import steem from '@steemit/steem-js';
+import { steem } from '@steemit/steem-js';
 import validator from 'validator';
-
-const steem = {
-  api: {
-    getAccounts: () => {},
-  },
-};
 
 // const badDomains = require('../bad-domains');
 
 export const accountNotExist = (rule, value, callback) => {
-  steem.api.getAccounts([value], (err, result) => {
-    if (result[0]) {
-      callback(['Account name is not available']);
-    } else {
+  steem.api.getAccountsAsync([value])
+    .then((result) => {
+      if (result && result[0]) {
+        callback(['Account name is not available']);
+      } else {
+        callback();
+      }
+    })
+    .catch((err) => {
+      // On error, allow the account name (fail open)
+      console.error('Error checking account existence:', err);
       callback();
-    }
-  });
+    });
 };
 
 export const INVALID_ACCOUNTNAME_REASONS = {

@@ -6,6 +6,7 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import ReactRefreshBabel from 'react-refresh/babel';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { _defaults, getEnv } from '../helpers/common.js';
 import { theme } from 'antd';
 import { convertLegacyToken } from '@ant-design/compatible';
@@ -67,7 +68,9 @@ function makePlugins(options) {
         resourceRegExp: /^\.\/locale$/,
         contextRegExp: /moment$/,
       }),
-      // new ExtractTextPlugin('../css/base.css'),
+      new MiniCssExtractPlugin({
+        filename: '../css/base.css',
+      }),
     ]);
   }
 
@@ -134,14 +137,14 @@ function makeStyleLoaders(options) {
     {
       test: /\.css$/,
       use: [
-        'style-loader',
+        MiniCssExtractPlugin.loader,
         'css-loader',
       ],
     },
     {
       test: /\.less$/,
       use: [
-        'style-loader',
+        MiniCssExtractPlugin.loader,
         'css-loader',
         {
           loader: 'less-loader',

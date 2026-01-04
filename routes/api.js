@@ -46,14 +46,10 @@ router.post(
   apiMiddleware(apiHandlers.handleRequestEmailCode)
 );
 
-router.post('/request_sms', apiMiddleware(apiHandlers.handleRequestSms));
-
 router.post(
   '/check_email_code',
   apiMiddleware(apiHandlers.handleConfirmEmailCode)
 );
-
-router.post('/check_phone_code', apiMiddleware(apiHandlers.handleConfirmSms));
 
 router.post('/create_user', apiMiddleware(apiHandlers.finalizeSignup));
 

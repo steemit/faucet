@@ -11,7 +11,7 @@ function* guessCountryCodeSaga() {
       (res.location && res.location.country && res.location.country.iso_code) ||
       null;
     yield put(userActions.setCountryCode(countryCode));
-  } catch (e) {
+  } catch {
     // TODO: Handle Error state in the redux store.
   }
 }
@@ -24,7 +24,7 @@ function* logCheckpointSaga() {
     try {
       yield call(logStep, uid, currentCheckpoint);
       yield put(trackingActions.setLoggedCheckpoint(currentCheckpoint));
-    } catch (e) {
+    } catch {
       // TODO: Handle Error state in the redux store.
     }
   }

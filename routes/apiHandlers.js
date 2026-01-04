@@ -4,7 +4,6 @@ import { getLogChild } from '../helpers/logger.js';
 import services from '../helpers/services.js';
 import database from '../helpers/database.js';
 import ApiError from '../helpers/errortypes.js';
-import badDomains from '../helpers/badDomains.js';
 import { parsePhoneNumber } from 'react-phone-number-input';
 import {
   accountNameIsValid,
@@ -153,10 +152,15 @@ async function handleRequestEmailCode(req) {
       field: 'email',
     });
   }
-  // bad domains check
-  if (badDomains.includes(email.split('@')[1])) {
-    logger.warn({ email }, 'error_api_domain_blacklisted');
-    return { success: true, token: null, xref: null };
+  // white list check
+  const emailDomain = email.split('@')[1];
+  const whiteEmailDomains = await database.getWhiteEmailDomain();
+  if (!whiteEmailDomains.includes(emailDomain)) {
+    throw new ApiError({
+      type: 'error_api_email_domain',
+      field: 'email',
+      data: { whiteEmailDomains },
+    });
   }
   // account creation policy check
   const isEnoughPendingClaimedAccounts =
@@ -309,7 +313,7 @@ async function handleRequestEmailCode(req) {
  */
 async function handleRequestSms(req) {
   // check captcha
-  if (getEnv('CAPTCHA_SWITCH') !== 'OFF') {
+  if (getEnv('TURNSTILE_SWITCH') !== 'OFF') {
     const captcha = req.body.phoneCaptcha;
     if (!captcha) {
       throw new ApiError({
@@ -904,11 +908,9 @@ async function finalizeSignup(req) {
   const captcha = req.body?.captcha;
   const email = req.body?.email;
   const emailCode = req.body?.emailCode;
-  const phoneNumber = req.body?.phoneNumber;
-  const phoneCode = req.body?.phoneCode;
   const username = req.body?.username;
 
-  if (getEnv('CAPTCHA_SWITCH') !== 'OFF') {
+  if (getEnv('TURNSTILE_SWITCH') !== 'OFF') {
     if (!captcha) {
       throw new ApiError({
         field: 'code',
@@ -940,32 +942,10 @@ async function finalizeSignup(req) {
     });
   }
 
-  if (!phoneNumber) {
-    throw new ApiError({
-      field: 'phone',
-      type: 'error_api_phone_required',
-    });
-  }
-
   if (!emailCode) {
     throw new ApiError({
       field: 'email_code',
       type: 'error_api_code_required',
-    });
-  }
-
-  if (!phoneCode) {
-    throw new ApiError({
-      field: 'phone_code',
-      type: 'error_api_code_required',
-    });
-  }
-
-  const phoneExists = await database.phoneIsInUse(phoneNumber);
-  if (phoneExists) {
-    throw new ApiError({
-      field: 'phoneNumber',
-      type: 'error_api_phone_used',
     });
   }
 
@@ -977,35 +957,16 @@ async function finalizeSignup(req) {
     });
   }
 
-  const phoneRecord = await database.findPhoneRecord({
-    where: {
-      phone_number: phoneNumber,
-    },
-  });
   const emailRecord = await database.findEmailRecord({
     where: {
       email,
     },
   });
 
-  if (!phoneRecord) {
-    throw new ApiError({
-      field: 'phone_code',
-      type: 'error_api_unknown_phone_number',
-    });
-  }
-
   if (!emailRecord) {
     throw new ApiError({
       field: 'email_code',
       type: 'error_api_unknown_email',
-    });
-  }
-
-  if (phoneRecord.phone_code !== phoneCode) {
-    throw new ApiError({
-      field: 'phone_code',
-      type: 'error_api_phone_code_invalid',
     });
   }
 
@@ -1032,7 +993,6 @@ async function finalizeSignup(req) {
       type: 'signup_new',
       username,
       email,
-      phoneNumber,
     },
     getEnv('JWT_SECRET'),
     {
@@ -1135,22 +1095,6 @@ async function handleCreateAccount(req) {
       field: 'email',
     });
   }
-  const phoneExists = await database.phoneIsInUse(decoded.phoneNumber);
-  if (phoneExists) {
-    throw new ApiError({
-      field: 'phoneNumber',
-      type: 'error_api_phone_used',
-    });
-  }
-  const phoneRegistered = await services.conveyorCall('is_phone_registered', [
-    decoded.phoneNumber,
-  ]);
-  if (phoneRegistered) {
-    throw new ApiError({
-      field: 'phone',
-      type: 'error_api_phone_used',
-    });
-  }
 
   const weightThreshold = 1;
   const accountAuths = [];
@@ -1201,8 +1145,6 @@ async function handleCreateAccount(req) {
       email: decoded.email,
       email_normalized: normalizeEmail(decoded.email),
       email_is_verified: true,
-      phone_number: decoded.phoneNumber,
-      phone_number_is_verified: true,
       ip: req.ip,
       account_is_created: true,
       status: 'created',
@@ -1230,7 +1172,6 @@ async function handleCreateAccount(req) {
   const params = [
     decoded.username,
     {
-      phone: user.phone_number.replace(/[^+0-9]+/g, ''),
       email: user.email,
     },
   ];
@@ -1269,13 +1210,11 @@ async function handleCreateAccount(req) {
       await services.sendEmail(decoded.email, 'register_success_zh', {
         username: decoded.username,
         email: decoded.email,
-        phoneNumber: decoded.phoneNumber,
       });
     } else {
       await services.sendEmail(decoded.email, 'register_success', {
         username: decoded.username,
         email: decoded.email,
-        phoneNumber: decoded.phoneNumber,
       });
     }
   } catch (error) {
@@ -1290,9 +1229,8 @@ async function handleCreateAccount(req) {
 
   try {
     await database.deleteEmailRecord({ email: user.email });
-    await database.deletePhoneRecord({ phone_number: user.phone_number });
   } catch (err) {
-    req.log.warn(err, 'remove email or phone code record error');
+    req.log.warn(err, 'remove email code record error');
   }
 
   // activity tag analytics, reg source

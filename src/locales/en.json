@@ -31,6 +31,7 @@
   "error_api_country_code_required": "Country code required",
   "error_api_create_account": "An error occurred while creating the account",
   "error_api_domain_blacklisted": "This domain name is blacklisted. Please provide another email address",
+  "error_api_email_domain": "This email domain is not allowed. Please use an email from an allowed domain",
   "error_api_email_exists_not": "Email address doesn't exist",
   "error_api_email_format": "Please provide a valid email address",
   "error_api_email_length": "email is too long valid xx.xx@xx.xx each xx 20 max",

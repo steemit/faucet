@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import Cookies from 'js-cookie';
-// import steem from '@steemit/steem-js';
+import { steem } from '@steemit/steem-js';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { Form, Input, Button, Checkbox } from 'antd';
 import apiCall from '../utils/api.js';
 import getHashParams from '../utils/url.js';
 import { CHECKPOINTS } from '../../constants.js';
-
-// TODO: Mock steem-js for testing
-const steem = {
-  auth: {
-    generateKeys: () => ({}),
-    getPrivateKeys: () => ({}),
-  },
-};
 
 const CreateAccount = ({
   logCheckpoint,
@@ -33,6 +26,7 @@ const CreateAccount = ({
   const [submitting, setSubmitting] = useState(false);
   const [btnDisabled, setBtnDisabled] = useState(true);
   const source = urlParams.source ? urlParams.source : null;
+  const app = useSelector((state) => state.app);
 
   useEffect(() => {}, []);
 
@@ -80,7 +74,6 @@ const CreateAccount = ({
     })
       .then(() => {
         setSubmitting(false);
-        // updateActivityTags();
         logCheckpoint(CHECKPOINTS.user_created);
         setStep('finish');
       })
@@ -106,36 +99,6 @@ const CreateAccount = ({
       });
     }
     return result;
-  };
-
-  const updateActivityTags = () => {
-    const cookieName = app.activityCookieName;
-    const expiresTime = app.activityCookieExpiresTime;
-    const activityTags = Cookies.get(cookieName);
-    const trackingId = trackingId;
-    if (activityTags !== undefined) {
-      // location info
-      const hostname = window.location.hostname;
-      const locationInfo = hostname.split('.').reverse();
-      const domain =
-        ['localhost', '127.0.0.1'].indexOf(hostname) === -1
-          ? `.${locationInfo[1]}.${locationInfo[0]}`
-          : hostname;
-      console.log(
-        'cookies update:',
-        activityTags,
-        trackingId,
-        domain,
-        cookieName,
-        expiresTime
-      );
-      Object.keys(activityTags).forEach((tag) => {
-        if (activityTags[tag].isReg === 0) {
-          activityTags[tag].isReg = 1;
-        }
-      });
-      Cookies.set(cookieName, activityTags, { expires: expiresTime, domain });
-    }
   };
 
   return (

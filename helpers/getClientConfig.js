@@ -7,8 +7,8 @@ import { getEnv } from './common.js';
  */
 function getClientConfig() {
   const envVars = [
-    'CAPTCHA_SWITCH',
-    'CAPTCHA_SITE_KEY',
+    'TURNSTILE_SWITCH',
+    'TURNSTILE_SITE_KEY',
     'STEEMJS_URL',
     'DEFAULT_REDIRECT_URI',
     'SIFTSCIENCE_JS_SNIPPET_KEY',

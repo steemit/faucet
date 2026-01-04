@@ -97,7 +97,7 @@ const config = [
     },
     plugins: {
       ...sharePlugins,
-      reactPlugin,
+      react: reactPlugin,
       'react-hooks': hooksPlugin,
     },
     rules: {

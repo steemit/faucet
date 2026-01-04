@@ -2,6 +2,7 @@ import moment from 'moment';
 import db from '../db/models/index.js';
 import ApiError from './errortypes.js';
 import { normalizeEmail } from './validator.js';
+import cache from './cache.js';
 
 const { Sequelize, sequelize } = db;
 const { Op } = Sequelize;
@@ -177,6 +178,70 @@ export async function countTryNumber(countryNumber, hours) {
   return 0;
 }
 
+/**
+ * Get config value from config table (with cache)
+ * @param {string} key - Config key name
+ * @param {*} defaultValue - Default value returned if config not found
+ * @param {number} ttl - Cache expiration time in seconds, default 300 seconds (5 minutes)
+ * @returns {Promise<*>} Config value
+ */
+export async function getConfigValue(key, defaultValue = null, ttl = 300) {
+  const cacheKey = `config:${key}`;
+
+  // Try to get from cache first
+  const cachedValue = cache.get(cacheKey);
+  if (cachedValue !== undefined) {
+    return cachedValue;
+  }
+
+  // Cache miss, query from database
+  try {
+    const config = await db.config.findOne({
+      where: { c_key: key },
+    });
+
+    let value = defaultValue;
+    if (config && config.c_val) {
+      // Try to parse JSON, return raw string if parsing fails
+      try {
+        value = JSON.parse(config.c_val);
+      } catch {
+        value = config.c_val;
+      }
+    }
+
+    // Store in cache
+    cache.set(cacheKey, value, ttl);
+
+    return value;
+  } catch {
+    // Return default value on query failure, but don't cache error result
+    return defaultValue;
+  }
+}
+
+/**
+ * Clear cache for specified config
+ * @param {string} key - Config key name
+ */
+export function clearConfigCache(key) {
+  const cacheKey = `config:${key}`;
+  cache.delete(cacheKey);
+}
+
+/**
+ * Get white email domain list from config table
+ * Returns default ['gmail.com'] if config not found or parse fails
+ */
+export async function getWhiteEmailDomain() {
+  const domains = await getConfigValue(
+    'white_email_domain',
+    ['gmail.com'],
+    300
+  );
+  return Array.isArray(domains) ? domains : ['gmail.com'];
+}
+
 export default {
   Sequelize,
   actionLimit,
@@ -202,4 +267,7 @@ export default {
   deleteEmailRecord,
   findLastSendSmsByCountryNumber,
   countTryNumber,
+  getWhiteEmailDomain,
+  getConfigValue,
+  clearConfigCache,
 };

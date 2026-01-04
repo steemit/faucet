@@ -4,6 +4,7 @@ import { getLogChild } from '../../helpers/logger.js';
 import common, { getEnv } from '../../helpers/common.js';
 import actions from './actions.js';
 import analytics from './analytics.js';
+import config from './config.js';
 import emailcode from './emailcode.js';
 import phonecode from './phonecode.js';
 import users from './users.js';
@@ -12,15 +13,16 @@ const __dirname = common.getDirnameByUrl(import.meta.url);
 const allConfig = JSON.parse(readFileSync(`${__dirname}/../config/config.json`));
 const env = getEnv('DATABASE_NAME') || 'development';
 const logger = getLogChild({ module: 'db' });
-const config = allConfig[env];
-config.logging = function(msg) {
+const dbConfig = allConfig[env];
+dbConfig.logging = function(msg) {
   logger.debug(msg);
 };
 
-const sequelize = new Sequelize(getEnv(config.use_env_variable), config);
+const sequelize = new Sequelize(getEnv(dbConfig.use_env_variable), dbConfig);
 const modelsHelpers = {
   actions,
   analytics,
+  config,
   emailcode,
   phonecode,
   users,

@@ -5,26 +5,13 @@
  * All service helpers should use a mock variant if the DEBUG_MODE env var is set.
  */
 
-// import steem from '@steemit/steem-js';
+import { steem } from '@steemit/steem-js';
 import jwt from 'jsonwebtoken';
 import { getLogChild } from './logger.js';
 import mail from './mail.js';
 import twilio from './twilio.js';
 import { getEnv } from './common.js';
 import geoip from './maxmind.js';
-
-// TODO: for now, we don't need steem-js
-const steem = {
-  api: {
-    setOptions: () => {},
-    call: () => {},
-    getAccountsAsync: () =>
-      new Promise((resolve) =>
-        resolve([{ name: 'mockAccount', pending_claimed_accounts: 100 }])
-      ),
-    signedCallAsync: () => {},
-  },
-};
 
 const logger = getLogChild({ module: 'helper_services' });
 
@@ -37,7 +24,7 @@ const condenserSecret = getEnv('CREATE_USER_SECRET');
 const condenserUrl = getEnv('CREATE_USER_URL');
 const conveyorAccount = getEnv('CONVEYOR_USERNAME');
 const conveyorKey = getEnv('CONVEYOR_POSTING_WIF');
-const captchaSecret = getEnv('CAPTCHA_SECRET');
+const turnstileSecret = getEnv('TURNSTILE_SECRET');
 const PENDING_CLAIMED_ACCOUNTS_THRESHOLD = getEnv(
   'PENDING_CLAIMED_ACCOUNTS_THRESHOLD'
 )
@@ -191,38 +178,64 @@ export async function conveyorCall(method, params) {
 }
 
 /**
- * Verify Captcha.
- * @param Captcha Challenge.
+ * Verify Turnstile.
+ * @param turnstileToken Turnstile token.
  * @param ip Remote addr of client.
  */
-export async function verifyCaptcha(captcha, ip) {
+export async function verifyCaptcha(turnstileToken, ip) {
   if (DEBUG_MODE) {
     logger.warn('Verify captcha for %s', ip);
   } else {
-    const site = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-
-    const req = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        secret: captchaSecret,
-        response: captcha,
-        remoteip: ip,
-      }),
-    };
-    const res = await fetch(site, req);
-    if (res.status !== 200) {
-      throw new Error(`Captcha verification HTTP error: ${res.status}`);
+    if (!turnstileSecret || turnstileSecret.trim() === '') {
+      logger.error('TURNSTILE_SECRET is not configured');
+      throw new Error('Turnstile secret key is not configured');
     }
 
-    const response = await res.json();
+    if (!turnstileToken || turnstileToken.trim() === '') {
+      throw new Error('Turnstile token is required');
+    }
+
+    const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+    const formData = `secret=${encodeURIComponent(
+      turnstileSecret
+    )}&response=${encodeURIComponent(
+      turnstileToken
+    )}&remoteip=${encodeURIComponent(ip)}`;
+
+    let response;
+    try {
+      const fetchResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData,
+      });
+      response = await fetchResponse.json();
+    } catch (error) {
+      logger.error({ error }, 'Failed to verify Turnstile token');
+      throw new Error('Failed to verify Turnstile token');
+    }
+
     if (!response.success) {
-      const codes = response['error-codes'] || ['unknown'];
-      throw new Error(`Captcha verification failed: ${codes.join()}`);
+      const errors = response['error-codes'] || ['unknown'];
+      logger.warn(
+        { errorCodes: errors, ip },
+        'Turnstile verification failed'
+      );
+
+      // Provide more specific error messages
+      if (errors.includes('invalid-input-secret')) {
+        throw new Error(
+          'Turnstile verification failed: Invalid secret key. Please check TURNSTILE_SECRET configuration.'
+        );
+      }
+
+      throw new Error(
+        `Turnstile verification failed: ${errors.join(', ')}`
+      );
     } else {
-      logger.info({ response, ip }, 'Captcha verification success');
+      logger.info({ response, ip }, 'Turnstile verification success');
     }
   }
 }

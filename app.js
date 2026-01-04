@@ -9,7 +9,6 @@ import db from './db/models/index.js';
 import logger, { getLogChild } from './helpers/logger.js';
 import getClientConfig from './helpers/getClientConfig.js';
 import { getEnv } from './helpers/common.js';
-import webpack from './webpack/webpack.js';
 import { getDirnameByUrl, outputReq, outputRes } from './helpers/common.js';
 import genRoutes from './routes/index.js';
 import apiRoutes from './routes/api.js';
@@ -65,7 +64,12 @@ const app = express();
 // start webpackMiddleware
 if (getEnv('NODE_ENV') !== 'production') {
   logger.info('Running in development mode');
-  webpack(app);
+  // Use dynamic import to avoid loading webpack in production
+  import('./webpack/webpack.js').then((webpackModule) => {
+    webpackModule.default(app);
+  }).catch((error) => {
+    logger.error(error, 'Failed to load webpack middleware');
+  });
 }
 
 // logging middleware
@@ -105,7 +109,7 @@ hbs.registerHelper('baseCss', () => new hbs.SafeString(
   )
 );
 hbs.registerHelper('captchaJs', () => new hbs.SafeString(
-    getEnv('CAPTCHA_SWITCH') !== 'OFF'
+    getEnv('TURNSTILE_SWITCH') !== 'OFF'
       ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
       : ''
   )
