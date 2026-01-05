@@ -313,6 +313,39 @@ docker run -it -p 3000:3001 --env-file=.env "$USER/faucet:$BRANCH"
 
 **Important**: When running the Docker image locally, you may need to bind your MySQL server to not only localhost but also the IP used in Docker's network. You can then specify this IP in `DATABASE_URL`.
 
+### GitHub Actions CI/CD
+
+The project includes GitHub Actions workflows for automated testing and Docker image building.
+
+#### PR Testing
+
+When a pull request is created or updated, the `pnpm test` command will automatically run to ensure code quality.
+
+#### Docker Build and Push
+
+When code is pushed to the `master` branch, a Docker image will be automatically built and pushed to Docker Hub with two tags:
+- `latest` - Always points to the latest master branch build
+- `latest-{commit_sha}` - Tagged with the first 7 characters of the commit SHA (e.g., `latest-abc1234`)
+
+**Setup Docker Hub Secrets**
+
+To enable automatic Docker image pushing, you need to configure the following secrets in your GitHub repository:
+
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Add the following secrets:
+   - `DOCKER_HUB_USERNAME`: Your Docker Hub username
+   - `DOCKER_HUB_TOKEN`: Your Docker Hub access token (not your password)
+
+To create a Docker Hub access token:
+1. Log in to [Docker Hub](https://hub.docker.com/)
+2. Go to **Account Settings** → **Security**
+3. Click **New Access Token**
+4. Give it a name (e.g., "GitHub Actions") and set appropriate permissions
+5. Copy the token and add it as `DOCKER_HUB_TOKEN` secret in GitHub
+
+The Docker image will be pushed to: `{DOCKER_HUB_USERNAME}/faucet:latest` and `{DOCKER_HUB_USERNAME}/faucet:latest-{commit_sha}`
+
 ## Testing
 
 The test suite includes linting, unit tests, and integration tests:
