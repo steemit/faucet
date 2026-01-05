@@ -41,7 +41,7 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=registry,image=${{ secrets.DOCKER_HUB_USERNAME }}/faucet:latest
+          # cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/faucet:latest
           cache-to: type=inline
       
       - name: Display Docker image tags
