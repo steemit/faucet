@@ -257,6 +257,14 @@ These variables are exposed to the client-side React application:
   - Enable debug mode (mocks external services)
   - Set to any value to enable
 
+- **Config table: `white_email_domain` / `private_white_email_domain`**
+  - `white_email_domain`: Global email domain whitelist used when requesting email verification codes. Stored in the `config` table as JSON array string, for example: `["gmail.com"]`.
+  - `private_white_email_domain`: Higher-priority private email domain whitelist checked before `white_email_domain`. Also stored in the `config` table as JSON array string, for example: `["corp.example.com", "partner.org"]`.
+  - Configuration example in `config` table:
+    - `c_key = 'white_email_domain'`, `c_val = '["gmail.com"]'`
+    - `c_key = 'private_white_email_domain'`, `c_val = '["corp.example.com", "partner.org"]'`
+  - If an email domain is present in `private_white_email_domain`, it is accepted even if not listed in `white_email_domain`. If it is in neither list, the API responds with the same `error_api_email_domain` error and `white_email_domain` data as before.
+
 ## Running the Application
 
 ### Development Mode
