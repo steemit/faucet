@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/faucet
+          images: steemit/faucet
           tags: |
             type=raw,value=latest
             type=raw,value=latest-${{ steps.commit.outputs.SHORT_SHA }}
@@ -50,15 +50,15 @@ jobs:
           echo "✅ Docker image built and pushed successfully!"
           echo "=========================================="
           echo ""
-          echo "📦 Image: ${{ secrets.DOCKER_HUB_USERNAME }}/faucet"
+          echo "📦 Image: steemit/faucet"
           echo ""
           echo "🏷️  Available tags:"
           echo "   • latest"
           echo "   • latest-${{ steps.commit.outputs.SHORT_SHA }}"
           echo ""
           echo "📋 Pull commands:"
-          echo "   docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/faucet:latest"
-          echo "   docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/faucet:latest-${{ steps.commit.outputs.SHORT_SHA }}"
+          echo "   docker pull steemit/faucet:latest"
+          echo "   docker pull steemit/faucet:latest-${{ steps.commit.outputs.SHORT_SHA }}"
           echo ""
           echo "🔗 Commit: ${{ github.sha }}"
           echo "   Short SHA: ${{ steps.commit.outputs.SHORT_SHA }}"
