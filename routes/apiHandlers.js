@@ -154,13 +154,16 @@ async function handleRequestEmailCode(req) {
   }
   // white list check
   const emailDomain = email.split('@')[1];
-  const whiteEmailDomains = await database.getWhiteEmailDomain();
-  if (!whiteEmailDomains.includes(emailDomain)) {
-    throw new ApiError({
-      type: 'error_api_email_domain',
-      field: 'email',
-      data: { whiteEmailDomains },
-    });
+  const privateWhiteEmailDomains = await database.getPrivateWhiteEmailDomain();
+  if (!privateWhiteEmailDomains.includes(emailDomain)) {
+    const whiteEmailDomains = await database.getWhiteEmailDomain();
+    if (!whiteEmailDomains.includes(emailDomain)) {
+      throw new ApiError({
+        type: 'error_api_email_domain',
+        field: 'email',
+        data: { whiteEmailDomains },
+      });
+    }
   }
   // account creation policy check
   const isEnoughPendingClaimedAccounts =

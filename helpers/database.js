@@ -234,12 +234,21 @@ export function clearConfigCache(key) {
  * Returns default ['gmail.com'] if config not found or parse fails
  */
 export async function getWhiteEmailDomain() {
+  const domains = await getConfigValue('white_email_domain', ['gmail.com'], 300);
+  return Array.isArray(domains) ? domains : ['gmail.com'];
+}
+
+/**
+ * Get private white email domain list from config table
+ * Returns default [] if config not found or parse fails
+ */
+export async function getPrivateWhiteEmailDomain() {
   const domains = await getConfigValue(
-    'white_email_domain',
-    ['gmail.com'],
+    'private_white_email_domain',
+    [],
     300
   );
-  return Array.isArray(domains) ? domains : ['gmail.com'];
+  return Array.isArray(domains) ? domains : [];
 }
 
 export default {
@@ -268,6 +277,7 @@ export default {
   findLastSendSmsByCountryNumber,
   countTryNumber,
   getWhiteEmailDomain,
+  getPrivateWhiteEmailDomain,
   getConfigValue,
   clearConfigCache,
 };
