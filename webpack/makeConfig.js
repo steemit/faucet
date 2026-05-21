@@ -28,11 +28,14 @@ function makePlugins(options) {
 
   let plugins = [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV':
-        isDevelopment
-          ? JSON.stringify('development')
-          : JSON.stringify('production'),
+      'process.env.NODE_ENV': isDevelopment
+        ? JSON.stringify('development')
+        : JSON.stringify('production'),
     }),
+    new webpack.NormalModuleReplacementPlugin(
+      /^node:undici$/,
+      join(__dirname, 'empty-undici.js')
+    ),
     new WebpackManifestPlugin({
       fileName: '../manifest.json',
       publicPath: '/js/',
@@ -109,10 +112,7 @@ function makeStyleLoaders(options) {
     return [
       {
         test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-        ],
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.less$/,
@@ -136,10 +136,7 @@ function makeStyleLoaders(options) {
   return [
     {
       test: /\.css$/,
-      use: [
-        MiniCssExtractPlugin.loader,
-        'css-loader',
-      ],
+      use: [MiniCssExtractPlugin.loader, 'css-loader'],
     },
     {
       test: /\.less$/,
@@ -161,7 +158,7 @@ function makeStyleLoaders(options) {
 }
 
 function makeConfig(options) {
-  if (!options) options = {}
+  if (!options) options = {};
   _defaults(options, DEFAULTS);
 
   const isDevelopment = options.isDevelopment;
@@ -174,15 +171,18 @@ function makeConfig(options) {
     },
     mode: isDevelopment ? 'development' : 'production',
     entry: {
-      app: (
-        isDevelopment ? ['webpack-hot-middleware/client?reload=true'] : []
+      app: (isDevelopment
+        ? ['webpack-hot-middleware/client?reload=true']
+        : []
       ).concat([join(options.baseDir, 'src/index.js')]),
     },
     output: {
       path: join(options.baseDir, '/public/js'),
       publicPath: '/js',
       filename: isDevelopment ? '[name].js' : '[name].[chunkhash:5].js',
-      chunkFilename: isDevelopment ? '[id].chunk.js' : '[id].chunk.[chunkhash:5].js',
+      chunkFilename: isDevelopment
+        ? '[id].chunk.js'
+        : '[id].chunk.[chunkhash:5].js',
       clean: true,
     },
     plugins: makePlugins(options),
@@ -198,17 +198,14 @@ function makeConfig(options) {
           use: {
             loader: 'babel-loader',
             options: {
-              plugins: [
-                isDevelopment && ReactRefreshBabel,
-              ].filter(Boolean),
+              plugins: [isDevelopment && ReactRefreshBabel].filter(Boolean),
             },
           },
         },
         {
           test: /\.json$/,
           type: 'json',
-          parser: {
-          },
+          parser: {},
         },
         {
           test: /\.(eot|ttf|woff|woff2)(\?.+)?$/,
