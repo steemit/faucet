@@ -8,7 +8,7 @@
     "start": "./bin/www",
     "start-dev": "nodemon --ignore public/ ./bin/www | pino-pretty",
     "jest": "env $(grep -v '^#' .env.example | grep -v '^$' | tr \"\\\\n\" \" \") NODE_OPTIONS=--experimental-vm-modules jest",
-    "lint": "eslint",
+    "lint": "NODE_OPTIONS=--experimental-require-module eslint",
     "lint-fix": "eslint --fix",
     "test": "pnpm run lint && pnpm run jest",
     "test:smtp": "node test-smtp-config.js",
