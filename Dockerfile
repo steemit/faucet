@@ -1,9 +1,11 @@
-FROM node:20-alpine AS build-stage
+FROM node:22-alpine AS build-stage
 
 WORKDIR /app
 
 # set CI environment variable for pnpm
 ENV CI=true
+# ESLint flat config is ESM; babel-eslint-parser needs this on Node 22
+ENV NODE_OPTIONS=--experimental-require-module
 
 # install build dependencies and CA certificates
 RUN apk add --no-cache \
@@ -12,7 +14,7 @@ RUN apk add --no-cache \
 
 # install application dependencies
 COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --frozen-lockfile
 
 # copy in application source
 COPY . .
@@ -30,7 +32,7 @@ RUN pnpm build
 RUN pnpm install --frozen-lockfile --prod
 
 # copy built application to runtime image
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # install CA certificates in runtime image
