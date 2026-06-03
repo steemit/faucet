@@ -81,25 +81,6 @@ export const updateUsers = async (data, where) => db.users.update(data, where);
 
 export const query = async (q, options) => db.sequelize.query(q, options);
 
-export const findAnalyticsLog = async (where) => db.analytics.findAll(where);
-export const createAnalyticsLog = async (where, data) =>
-  db.analytics.findOrCreate({ where, defaults: data });
-
-export const updateAnalytics = async (where, data, increase = false) => {
-  const result = await createAnalyticsLog(where, data);
-  if (result[1] === false) {
-    // find exist data
-    if (increase === true) {
-      result[0].total += 1;
-      await result[0].save();
-    } else {
-      result[0].total = data.total;
-      await result[0].save();
-    }
-  }
-  return true;
-};
-
 export const createEmailRecord = async (data) => db.emailcode.create(data);
 export const findEmailRecord = async (where) => db.emailcode.findOne(where);
 export const createPhoneRecord = async (data) => db.phonecode.create(data);
@@ -234,7 +215,11 @@ export function clearConfigCache(key) {
  * Returns default ['gmail.com'] if config not found or parse fails
  */
 export async function getWhiteEmailDomain() {
-  const domains = await getConfigValue('white_email_domain', ['gmail.com'], 300);
+  const domains = await getConfigValue(
+    'white_email_domain',
+    ['gmail.com'],
+    300
+  );
   return Array.isArray(domains) ? domains : ['gmail.com'];
 }
 
@@ -243,11 +228,7 @@ export async function getWhiteEmailDomain() {
  * Returns default [] if config not found or parse fails
  */
 export async function getPrivateWhiteEmailDomain() {
-  const domains = await getConfigValue(
-    'private_white_email_domain',
-    [],
-    300
-  );
+  const domains = await getConfigValue('private_white_email_domain', [], 300);
   return Array.isArray(domains) ? domains : [];
 }
 
@@ -264,8 +245,6 @@ export default {
   phoneIsInUse,
   updateUsers,
   query,
-  findAnalyticsLog,
-  updateAnalytics,
   createEmailRecord,
   findEmailRecord,
   actionLimitNew,

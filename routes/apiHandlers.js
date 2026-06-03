@@ -64,76 +64,6 @@ async function handleGuessCountry(req) {
   return { location: services.locationFromIp(req.ip) };
 }
 
-/**
- * Collect the analytics data
- */
-async function handleAnalytics(req) {
-  const { event_id, superkey, total, t } = req.query;
-  /**
-   * Temporary API.
-   */
-  if (event_id < 1) {
-    throw new ApiError({
-      type: 'error_event_id',
-      status: 200,
-    });
-  }
-
-  // action limit
-  await database.logAction({
-    action: 'analytics',
-    ip: req.ip,
-  });
-  await database.actionLimit(req.ip);
-
-  if (superkey) {
-    // In super mode we can update `total` and `created_at` fields.
-    const SUPERKEY_ENV = getEnv('ANALYTICS_UPDATE_SUPERKEY');
-    if (!SUPERKEY_ENV) {
-      throw new ApiError({
-        type: 'error_analytics_update_superkey_not_set',
-        status: 200,
-      });
-    }
-    if (superkey !== SUPERKEY_ENV) {
-      throw new ApiError({
-        type: 'error_superkey',
-        status: 200,
-      });
-    }
-    const where = {
-      event_id,
-      created_at: `${t}T00:00:00Z`,
-    };
-    const data = {
-      total,
-    };
-    try {
-      await database.updateAnalytics(where, data);
-    } catch (error) {
-      req.log.error(error, 'Unable to store analytics data');
-      return { success: true };
-    }
-  } /* else {
-        // In normal mode we only update `total` by adding 1.
-        const today = new Date().toISOString().replace(/T.+/, '');
-        const where = {
-            event_id,
-            created_at: `${today}T00:00:00Z`,
-        };
-        const data = {
-            total: 1,
-        };
-        try {
-            await database.updateAnalytics(where, data, true);
-        } catch (error) {
-            req.log.error(error, 'Unable to store analytics data');
-            return { success: true };
-        }
-    } */
-  return { success: true };
-}
-
 async function handleRequestEmailCode(req) {
   const ip = req.ip;
   const email = req.body?.email;
@@ -1268,7 +1198,6 @@ export default {
   handleCreateAccount,
   handleCheckUsername,
   handleGuessCountry,
-  handleAnalytics,
   handleRequestEmailCode,
   handleConfirmEmailCode,
   finalizeSignup,
