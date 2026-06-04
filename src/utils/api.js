@@ -78,9 +78,3 @@ export const getPendingClaimedAccounts = (callback) => {
     }
   });
 };
-
-export const updateAnalytics = (eventId) => {
-  fetch(`/api/analytics?event_id=${eventId}`)
-    .then(() => {})
-    .catch(() => {});
-};

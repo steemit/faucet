@@ -55,7 +55,4 @@ router.post('/create_user', apiMiddleware(apiHandlers.finalizeSignup));
 
 router.post('/create_account', apiMiddleware(apiHandlers.handleCreateAccount));
 
-// This api is a temporary api. This will be removed in the future!
-router.get('/analytics', apiMiddleware(apiHandlers.handleAnalytics));
-
 export default router;
