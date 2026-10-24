@@ -1,4 +1,4 @@
-FROM node:22-alpine AS build-stage
+FROM node:22.23.4-alpine AS build-stage
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ RUN pnpm build
 RUN pnpm install --frozen-lockfile --prod
 
 # copy built application to runtime image
-FROM node:22-alpine
+FROM node:22.23.4-alpine
 WORKDIR /app
 
 # install CA certificates in runtime image
