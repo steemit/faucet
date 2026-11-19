@@ -149,8 +149,15 @@ export async function sendApprovalEmail(to, baseUrl) {
 
 /**
  * Call conveyor method.
+ *
+ * Conveyor's JSON-RPC contract takes **named** params (a JSON object), e.g.
+ * `conveyor.is_email_registered` -> `{email: "..."}`. Positional arrays used to
+ * work with the legacy TypeScript conveyor (koa-jsonrpc bound them to function
+ * arguments), but the Go implementation decodes params into a struct and
+ * rejects an array with `-32602 Invalid params`. Keep params as objects.
+ *
  * @param method Method name of method to be called, without prefix e.g. `is_phone_registered`.
- * @param params (optional) Parameters for the call.
+ * @param params (optional) Named parameters for the call.
  */
 export async function conveyorCall(method, params) {
   if (DEBUG_MODE) {
