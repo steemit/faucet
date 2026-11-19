@@ -128,9 +128,9 @@ async function handleRequestEmailCode(req) {
     });
   }
 
-  const emailRegistered = await services.conveyorCall('is_email_registered', [
+  const emailRegistered = await services.conveyorCall('is_email_registered', {
     email,
-  ]);
+  });
   if (emailRegistered) {
     throw new ApiError({
       type: 'error_api_email_used',
@@ -324,9 +324,9 @@ async function handleRequestSms(req) {
     });
   }
 
-  const phoneRegistered = await services.conveyorCall('is_phone_registered', [
-    parsedPhoneNumber.number,
-  ]);
+  const phoneRegistered = await services.conveyorCall('is_phone_registered', {
+    phone: parsedPhoneNumber.number,
+  });
 
   if (phoneRegistered) {
     throw new ApiError({
@@ -1019,9 +1019,9 @@ async function handleCreateAccount(req) {
       field: 'email',
     });
   }
-  const emailRegistered = await services.conveyorCall('is_email_registered', [
-    decoded.email,
-  ]);
+  const emailRegistered = await services.conveyorCall('is_email_registered', {
+    email: decoded.email,
+  });
   if (emailRegistered) {
     throw new ApiError({
       type: 'error_api_email_used',
@@ -1102,12 +1102,12 @@ async function handleCreateAccount(req) {
   //     req.log.warn({ error }, 'gatekeeper.signup_mark_created failed');
   // }
 
-  const params = [
-    decoded.username,
-    {
+  const params = {
+    account: decoded.username,
+    userData: {
       email: user.email,
     },
-  ];
+  };
 
   services.conveyorCall('set_user_data', params).catch((error) => {
     // TODO: this should retry more than once
@@ -1120,7 +1120,7 @@ async function handleCreateAccount(req) {
   });
 
   // TOS
-  const tosParams = [decoded.username, 'accepted_tos_20180614'];
+  const tosParams = { uid: decoded.username, tag: 'accepted_tos_20180614' };
   services.conveyorCall('assign_tag', tosParams).catch((error) => {
     req.log.warn(error, 'Unable to store user tos in conveyor... retrying');
     setTimeout(() => {
