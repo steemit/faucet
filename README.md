@@ -85,11 +85,36 @@ cp .env.example .env
   - Number of days to keep database records before cleanup
   - Used for automatic cleanup of old actions and users
 
-### SMTP Configuration
+### Mail Configuration
 
-The following environment variables are required for email sending functionality:
+Emails are sent through AWS SES (API v2) by default, using the AWS SDK default
+credential chain — on EC2 this is the instance role, so no static keys are
+needed. The legacy SMTP transport is kept as a fallback for local development
+and rollback.
 
-#### Required SMTP Variables
+#### SES Variables (default transport)
+
+- **`MAIL_TRANSPORT`** (optional, default: `ses`)
+  - `ses` — send via the AWS SES v2 API (`SendEmail` with simple content)
+  - `smtp` — use the legacy SMTP transport (see the SMTP variables below)
+
+- **`MAIL_FROM`** (required when `MAIL_TRANSPORT=ses`)
+  - Sender address used by the SES transport
+  - Falls back to `SMTP_FROM` if unset
+  - Example: `Steemit <noreply@example.com>`
+
+- **`AWS_REGION`** (optional, default: `us-east-1`)
+  - AWS region for the SES endpoint
+
+- **AWS credentials**
+  - Never set `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` for this app
+  - Credentials are resolved by the AWS SDK default chain; in production this
+    is the EC2 instance role, which must be allowed `ses:SendEmail` on the
+    sending identity
+  - The app logs a warning if static AWS keys are detected, because they
+    would silently override the instance role
+
+#### SMTP Variables (only used when `MAIL_TRANSPORT=smtp`)
 
 - **`SMTP_HOST`** (required)
   - SMTP server hostname
@@ -136,11 +161,12 @@ The following environment variables are required for email sending functionality
 
 #### SMTP Configuration Examples
 
-**AWS SES (Recommended for Production)**
+**AWS SES via the SMTP interface**
 ```bash
+MAIL_TRANSPORT=smtp
 SMTP_HOST=email-smtp.us-east-1.amazonaws.com
 SMTP_PORT=587
-SMTP_USER=AKIAIOSFODNN7EXAMPLE
+SMTP_USER=YOUR_SMTP_USERNAME
 SMTP_PASS=YOUR_SMTP_PASSWORD
 SMTP_FROM=noreply@example.com
 # Optional: SMTP_SECURE is auto-detected (false for port 587)
