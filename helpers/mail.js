@@ -21,6 +21,9 @@ const DEFAULT_SES_REGION = 'us-east-1';
  * Keeps the first character of the local part and the domain for debuggability.
  */
 export function maskEmail(email) {
+  if (Array.isArray(email)) {
+    return email.map(maskEmail).join(', ');
+  }
   if (typeof email !== 'string' || !email.includes('@')) {
     return email;
   }
@@ -96,6 +99,9 @@ export function createSesTransport({ env = process.env, sesClient } = {}) {
       }
       if (mailOptions.text) {
         body.Text = { Charset: 'UTF-8', Data: mailOptions.text };
+      }
+      if (!body.Html && !body.Text) {
+        throw new Error('Refusing to send an email without an html or text body');
       }
       const response = await client.send(
         new SendEmailCommand({
@@ -282,7 +288,9 @@ export async function send(to, template, params = {}, deps = {}) {
     logger.error(
       {
         errorName: error && error.name,
-        errorCode: error && (error.Code || undefined),
+        // AWS SDK v3 errors carry the exception in `name`; Node/nodemailer
+        // errors carry it in `code` (EAUTH, ECONNREFUSED, ...)
+        errorCode: error && (error.code || error.Code),
         httpStatusCode: error && error.$metadata && error.$metadata.httpStatusCode,
         errorMessage: maskEmailsInText(error && error.message),
         to: maskEmail(to),

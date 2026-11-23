@@ -109,6 +109,13 @@ describe('maskEmail', () => {
     expect(mail.maskEmail(undefined)).toBe(undefined);
   });
 
+  it('masks every address in an array', async () => {
+    const { mail } = await loadMail();
+    expect(
+      mail.maskEmail(['johndoe@example.com', 'jane@example.com'])
+    ).toBe('j***@example.com, j***@example.com');
+  });
+
   it('masks addresses embedded in free text', async () => {
     const { mail } = await loadMail();
     const masked = mail.maskEmailsInText(
@@ -227,6 +234,24 @@ describe('SES transport', () => {
     const { Body } = sesClient.send.mock.calls[0][0].input.Content.Simple;
     expect(Body.Html).toEqual({ Charset: 'UTF-8', Data: '<p>welcome</p>' });
     expect(Body.Text).toBeUndefined();
+  });
+
+  it('refuses to call SES when the template has neither html nor text', async () => {
+    const { mail } = await loadMail();
+    const sesClient = makeFakeSesClient();
+    const transport = mail.createSesTransport({
+      env: { MAIL_FROM: 'noreply@steemit.com' },
+      sesClient,
+    });
+
+    await expect(
+      transport.sendMail({
+        from: 'noreply@steemit.com',
+        to: 'johndoe@example.com',
+        subject: 'empty',
+      })
+    ).rejects.toThrow('without an html or text body');
+    expect(sesClient.send).not.toHaveBeenCalled();
   });
 
   it('send() renders the template and logs the SES MessageId', async () => {
@@ -408,5 +433,31 @@ describe('SMTP transport (legacy fallback)', () => {
     expect(successLog[0].messageId).toBe('<smtp-1@steemit.com>');
     expect(successLog[0].to).toBe('j***@example.com');
     expect(successLog[0].transport).toBe('smtp');
+  });
+
+  it('logs the nodemailer error code (e.g. EAUTH) with a masked recipient', async () => {
+    const { mail, loggerSpy } = await loadMail();
+    const fakeTransporter = makeFakeSmtpTransporter();
+    fakeTransporter.sendMail.mockRejectedValue(
+      Object.assign(new Error('Invalid login: 535 5.7.8 Error: authentication failed'), {
+        code: 'EAUTH',
+        responseCode: 535,
+      })
+    );
+    const transport = mail.createSmtpTransport({
+      env: { ...SMTP_ENV },
+      createTransport: () => fakeTransporter,
+    });
+
+    await expect(
+      mail.send('johndoe@example.com', 'confirm_email', {}, { transporter: transport })
+    ).rejects.toMatchObject({ code: 'EAUTH' });
+
+    const errorLog = loggerSpy.error.mock.calls.find(
+      (call) => call[1] === 'Failed to send email'
+    );
+    expect(errorLog[0].errorCode).toBe('EAUTH');
+    expect(errorLog[0].to).toBe('j***@example.com');
+    expect(errorLog[0].transport).toBe('smtp');
   });
 });
