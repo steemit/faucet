@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import crypto from 'crypto';
 import fs from 'fs';
 import { getLogChild } from './logger.js';
 const logger = getLogChild({ module: 'helper_common' });
@@ -59,7 +60,7 @@ export function generateCode(size) {
   const dicts = '0123456789';
   let v = '';
   for (let i = size; i > 0; i -= 1) {
-    v += dicts[Math.round(Math.random() * (dicts.length - 1))];
+    v += dicts[crypto.randomInt(0, dicts.length)];
   }
   return v;
 }

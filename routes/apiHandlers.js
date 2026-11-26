@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import mail from '../helpers/mail.js';
 import { getLogChild } from '../helpers/logger.js';
@@ -13,6 +14,51 @@ import {
 import { getEnv, generateCode } from '../helpers/common.js';
 
 const logger = getLogChild({ module: 'api_handlers' });
+
+const EMAIL_COOLDOWN_MS = 60 * 1000;
+const EMAIL_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
+const EMAIL_DAILY_MAX_SENDS = 5;
+const EMAIL_CODE_TTL_MS = 30 * 60 * 1000;
+const MAX_EMAIL_CODE_ATTEMPTS = 10;
+const SIGNUP_JWT_EXPIRES_IN = '30m';
+
+function isSixDigitCode(code) {
+  return typeof code === 'string' && /^\d{6}$/.test(code);
+}
+
+function codesMatch(expected, actual) {
+  if (!isSixDigitCode(expected) || !isSixDigitCode(actual)) {
+    return false;
+  }
+  return crypto.timingSafeEqual(
+    Buffer.from(expected, 'utf8'),
+    Buffer.from(actual, 'utf8')
+  );
+}
+
+function buildJtiMarker(jti, username) {
+  return `JTI:${jti}:${username}`;
+}
+
+function buildCreatingMarker(jti, username) {
+  return `CREATING:${jti}:${username}`;
+}
+
+async function isConveyorEmailRegistered(email, normalizedEmail) {
+  if (await services.conveyorCall('is_email_registered', { email })) {
+    return true;
+  }
+  if (
+    normalizedEmail &&
+    normalizedEmail !== email &&
+    (await services.conveyorCall('is_email_registered', {
+      email: normalizedEmail,
+    }))
+  ) {
+    return true;
+  }
+  return false;
+}
 
 /**
  * Check the validity and blockchain availability of a username
@@ -82,12 +128,18 @@ async function handleRequestEmailCode(req) {
       field: 'email',
     });
   }
-  // white list check
-  const emailDomain = email.split('@')[1];
-  const privateWhiteEmailDomains = await database.getPrivateWhiteEmailDomain();
+  const normalizedEmail = normalizeEmail(email);
+  // white list check (case-insensitive domain match)
+  const emailDomain = email.split('@')[1].toLowerCase();
+  const privateWhiteEmailDomains = (
+    await database.getPrivateWhiteEmailDomain()
+  ).map((d) => String(d).toLowerCase());
   if (!privateWhiteEmailDomains.includes(emailDomain)) {
     const whiteEmailDomains = await database.getWhiteEmailDomain();
-    if (!whiteEmailDomains.includes(emailDomain)) {
+    const normalizedWhitelist = whiteEmailDomains.map((d) =>
+      String(d).toLowerCase()
+    );
+    if (!normalizedWhitelist.includes(emailDomain)) {
       throw new ApiError({
         type: 'error_api_email_domain',
         field: 'email',
@@ -116,128 +168,180 @@ async function handleRequestEmailCode(req) {
   await database.logAction({
     action: 'request_email_code',
     ip,
-    metadata: { email },
+    metadata: { email, email_normalized: normalizedEmail },
   });
 
-  // duplicate check
-  const emailIsInUse = await database.emailIsInUse(email);
-  if (emailIsInUse) {
-    throw new ApiError({
-      type: 'error_api_email_used',
-      field: 'email',
-    });
-  }
-
-  const emailRegistered = await services.conveyorCall('is_email_registered', {
-    email,
-  });
-  if (emailRegistered) {
-    throw new ApiError({
-      type: 'error_api_email_used',
-      field: 'email',
-    });
-  }
-
-  let record = null;
-
-  const existingRecord = await database.findEmailRecord({
-    where: {
-      email,
+  return database.withAdvisoryLocks(
+    [`email:${normalizedEmail}`],
+    {
+      timeoutSec: 10,
+      timeoutErrorType: 'error_api_wait_one_minute',
+      timeoutField: 'email',
+      timeoutStatus: 429,
     },
-  });
+    async () => {
+      // duplicate check under lock
+      const emailIsInUse = await database.emailIsInUse(email);
+      if (emailIsInUse) {
+        throw new ApiError({
+          type: 'error_api_email_used',
+          field: 'email',
+        });
+      }
 
-  if (existingRecord) {
-    record = existingRecord;
-  } else {
-    try {
-      const newEmailRecord = await database.createEmailRecord({
+      const emailRegistered = await isConveyorEmailRegistered(
         email,
-        email_normalized: normalizeEmail(email),
-        last_attempt_verify_email: new Date(1588291200000),
-        email_code: null,
-        email_code_attempts: 0,
-        email_code_sent: 0,
-        email_code_generated: null,
-        email_code_first_sent: null,
-      });
-      record = newEmailRecord;
-    } catch (e) {
-      logger.error(e, 'insert email code record error');
-      throw new ApiError({
-        type: 'error_api_general',
-        field: 'email',
-      });
+        normalizedEmail
+      );
+      if (emailRegistered) {
+        throw new ApiError({
+          type: 'error_api_email_used',
+          field: 'email',
+        });
+      }
+
+      const existingRecords = await database.findEmailRecordsByNormalized(
+        email
+      );
+      const nowMs = Date.now();
+      const minusOneMinute = nowMs - EMAIL_COOLDOWN_MS;
+      const minusOneDay = nowMs - EMAIL_DAILY_WINDOW_MS;
+
+      let lastAttemptMs = 0;
+      let dailySentTimes = 0;
+      let earliestWindowStartMs = null;
+
+      for (const row of existingRecords) {
+        if (row.last_attempt_verify_email) {
+          const attemptMs = row.last_attempt_verify_email.getTime();
+          if (attemptMs > lastAttemptMs) {
+            lastAttemptMs = attemptMs;
+          }
+        }
+        if (
+          row.email_code_first_sent &&
+          row.email_code_first_sent.getTime() >= minusOneDay
+        ) {
+          dailySentTimes += row.email_code_sent || 0;
+          const firstMs = row.email_code_first_sent.getTime();
+          if (earliestWindowStartMs === null || firstMs < earliestWindowStartMs) {
+            earliestWindowStartMs = firstMs;
+          }
+        }
+      }
+
+      // Enforce 24-hour quota across all normalized variants
+      if (
+        earliestWindowStartMs !== null &&
+        dailySentTimes >= EMAIL_DAILY_MAX_SENDS
+      ) {
+        throw new ApiError({
+          field: 'email',
+          type: 'error_api_request_too_much',
+        });
+      }
+
+      // Enforce 1-minute cooldown across all normalized variants
+      if (lastAttemptMs > 0 && lastAttemptMs >= minusOneMinute) {
+        throw new ApiError({
+          field: 'email',
+          type: 'error_api_wait_one_minute',
+        });
+      }
+
+      // Clean up any legacy duplicate variant rows for the same normalized email
+      if (existingRecords.length > 1) {
+        const duplicateIds = existingRecords
+          .slice(1)
+          .map((r) => r.id)
+          .filter(Boolean);
+        await database.deleteEmailRecordsByIds(duplicateIds);
+      }
+
+      const captchaCode = generateCode(6);
+      const now = new Date(nowMs);
+      const nextFirstSent =
+        earliestWindowStartMs !== null
+          ? new Date(earliestWindowStartMs)
+          : now;
+      const nextSentCount =
+        earliestWindowStartMs !== null ? dailySentTimes + 1 : 1;
+
+      let record = existingRecords[0] || null;
+      let wasCreated = false;
+      let previousSnapshot = null;
+
+      // Persist quota & cooldown BEFORE calling SES
+      if (record) {
+        previousSnapshot = {
+          email: record.email,
+          email_normalized: record.email_normalized,
+          email_code: record.email_code,
+          email_code_attempts: record.email_code_attempts,
+          email_code_sent: record.email_code_sent,
+          email_code_generated: record.email_code_generated,
+          email_code_first_sent: record.email_code_first_sent,
+          last_attempt_verify_email: record.last_attempt_verify_email,
+        };
+        record.email = email;
+        record.email_normalized = normalizedEmail;
+        record.email_code_attempts = 0;
+        record.email_code = captchaCode;
+        record.email_code_generated = now;
+        record.email_code_first_sent = nextFirstSent;
+        record.email_code_sent = nextSentCount;
+        record.last_attempt_verify_email = now;
+        await record.save();
+      } else {
+        try {
+          record = await database.createEmailRecord({
+            email,
+            email_normalized: normalizedEmail,
+            last_attempt_verify_email: now,
+            email_code: captchaCode,
+            email_code_attempts: 0,
+            email_code_sent: nextSentCount,
+            email_code_generated: now,
+            email_code_first_sent: nextFirstSent,
+          });
+          wasCreated = true;
+        } catch (e) {
+          logger.error(e, 'insert email code record error');
+          throw new ApiError({
+            type: 'error_api_general',
+            field: 'email',
+          });
+        }
+      }
+
+      // Send the email; roll back quota reservation if delivery fails
+      try {
+        if (locale === 'zh-cn') {
+          await services.sendEmail(email, 'email_code_zh', {
+            code: captchaCode,
+          });
+        } else {
+          await services.sendEmail(email, 'email_code', {
+            code: captchaCode,
+          });
+        }
+      } catch (cause) {
+        if (wasCreated && record?.id) {
+          await database.deleteEmailRecordsByIds([record.id]).catch(() => {});
+        } else if (record && previousSnapshot) {
+          Object.assign(record, previousSnapshot);
+          await record.save().catch(() => {});
+        }
+        throw new ApiError({
+          field: 'email',
+          type: 'error_api_sent_email_failed',
+          cause,
+        });
+      }
+
+      return { success: true, email, xref: record.ref_code };
     }
-  }
-
-  const minusOneMinute = Date.now() - 60000;
-  const minusOneDay = Date.now() - 86400000;
-
-  const usersLastAttempt = record.last_attempt_verify_email
-    ? record.last_attempt_verify_email.getTime()
-    : undefined;
-
-  const dailySentTimes = record.email_code_sent
-    ? record.email_code_sent
-    : undefined;
-
-  const lastRequestTime = record.email_code_first_sent
-    ? record.email_code_first_sent.getTime()
-    : undefined;
-
-  // if an email has requested code over 5 times with 24 hours, throw an error.
-  if (dailySentTimes && lastRequestTime) {
-    if (dailySentTimes >= 5 && lastRequestTime >= minusOneDay) {
-      throw new ApiError({
-        field: 'email',
-        type: 'error_api_request_too_much',
-      });
-    }
-  }
-
-  // If the user's last attempt was less than or exactly a minute ago, throw an error.
-  if (usersLastAttempt && usersLastAttempt >= minusOneMinute) {
-    throw new ApiError({
-      field: 'email',
-      type: 'error_api_wait_one_minute',
-    });
-  }
-
-  const captchaCode = (100000 + Math.round(Math.random() * 899999)).toString();
-
-  // Send the email.
-  if (locale === 'zh-cn') {
-    await services.sendEmail(record.email, 'email_code_zh', {
-      code: captchaCode,
-    });
-  } else {
-    await services.sendEmail(record.email, 'email_code', {
-      code: captchaCode,
-    });
-  }
-
-  // Update the user to reflect that the verification email was sent.
-  record.email_code_attempts = 0;
-  record.email_code = captchaCode;
-  record.email_code_generated = new Date();
-  // count every 24 hours
-  if (record.email_code_generated >= minusOneDay) {
-    record.email_code_sent += 1;
-  } else {
-    record.email_code_sent = 1;
-    record.email_code_first_sent = new Date();
-  }
-  if (
-    !record.email_code_first_sent ||
-    record.email_code_first_sent < minusOneDay
-  ) {
-    record.email_code_first_sent = new Date();
-    record.email_code_sent = 1;
-  }
-  record.last_attempt_verify_email = new Date();
-  await record.save();
-
-  return { success: true, email, xref: record.ref_code };
+  );
 }
 
 /**
@@ -667,8 +771,9 @@ async function handleRequestSms(req) {
 }
 
 async function handleConfirmEmailCode(req) {
-  const currentEmail = req.body.email;
-  const minusHalfHour = Date.now() - 1800000;
+  const currentEmail = req.body?.email;
+  const code = req.body?.code;
+  const minusHalfHour = Date.now() - EMAIL_CODE_TTL_MS;
 
   if (!currentEmail) {
     throw new ApiError({
@@ -677,16 +782,23 @@ async function handleConfirmEmailCode(req) {
     });
   }
 
-  if (!req.body.code) {
+  if (!code) {
     throw new ApiError({
       field: 'email_code',
       type: 'error_api_code_required',
     });
   }
 
-  const record = await database.findEmailRecord({
-    where: { email: currentEmail },
-  });
+  if (!isSixDigitCode(code)) {
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_email_code_invalid',
+    });
+  }
+
+  await database.actionLimitNew(req.ip, 'check_email_code', 60);
+
+  const record = await database.findEmailRecordByNormalized(currentEmail);
 
   if (!record) {
     throw new ApiError({
@@ -695,8 +807,7 @@ async function handleConfirmEmailCode(req) {
     });
   }
 
-  // incorrect input over 100 times
-  if (record.email_code_attempts >= 100) {
+  if ((record.email_code_attempts || 0) >= MAX_EMAIL_CODE_ATTEMPTS) {
     throw new ApiError({
       field: 'email_code',
       type: 'error_api_phone_too_many',
@@ -704,21 +815,42 @@ async function handleConfirmEmailCode(req) {
   }
 
   // code expires after 30 mins from generated time
-  if (record.email_code_generated <= minusHalfHour) {
-    record.email_code = null;
-    record.email_code_attempts = 0;
-    record.save();
+  if (
+    !record.email_code ||
+    !isSixDigitCode(record.email_code) ||
+    !record.email_code_generated ||
+    record.email_code_generated.getTime() <= minusHalfHour
+  ) {
+    if (
+      record.email_code_generated &&
+      record.email_code_generated.getTime() <= minusHalfHour
+    ) {
+      await database.clearExpiredEmailCode(record.id);
+    }
     throw new ApiError({
       field: 'email_code',
       type: 'error_api_email_code_invalid',
     });
   }
 
-  // try code
-  record.email_code_attempts += 1;
-  // if doesn't match
-  if (record.email_code !== req.body.code) {
-    await record.save();
+  // Atomically increment attempts before verifying
+  const incremented = await database.incrementEmailCodeAttempts(
+    record.id,
+    MAX_EMAIL_CODE_ATTEMPTS
+  );
+  if (!incremented) {
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_phone_too_many',
+    });
+  }
+
+  if (!codesMatch(record.email_code, code)) {
+    await database.logAction({
+      action: 'check_email_code',
+      ip: req.ip,
+      metadata: { email_normalized: normalizeEmail(currentEmail) },
+    });
     throw new ApiError({
       field: 'email_code',
       type: 'error_api_email_code_invalid',
@@ -868,10 +1000,26 @@ async function finalizeSignup(req) {
     });
   }
 
+  try {
+    accountNameIsValid(username);
+  } catch (e) {
+    throw new ApiError({
+      field: 'username',
+      type: e.message,
+    });
+  }
+
   if (!email) {
     throw new ApiError({
       field: 'email',
       type: 'error_api_email_required',
+    });
+  }
+
+  if (!isEmail(email)) {
+    throw new ApiError({
+      field: 'email',
+      type: 'error_api_email_format',
     });
   }
 
@@ -882,6 +1030,17 @@ async function finalizeSignup(req) {
     });
   }
 
+  if (!isSixDigitCode(emailCode)) {
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_email_code_invalid',
+    });
+  }
+
+  await database.actionLimitNew(ip, 'create_user_attempt', 60);
+
+  const normalizedEmail = normalizeEmail(email);
+
   const emailIsInUse = await database.emailIsInUse(email);
   if (emailIsInUse) {
     throw new ApiError({
@@ -890,23 +1049,22 @@ async function finalizeSignup(req) {
     });
   }
 
-  const emailRecord = await database.findEmailRecord({
-    where: {
-      email,
-    },
-  });
-
-  if (!emailRecord) {
+  const emailRegistered = await isConveyorEmailRegistered(
+    email,
+    normalizedEmail
+  );
+  if (emailRegistered) {
     throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_unknown_email',
+      type: 'error_api_email_used',
+      field: 'email',
     });
   }
 
-  if (emailRecord.email_code !== emailCode) {
+  const userExistsOnChain = await services.checkUsername(username);
+  if (userExistsOnChain) {
     throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_email_code_invalid',
+      field: 'username',
+      type: 'error_api_username_used',
     });
   }
 
@@ -921,15 +1079,96 @@ async function finalizeSignup(req) {
     });
   }
 
+  const emailRecord = await database.findEmailRecordByNormalized(email);
+
+  if (!emailRecord) {
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_unknown_email',
+    });
+  }
+
+  if ((emailRecord.email_code_attempts || 0) >= MAX_EMAIL_CODE_ATTEMPTS) {
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_phone_too_many',
+    });
+  }
+
+  const now = new Date();
+  const minGeneratedAt = new Date(now.getTime() - EMAIL_CODE_TTL_MS);
+
+  if (
+    !emailRecord.email_code ||
+    !isSixDigitCode(emailRecord.email_code) ||
+    !emailRecord.email_code_generated ||
+    emailRecord.email_code_generated <= minGeneratedAt
+  ) {
+    if (
+      emailRecord.email_code_generated &&
+      emailRecord.email_code_generated <= minGeneratedAt
+    ) {
+      await database.clearExpiredEmailCode(emailRecord.id);
+    }
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_email_code_invalid',
+    });
+  }
+
+  if (!codesMatch(emailRecord.email_code, emailCode)) {
+    const incremented = await database.incrementEmailCodeAttempts(
+      emailRecord.id,
+      MAX_EMAIL_CODE_ATTEMPTS
+    );
+    await database.logAction({
+      action: 'create_user_attempt',
+      ip,
+      metadata: { email_normalized: normalizedEmail },
+    });
+    if (!incremented) {
+      throw new ApiError({
+        field: 'email_code',
+        type: 'error_api_phone_too_many',
+      });
+    }
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_email_code_invalid',
+    });
+  }
+
+  // Atomically consume the 6-digit verification code and bind one-time JTI + username
+  const jti = crypto.randomUUID();
+  const jtiMarker = buildJtiMarker(jti, username);
+  const consumed = await database.consumeEmailCodeForSignup({
+    id: emailRecord.id,
+    expectedCode: emailCode,
+    jtiMarker,
+    minGeneratedAt,
+    maxAttempts: MAX_EMAIL_CODE_ATTEMPTS,
+    now,
+  });
+
+  if (!consumed) {
+    throw new ApiError({
+      field: 'email_code',
+      type: 'error_api_email_code_invalid',
+    });
+  }
+
   const token = jwt.sign(
     {
       type: 'signup_new',
       username,
       email,
+      email_normalized: normalizedEmail,
     },
     getEnv('JWT_SECRET'),
     {
       algorithm: 'HS256',
+      expiresIn: SIGNUP_JWT_EXPIRES_IN,
+      jwtid: jti,
     }
   );
 
@@ -968,11 +1207,40 @@ async function handleCreateAccount(req) {
     throw new ApiError({ type: 'error_api_tracking_id_required' });
   }
 
+  let publicKeys;
+  try {
+    publicKeys =
+      typeof public_keys === 'string' ? JSON.parse(public_keys) : public_keys;
+  } catch (cause) {
+    throw new ApiError({ type: 'error_api_public_keys_required', cause });
+  }
+  if (
+    !publicKeys ||
+    typeof publicKeys !== 'object' ||
+    !publicKeys.owner ||
+    !publicKeys.active ||
+    !publicKeys.posting ||
+    !publicKeys.memo
+  ) {
+    throw new ApiError({ type: 'error_api_public_keys_required' });
+  }
+
+  let parsedFingerprint = {};
+  if (fingerprint) {
+    try {
+      parsedFingerprint =
+        typeof fingerprint === 'string' ? JSON.parse(fingerprint) : fingerprint;
+    } catch {
+      parsedFingerprint = {};
+    }
+  }
+
   let decoded;
 
   try {
     decoded = jwt.verify(token, getEnv('JWT_SECRET'), {
-      algorithm: 'HS256',
+      algorithms: ['HS256'],
+      maxAge: SIGNUP_JWT_EXPIRES_IN,
     });
   } catch (cause) {
     throw new ApiError({
@@ -987,6 +1255,12 @@ async function handleCreateAccount(req) {
     });
   }
 
+  if (!decoded.jti || !decoded.username || !decoded.email) {
+    throw new ApiError({
+      type: 'error_api_token_invalid',
+    });
+  }
+
   try {
     accountNameIsValid(decoded.username);
   } catch (e) {
@@ -995,43 +1269,13 @@ async function handleCreateAccount(req) {
     });
   }
 
-  const userExists = await services.checkUsername(decoded.username);
-  if (userExists) {
-    throw new ApiError({
-      type: 'error_api_username_used',
-      status: 200,
-    });
-  }
-
-  const usernameExist = await database.countUsers({
-    username: decoded.username,
-  });
-  if (usernameExist) {
-    throw new ApiError({
-      field: 'code',
-      type: 'error_api_user_exist',
-    });
-  }
-  const emailIsInUse = await database.emailIsInUse(decoded.email);
-  if (emailIsInUse) {
-    throw new ApiError({
-      type: 'error_api_email_used',
-      field: 'email',
-    });
-  }
-  const emailRegistered = await services.conveyorCall('is_email_registered', {
-    email: decoded.email,
-  });
-  if (emailRegistered) {
-    throw new ApiError({
-      type: 'error_api_email_used',
-      field: 'email',
-    });
-  }
+  const normalizedEmail = normalizeEmail(decoded.email);
+  const expectedMarker = buildJtiMarker(decoded.jti, decoded.username);
+  const creatingMarker = buildCreatingMarker(decoded.jti, decoded.username);
+  const minGeneratedAt = new Date(Date.now() - EMAIL_CODE_TTL_MS);
 
   const weightThreshold = 1;
   const accountAuths = [];
-  const publicKeys = JSON.parse(public_keys);
   const metadata = '{}';
   const owner = {
     weight_threshold: weightThreshold,
@@ -1049,58 +1293,167 @@ async function handleCreateAccount(req) {
     key_auths: [[publicKeys.posting, 1]],
   };
 
-  // Create user on Steem Chain.
-  try {
-    await services.createAccount({
-      active,
-      memo_key: publicKeys.memo,
-      json_metadata: metadata,
-      owner,
-      posting,
-      new_account_name: decoded.username,
-    });
-  } catch (cause) {
-    // steem-js error messages are so long that the log is clipped causing
-    // errors in scalyr parsing
-    cause.message = cause.message.split('\n').slice(0, 2);
-    throw new ApiError({
-      type: 'error_api_create_account',
-      cause,
-      status: 500,
-    });
-  }
+  const user = await database.withAdvisoryLocks(
+    [`email:${normalizedEmail}`, `user:${decoded.username}`],
+    {
+      timeoutSec: 15,
+      timeoutErrorType: 'error_api_account_creation_progress',
+      timeoutField: 'general',
+      timeoutStatus: 409,
+    },
+    async () => {
+      const emailRecord = await database.findEmailRecordByNormalized(
+        decoded.email
+      );
+      if (
+        !emailRecord ||
+        emailRecord.email_code !== expectedMarker ||
+        !emailRecord.email_code_generated ||
+        emailRecord.email_code_generated <= minGeneratedAt
+      ) {
+        throw new ApiError({
+          type: 'error_api_token_invalid',
+        });
+      }
 
-  // add user info into db
-  let user;
-  try {
-    const createdTime = new Date();
-    user = await database.createUser({
-      email: decoded.email,
-      email_normalized: normalizeEmail(decoded.email),
-      email_is_verified: true,
-      ip: req.ip,
-      account_is_created: true,
-      status: 'created',
-      created_at: createdTime,
-      updated_at: createdTime,
-      fingerprint: fingerprint ? JSON.parse(fingerprint) : {},
-      username: decoded.username,
-      tracking_id,
-    });
-  } catch (cause) {
-    req.log.error({ decoded, cause }, 'create user in database error');
-    throw new ApiError({
-      type: 'error_api_insert_user_into_db_failed',
-      cause,
-      status: 500,
-    });
-  }
+      const claimed = await database.claimEmailSignupJti({
+        id: emailRecord.id,
+        expectedMarker,
+        creatingMarker,
+        minGeneratedAt,
+      });
+      if (!claimed) {
+        throw new ApiError({
+          type: 'error_api_token_invalid',
+        });
+      }
 
-  // try {
-  //     await services.gatekeeperMarkSignupCreated(user);
-  // } catch (error) {
-  //     req.log.warn({ error }, 'gatekeeper.signup_mark_created failed');
-  // }
+      const userExists = await services.checkUsername(decoded.username);
+      if (userExists) {
+        await database
+          .deleteEmailRecordByNormalized(decoded.email)
+          .catch(() => {});
+        throw new ApiError({
+          type: 'error_api_username_used',
+          status: 200,
+        });
+      }
+
+      const usernameExist = await database.countUsers({
+        username: decoded.username,
+      });
+      if (usernameExist) {
+        await database
+          .deleteEmailRecordByNormalized(decoded.email)
+          .catch(() => {});
+        throw new ApiError({
+          field: 'code',
+          type: 'error_api_user_exist',
+        });
+      }
+
+      const emailIsInUse = await database.emailIsInUse(decoded.email);
+      if (emailIsInUse) {
+        await database
+          .deleteEmailRecordByNormalized(decoded.email)
+          .catch(() => {});
+        throw new ApiError({
+          type: 'error_api_email_used',
+          field: 'email',
+        });
+      }
+
+      const emailRegistered = await isConveyorEmailRegistered(
+        decoded.email,
+        normalizedEmail
+      );
+      if (emailRegistered) {
+        await database
+          .deleteEmailRecordByNormalized(decoded.email)
+          .catch(() => {});
+        throw new ApiError({
+          type: 'error_api_email_used',
+          field: 'email',
+        });
+      }
+
+      // Create user on Steem Chain.
+      try {
+        await services.createAccount({
+          active,
+          memo_key: publicKeys.memo,
+          json_metadata: metadata,
+          owner,
+          posting,
+          new_account_name: decoded.username,
+        });
+      } catch (cause) {
+        const existsAfterError = await services
+          .checkUsername(decoded.username)
+          .catch(() => true);
+        if (!existsAfterError) {
+          await database
+            .restoreEmailSignupJti({
+              id: emailRecord.id,
+              creatingMarker,
+              expectedMarker,
+            })
+            .catch(() => {});
+        } else {
+          await database
+            .deleteEmailRecordByNormalized(decoded.email)
+            .catch(() => {});
+        }
+        if (cause && typeof cause.message === 'string') {
+          // steem-js error messages are so long that the log is clipped causing
+          // errors in scalyr parsing
+          cause.message = cause.message.split('\n').slice(0, 2);
+        }
+        throw new ApiError({
+          type: 'error_api_create_account',
+          cause,
+          status: 500,
+        });
+      }
+
+      // add user info into db
+      let createdUser;
+      try {
+        const createdTime = new Date();
+        createdUser = await database.createUser({
+          email: decoded.email,
+          email_normalized: normalizedEmail,
+          email_is_verified: true,
+          ip: req.ip,
+          account_is_created: true,
+          status: 'created',
+          created_at: createdTime,
+          updated_at: createdTime,
+          fingerprint: parsedFingerprint,
+          username: decoded.username,
+          tracking_id,
+        });
+      } catch (cause) {
+        req.log.error({ decoded, cause }, 'create user in database error');
+        await database
+          .deleteEmailRecordByNormalized(decoded.email)
+          .catch(() => {});
+        throw new ApiError({
+          type: 'error_api_insert_user_into_db_failed',
+          cause,
+          status: 500,
+        });
+      }
+
+      try {
+        await database.deleteEmailRecordByNormalized(decoded.email);
+      } catch (err) {
+        req.log.warn(err, 'remove email code record error');
+      }
+
+      return createdUser;
+    }
+  );
 
   const params = {
     account: decoded.username,
@@ -1160,22 +1513,18 @@ async function handleCreateAccount(req) {
     req.log.warn(err, 'addNewsletterSubscriber error');
   }
 
-  try {
-    await database.deleteEmailRecord({ email: user.email });
-  } catch (err) {
-    req.log.warn(err, 'remove email code record error');
-  }
-
   // activity tag analytics, reg source
   try {
     req.log.info({ activityTags }, 'activity_tag_analytics_starting');
-    activityTags.forEach((tag) => {
-      services.recordActivityTracker({
-        trackingId: tracking_id,
-        activityTag: tag,
-        username: decoded.username,
+    if (Array.isArray(activityTags)) {
+      activityTags.forEach((tag) => {
+        services.recordActivityTracker({
+          trackingId: tracking_id,
+          activityTag: tag,
+          username: decoded.username,
+        });
       });
-    });
+    }
     const regSource = source ? source.split('|') : [];
     req.log.info({ regSource }, 'reg_source_record_starting');
     if (regSource.length > 0) {
