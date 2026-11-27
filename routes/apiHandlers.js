@@ -1347,18 +1347,6 @@ async function handleCreateAccount(req) {
         });
       }
 
-      const claimed = await database.claimEmailSignupJti({
-        id: emailRecord.id,
-        expectedMarker,
-        creatingMarker,
-        minGeneratedAt,
-      });
-      if (!claimed) {
-        throw new ApiError({
-          type: 'error_api_token_invalid',
-        });
-      }
-
       const userExists = await services.checkUsername(decoded.username);
       if (userExists) {
         await database
@@ -1405,6 +1393,21 @@ async function handleCreateAccount(req) {
         throw new ApiError({
           type: 'error_api_email_used',
           field: 'email',
+        });
+      }
+
+      // Claim the token only once every lookup has passed. A lookup that throws
+      // (chain or conveyor RPC) must leave the token usable for a retry, and
+      // the locks above keep this check-then-claim sequence serialized.
+      const claimed = await database.claimEmailSignupJti({
+        id: emailRecord.id,
+        expectedMarker,
+        creatingMarker,
+        minGeneratedAt,
+      });
+      if (!claimed) {
+        throw new ApiError({
+          type: 'error_api_token_invalid',
         });
       }
 

@@ -64,7 +64,9 @@ export function isValidCidr(value, expectedVersion = null) {
   }
   const prefix = Number(parts[1]);
   const maxPrefix = ipVersion === 4 ? 32 : 128;
-  return prefix >= 0 && prefix <= maxPrefix;
+  // A /0 would trust every address, and Express refuses to compile it: reject it
+  // here so it is dropped with a warning like any other invalid entry.
+  return prefix >= 1 && prefix <= maxPrefix;
 }
 
 export function parseCidrList(text, expectedVersion = null) {

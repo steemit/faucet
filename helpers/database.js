@@ -18,11 +18,12 @@ const lockConnectionStorage = new AsyncLocalStorage();
 
 /**
  * Every query issued inside a withAdvisoryLocks() callback runs on the
- * connection that holds the locks. The pool is small (5 by default) and each
- * locked section already pins one connection: if the queries inside borrowed
- * their own, five concurrent signups would drain the pool and then queue
- * behind the very connections they are holding (ConnectionAcquireTimeoutError
- * after 60s). Pinning keeps it at one connection per request.
+ * connection that holds the locks. Each locked section pins one pooled
+ * connection, and the pool is finite: if the queries inside borrowed their
+ * own, as many concurrent sections as the pool holds would drain it and then
+ * queue behind the very connections they are holding
+ * (ConnectionAcquireTimeoutError after 60s). Pinning keeps it at one
+ * connection per request.
  *
  * `{ connection }` is the same shape ConnectionManager#getConnection passes to
  * query(): no START TRANSACTION is sent and every statement still autocommits.

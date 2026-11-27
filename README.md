@@ -244,17 +244,23 @@ This will verify your SMTP connection and display the configuration being used.
 
 ### Reverse Proxy Configuration
 
-The app trusts `X-Forwarded-For` for exactly two hops: the direct peer (the
+The app trusts `X-Forwarded-For` for at most two hops: the direct peer (the
 load balancer, which must be on a loopback or private address) and the edge in
-front of it, which must be inside Cloudflare's IP ranges or an
-`EXTRA_TRUSTED_PROXIES` entry. Cloudflare's ranges are fetched from their HTTPS
-endpoint at startup and every 24 hours; when a fetch fails the list currently
-in use (the built-in one at first) is kept.
+front of it, which is trusted only when it is inside Cloudflare's IP ranges or
+an `EXTRA_TRUSTED_PROXIES` entry. The first address that is not trusted is
+taken as the client, so a request that reaches the load balancer from anywhere
+else is attributed to its real peer and forged entries further left are
+ignored. When a third Cloudflare hop sits in front (for example a Cloudflare
+Worker), that Cloudflare address is reported as the client instead. Cloudflare's
+ranges are fetched from their HTTPS endpoint at startup and every 24 hours;
+when a fetch fails the list currently in use (the built-in one at first) is
+kept.
 
 - **`EXTRA_TRUSTED_PROXIES`** (optional)
   - Comma-separated CIDRs or single IP addresses of additional reverse proxies
     in front of the load balancer
-  - Invalid entries are ignored with a warning
+  - Invalid entries are ignored with a warning; `/0` ranges count as invalid
+    because they would trust every address
   - Example: `10.0.0.0/8,2001:db8::/32`
 
 - **`CLOUDFLARE_IP_REFRESH`** (optional, default: `ON`)

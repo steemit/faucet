@@ -31,8 +31,35 @@ describe('trustProxy helper (VULN-0005)', () => {
     expect(isValidCidr('173.245.48.0/20', 4)).toBe(true);
     expect(isValidCidr('2400:cb00::/32', 6)).toBe(true);
     expect(isValidCidr('173.245.48.0/33', 4)).toBe(false);
+    expect(isValidCidr('0.0.0.0/0', 4)).toBe(false);
+    expect(isValidCidr('::/0', 6)).toBe(false);
     expect(isValidCidr('not-a-cidr', 4)).toBe(false);
     expect(parseCidrList('173.245.48.0/20\ninvalid', 4)).toBeNull();
+  });
+
+  it('drops a /0 extra proxy with a warning instead of failing to compile', () => {
+    const controller = createTrustProxyController({
+      extraProxiesRaw: '0.0.0.0/0, ::/0, 10.1.2.3',
+      loggerInstance: silentLogger,
+    });
+
+    expect(silentLogger.warn).toHaveBeenCalledTimes(2);
+    // the valid entry is still honoured
+    expect(
+      resolveClientIp(
+        controller.trustProxyFn,
+        '::ffff:10.123.1.10',
+        '203.0.113.9, 10.1.2.3'
+      )
+    ).toBe('203.0.113.9');
+    // and a public hop 1 is the client, not a trusted proxy
+    expect(
+      resolveClientIp(
+        controller.trustProxyFn,
+        '::ffff:10.123.1.10',
+        '9.9.9.9, 198.51.100.77'
+      )
+    ).toBe('198.51.100.77');
   });
 
   it('extracts real client IP via Cloudflare -> ALB and ignores spoofed left XFF entries', () => {

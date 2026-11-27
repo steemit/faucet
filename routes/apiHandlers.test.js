@@ -512,7 +512,7 @@ describe('signup security hardening in apiHandlers (VULN-0006/0007/0008/0059/006
       expect(store.emailRecords).toHaveLength(0);
     });
 
-    it('serializes code checks and finalization on the email lock, and caps every lock wait at 5s', async () => {
+    it('takes the email lock in every code endpoint, with a 5s cap on each lock wait', async () => {
       await apiHandlers.handleRequestEmailCode(
         makeReq({ email: 'henry@gmail.com' })
       );
@@ -607,6 +607,81 @@ describe('signup security hardening in apiHandlers (VULN-0006/0007/0008/0059/006
         )
       ).resolves.toEqual({ success: true });
       expect(store.chainAccounts.has('erinsteem')).toBe(true);
+    });
+
+    it('keeps the token retryable when a lookup before the chain call fails', async () => {
+      await apiHandlers.handleRequestEmailCode(
+        makeReq({ email: 'ivan@gmail.com' })
+      );
+      const sentCode = store.emailRecords[0].email_code;
+      const { token } = await apiHandlers.finalizeSignup(
+        makeReq({
+          captcha: 'ok-turnstile',
+          email: 'ivan@gmail.com',
+          emailCode: sentCode,
+          username: 'ivansteem',
+        })
+      );
+      const create = () =>
+        apiHandlers.handleCreateAccount(
+          makeReq({
+            token,
+            public_keys: validPublicKeys,
+            tracking_id: 'track-ivan',
+          })
+        );
+
+      // A failed lookup must not leave the code claimed.
+      mockServices.checkUsername.mockRejectedValueOnce(new Error('RPC hiccup'));
+      await expect(create()).rejects.toThrow('RPC hiccup');
+      expect(store.emailRecords[0].email_code).toMatch(/^JTI:/);
+
+      mockServices.conveyorCall.mockRejectedValueOnce(new Error('RPC hiccup'));
+      await expect(create()).rejects.toThrow('RPC hiccup');
+      expect(store.emailRecords[0].email_code).toMatch(/^JTI:/);
+
+      await expect(create()).resolves.toEqual({ success: true });
+      expect(store.chainAccounts.has('ivansteem')).toBe(true);
+      expect(store.users).toHaveLength(1);
+    });
+
+    it('rejects a signup_new JWT older than 30 minutes even when its jti is still bound', async () => {
+      const agedToken = jwt.sign(
+        {
+          type: 'signup_new',
+          username: 'ageduser',
+          email: 'aged@gmail.com',
+          email_normalized: 'aged@gmail.com',
+          jti: 'still-bound',
+          iat: Math.floor(Date.now() / 1000) - 31 * 60,
+        },
+        process.env.JWT_SECRET,
+        {
+          algorithm: 'HS256',
+          expiresIn: '2h',
+        }
+      );
+      // The row would let the request through if the token's age were not checked.
+      store.emailRecords.push(
+        makeEmailRow({
+          email: 'aged@gmail.com',
+          email_normalized: 'aged@gmail.com',
+          email_code: 'JTI:still-bound:ageduser',
+          email_code_attempts: 0,
+          email_code_generated: new Date(),
+        })
+      );
+
+      await expect(
+        apiHandlers.handleCreateAccount(
+          makeReq({
+            token: agedToken,
+            public_keys: validPublicKeys,
+            tracking_id: 'track-aged',
+          })
+        )
+      ).rejects.toMatchObject({ type: 'error_api_token_invalid' });
+      expect(mockServices.checkUsername).not.toHaveBeenCalled();
     });
   });
 });
