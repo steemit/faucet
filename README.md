@@ -372,7 +372,7 @@ The project includes GitHub Actions workflows for automated testing and Docker i
 
 #### PR Testing
 
-When a pull request is created or updated, the `pnpm test` command will automatically run to ensure code quality.
+When a pull request is created or updated, the `pnpm test` command will automatically run to ensure code quality. The `integration-mysql` job of the same workflow runs the [MySQL integration tests](#mysql-integration-tests) against a `mysql:8.0` service container.
 
 #### Docker Build and Push
 
@@ -432,6 +432,19 @@ pnpm run jest
 - Fix linting issues automatically:
 ```bash
 pnpm run lint-fix
+```
+
+### MySQL Integration Tests
+
+Suites named `*.integration.test.js` need a real MySQL and are skipped otherwise. They drop and recreate every table in the database that `TEST_DATABASE_URL` points at, which is why its name has to contain `test`.
+
+```bash
+docker run -d --rm --name faucet-test-mysql \
+  -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=faucet_test \
+  -p 127.0.0.1:3306:3306 mysql:8.0
+
+# once `docker exec faucet-test-mysql mysqladmin ping -h 127.0.0.1 -ptest` succeeds:
+TEST_DATABASE_URL=mysql://root:test@127.0.0.1:3306/faucet_test pnpm run test:integration
 ```
 
 ## Debugging

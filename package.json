@@ -11,6 +11,7 @@
     "lint": "NODE_OPTIONS=--experimental-require-module eslint",
     "lint-fix": "eslint --fix",
     "test": "pnpm run lint && pnpm run jest",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testPathPattern integration",
     "test:smtp": "node test-smtp-config.js",
     "build": "webpack --config webpack/webpack.prod.config.js",
     "build-dev": "webpack --progress --config webpack/webpack.config.js",
