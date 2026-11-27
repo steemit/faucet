@@ -52,6 +52,7 @@
   "error_api_token_invalid": "Token invalide",
   "error_api_token_invalid_type": "Type du token invalide",
   "error_api_token_required": "Le token est obligatoire",
+  "error_api_tracking_id_required": "L'identifiant de suivi est obligatoire",
   "error_api_unknown_user": "Utilisateur inconnu",
   "error_api_user_exists_not": "L'utilisateur n'existe pas",
   "error_api_username_required": "L'utilisateur est obligatoire",

@@ -10,6 +10,7 @@ import logger, { getLogChild } from './helpers/logger.js';
 import getClientConfig from './helpers/getClientConfig.js';
 import { getEnv } from './helpers/common.js';
 import { getDirnameByUrl, outputReq, outputRes } from './helpers/common.js';
+import createTrustProxyController from './helpers/trustProxy.js';
 import genRoutes from './routes/index.js';
 import apiRoutes from './routes/api.js';
 
@@ -46,12 +47,15 @@ async function cleanupDb() {
     logger.info('removed %d old users', numUsers);
   }
 }
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   logger.debug('running db cleanup');
   cleanupDb().catch((error) => {
     logger.error(error, 'error cleaning database');
   });
 }, cleanIntervalTime);
+if (typeof cleanupTimer.unref === 'function') {
+  cleanupTimer.unref();
+}
 
 // load client config
 const clientConfig = getClientConfig();
@@ -59,17 +63,27 @@ const clientConfigObject = JSON.parse(clientConfig);
 
 // init server framework
 const app = express();
+const trustProxyController = createTrustProxyController();
+app.set('trust proxy', trustProxyController.trustProxyFn);
+if (
+  getEnv('NODE_ENV') !== 'test' &&
+  process.env.CLOUDFLARE_IP_REFRESH !== 'OFF'
+) {
+  trustProxyController.startAutoRefresh();
+}
 
 // when is in dev environment
 // start webpackMiddleware
-if (getEnv('NODE_ENV') !== 'production') {
+if (getEnv('NODE_ENV') !== 'production' && getEnv('NODE_ENV') !== 'test') {
   logger.info('Running in development mode');
   // Use dynamic import to avoid loading webpack in production
-  import('./webpack/webpack.js').then((webpackModule) => {
-    webpackModule.default(app);
-  }).catch((error) => {
-    logger.error(error, 'Failed to load webpack middleware');
-  });
+  import('./webpack/webpack.js')
+    .then((webpackModule) => {
+      webpackModule.default(app);
+    })
+    .catch((error) => {
+      logger.error(error, 'Failed to load webpack middleware');
+    });
 }
 
 // logging middleware
@@ -79,7 +93,7 @@ app.use((req, res, next) => {
     req.headers['x-amzn-trace-id'] ||
     req.headers['x-request-id'] ||
     `dev-${Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}`;
-  const reqIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const reqIp = req.ip || req.socket?.remoteAddress;
   req.log = getLogChild({ req_id: reqId, ip: reqIp });
   req.log.debug(outputReq(req), '<-- request');
   res.set('X-Request-Id', reqId);
@@ -102,17 +116,23 @@ hbs.registerHelper('endsWith', (str, suffix) => {
   return str.endsWith(suffix);
 });
 hbs.registerHelper('clientConfig', () => clientConfig);
-hbs.registerHelper('baseCss', () => new hbs.SafeString(
-    getEnv('NODE_ENV') !== 'production'
-      ? ''
-      : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'
-  )
+hbs.registerHelper(
+  'baseCss',
+  () =>
+    new hbs.SafeString(
+      getEnv('NODE_ENV') !== 'production'
+        ? ''
+        : '<link rel="stylesheet" href="/css/base.css" type="text/css" media="all"/>'
+    )
 );
-hbs.registerHelper('captchaJs', () => new hbs.SafeString(
-    getEnv('TURNSTILE_SWITCH') !== 'OFF'
-      ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
-      : ''
-  )
+hbs.registerHelper(
+  'captchaJs',
+  () =>
+    new hbs.SafeString(
+      getEnv('TURNSTILE_SWITCH') !== 'OFF'
+        ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
+        : ''
+    )
 );
 hbs.registerHelper('gaCode', () => {
   let gaCode = '';
@@ -132,7 +152,6 @@ app.set('views', path.join(baseDir, 'views'));
 app.set('view engine', 'hbs');
 
 // other settings
-app.enable('trust proxy');
 app.disable('x-powered-by');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

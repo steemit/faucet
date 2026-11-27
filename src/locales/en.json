@@ -54,6 +54,7 @@
   "error_api_token_invalid": "Invalid token",
   "error_api_token_invalid_type": "Invalid token type",
   "error_api_token_required": "Token required",
+  "error_api_tracking_id_required": "Tracking ID required",
   "error_api_unknown_user": "Unknown user",
   "error_api_user_exists_not": "User doesn't exist",
   "error_api_username_required": "Username required",

@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+import { AsyncLocalStorage } from 'async_hooks';
 import moment from 'moment';
 import db from '../db/models/index.js';
 import ApiError from './errortypes.js';
@@ -6,6 +8,35 @@ import cache from './cache.js';
 
 const { Sequelize, sequelize } = db;
 const { Op } = Sequelize;
+
+/**
+ * Carries the connection that holds the advisory locks through the async call
+ * tree of a withAdvisoryLocks() callback, so it does not have to be threaded
+ * through every query helper.
+ */
+const lockConnectionStorage = new AsyncLocalStorage();
+
+/**
+ * Every query issued inside a withAdvisoryLocks() callback runs on the
+ * connection that holds the locks. Each locked section pins one pooled
+ * connection, and the pool is finite: if the queries inside borrowed their
+ * own, as many concurrent sections as the pool holds would drain it and then
+ * queue behind the very connections they are holding
+ * (ConnectionAcquireTimeoutError after 60s). Pinning keeps it at one
+ * connection per request.
+ *
+ * `{ connection }` is the same shape ConnectionManager#getConnection passes to
+ * query(): no START TRANSACTION is sent and every statement still autocommits.
+ */
+const runQuery = sequelize.query.bind(sequelize);
+sequelize.query = (sql, options) => {
+  const connection = options?.transaction
+    ? undefined
+    : lockConnectionStorage.getStore()?.connection;
+  return connection
+    ? runQuery(sql, { ...options, transaction: { connection } })
+    : runQuery(sql, options);
+};
 
 /**
  * Throws if user or ip exceeds number of allowed actions within time period.
@@ -92,6 +123,239 @@ export const deletePhoneRecord = async (where) =>
 export const deleteEmailRecord = async (where) =>
   db.emailcode.destroy({ where });
 
+export function buildAdvisoryLockKey(rawKey) {
+  const digest = crypto
+    .createHash('sha256')
+    .update(String(rawKey))
+    .digest('hex')
+    .slice(0, 32);
+  return `faucet:${digest}`;
+}
+
+/**
+ * Acquire non-transactional MySQL session advisory locks (GET_LOCK) in sorted
+ * order and release them in reverse order in finally. Opens NO InnoDB transaction
+ * and locks NO table or row.
+ *
+ * The connection holding the locks is also the one `fn` queries with, so `fn`
+ * must await everything it does. Nesting is rejected: a nested section would
+ * need a second pooled connection while the first one is still held.
+ */
+export async function withAdvisoryLocks(lockKeys, optionsOrFn, maybeFn) {
+  const fn = typeof optionsOrFn === 'function' ? optionsOrFn : maybeFn;
+  const options =
+    typeof optionsOrFn === 'function' ? {} : optionsOrFn || {};
+  const {
+    timeoutSec = 10,
+    timeoutErrorType = 'error_api_wait_one_minute',
+    timeoutField = 'general',
+    timeoutStatus = 429,
+  } = options;
+
+  const sortedLockNames = Array.from(
+    new Set(lockKeys.map((key) => buildAdvisoryLockKey(key)))
+  ).sort();
+
+  if (lockConnectionStorage.getStore()?.connection) {
+    throw new Error('withAdvisoryLocks() must not be nested');
+  }
+
+  const connection = await sequelize.connectionManager.getConnection({
+    type: 'WRITE',
+  });
+  const lockState = { connection };
+  const acquiredLocks = [];
+  let connectionBroken = false;
+
+  try {
+    for (const lockName of sortedLockNames) {
+      const rows = await sequelize.query(
+        'SELECT GET_LOCK(:lockName, :timeoutSec) AS acquired',
+        {
+          replacements: { lockName, timeoutSec },
+          type: Sequelize.QueryTypes.SELECT,
+          transaction: { connection },
+        }
+      );
+      if (Number(rows?.[0]?.acquired) !== 1) {
+        throw new ApiError({
+          type: timeoutErrorType,
+          field: timeoutField,
+          status: timeoutStatus,
+        });
+      }
+      acquiredLocks.push(lockName);
+    }
+    // fn() and everything it awaits inherit the context, so its queries reuse
+    // `connection` instead of borrowing from the pool.
+    return await lockConnectionStorage.run(lockState, fn);
+  } finally {
+    // Whatever fn() left running in the background must not touch the
+    // connection once it is back in the pool.
+    lockState.connection = null;
+    for (const lockName of acquiredLocks.reverse()) {
+      try {
+        await sequelize.query(
+          'SELECT RELEASE_LOCK(:lockName) AS released',
+          {
+            replacements: { lockName },
+            type: Sequelize.QueryTypes.SELECT,
+            transaction: { connection },
+          }
+        );
+      } catch {
+        connectionBroken = true;
+      }
+    }
+    if (connectionBroken) {
+      await sequelize.connectionManager
+        .destroyConnection(connection)
+        .catch(() => {});
+    } else {
+      sequelize.connectionManager.releaseConnection(connection);
+    }
+  }
+}
+
+export async function findEmailRecordsByNormalized(email) {
+  const normalized = normalizeEmail(email);
+  return db.emailcode.findAll({
+    where: {
+      [Op.or]: [{ email_normalized: normalized }, { email }],
+    },
+    order: [['id', 'DESC']],
+  });
+}
+
+export async function findEmailRecordByNormalized(email) {
+  const normalized = normalizeEmail(email);
+  return db.emailcode.findOne({
+    where: {
+      [Op.or]: [{ email_normalized: normalized }, { email }],
+    },
+    order: [['id', 'DESC']],
+  });
+}
+
+export async function deleteEmailRecordsByIds(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return 0;
+  }
+  return db.emailcode.destroy({
+    where: {
+      id: { [Op.in]: ids },
+    },
+  });
+}
+
+export async function deleteEmailRecordByNormalized(email) {
+  const normalized = normalizeEmail(email);
+  return db.emailcode.destroy({
+    where: {
+      [Op.or]: [{ email_normalized: normalized }, { email }],
+    },
+  });
+}
+
+export async function clearExpiredEmailCode(id) {
+  const [affected] = await db.emailcode.update(
+    {
+      email_code: null,
+      email_code_attempts: 0,
+    },
+    { where: { id } }
+  );
+  return affected;
+}
+
+export async function incrementEmailCodeAttempts(id, maxAttempts = 10) {
+  const [affected] = await db.emailcode.update(
+    {
+      email_code_attempts: Sequelize.literal(
+        'COALESCE(email_code_attempts, 0) + 1'
+      ),
+    },
+    {
+      where: {
+        id,
+        [Op.or]: [
+          { email_code_attempts: null },
+          { email_code_attempts: { [Op.lt]: maxAttempts } },
+        ],
+      },
+    }
+  );
+  return affected === 1;
+}
+
+export async function consumeEmailCodeForSignup({
+  id,
+  expectedCode,
+  jtiMarker,
+  minGeneratedAt,
+  maxAttempts = 10,
+  now = new Date(),
+}) {
+  const [affected] = await db.emailcode.update(
+    {
+      email_code: jtiMarker,
+      email_code_generated: now,
+    },
+    {
+      where: {
+        id,
+        email_code: expectedCode,
+        email_code_generated: { [Op.gt]: minGeneratedAt },
+        [Op.or]: [
+          { email_code_attempts: null },
+          { email_code_attempts: { [Op.lt]: maxAttempts } },
+        ],
+      },
+    }
+  );
+  return affected === 1;
+}
+
+export async function claimEmailSignupJti({
+  id,
+  expectedMarker,
+  creatingMarker,
+  minGeneratedAt,
+}) {
+  const [affected] = await db.emailcode.update(
+    {
+      email_code: creatingMarker,
+    },
+    {
+      where: {
+        id,
+        email_code: expectedMarker,
+        email_code_generated: { [Op.gt]: minGeneratedAt },
+      },
+    }
+  );
+  return affected === 1;
+}
+
+export async function restoreEmailSignupJti({
+  id,
+  creatingMarker,
+  expectedMarker,
+}) {
+  const [affected] = await db.emailcode.update(
+    {
+      email_code: expectedMarker,
+    },
+    {
+      where: {
+        id,
+        email_code: creatingMarker,
+      },
+    }
+  );
+  return affected === 1;
+}
+
 /**
  * remove user id references
  * to remove username reserve mechanism
@@ -106,7 +370,7 @@ export async function actionLimitNew(ip, action = 'default', ipLimit = 32) {
     }),
   ];
   const [ipActions] = await Promise.all(promises);
-  if (ipActions > ipLimit) {
+  if (ipActions >= ipLimit) {
     throw new ApiError({ type: 'error_api_actionlimit' });
   }
 }
@@ -247,6 +511,17 @@ export default {
   query,
   createEmailRecord,
   findEmailRecord,
+  findEmailRecordsByNormalized,
+  findEmailRecordByNormalized,
+  deleteEmailRecordsByIds,
+  deleteEmailRecordByNormalized,
+  clearExpiredEmailCode,
+  incrementEmailCodeAttempts,
+  consumeEmailCodeForSignup,
+  claimEmailSignupJti,
+  restoreEmailSignupJti,
+  buildAdvisoryLockKey,
+  withAdvisoryLocks,
   actionLimitNew,
   createPhoneRecord,
   findPhoneRecord,

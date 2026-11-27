@@ -85,6 +85,10 @@ cp .env.example .env
   - Number of days to keep database records before cleanup
   - Used for automatic cleanup of old actions and users
 
+- **Connection pool** (set in `db/config/config.json`, not by an environment variable)
+  - Each application process holds at most `pool.max` (`20`) connections; the block used is the one `DATABASE_NAME` selects
+  - Every instance adds up to that many, so leave room for all of them within the database's `max_connections`
+
 ### Mail Configuration
 
 Emails are sent through AWS SES (API v2) by default, using the AWS SDK default
@@ -238,6 +242,31 @@ This will verify your SMTP connection and display the configuration being used.
   - Default redirect URI after account creation
   - Example: `https://steemit.com/login.html#account={{username}}`
 
+### Reverse Proxy Configuration
+
+The app trusts `X-Forwarded-For` for at most two hops: the direct peer (the
+load balancer, which must be on a loopback or private address) and the edge in
+front of it, which is trusted only when it is inside Cloudflare's IP ranges or
+an `EXTRA_TRUSTED_PROXIES` entry. The first address that is not trusted is
+taken as the client, so a request that reaches the load balancer from anywhere
+else is attributed to its real peer and forged entries further left are
+ignored. When a third Cloudflare hop sits in front (for example a Cloudflare
+Worker), that Cloudflare address is reported as the client instead. Cloudflare's
+ranges are fetched from their HTTPS endpoint at startup and every 24 hours;
+when a fetch fails the list currently in use (the built-in one at first) is
+kept.
+
+- **`EXTRA_TRUSTED_PROXIES`** (optional)
+  - Comma-separated CIDRs or single IP addresses of additional reverse proxies
+    in front of the load balancer
+  - Invalid entries are ignored with a warning; `/0` ranges count as invalid
+    because they would trust every address
+  - Example: `10.0.0.0/8,2001:db8::/32`
+
+- **`CLOUDFLARE_IP_REFRESH`** (optional, default: `ON`)
+  - Set to `OFF` to disable the periodic Cloudflare IP range refresh and rely
+    on the built-in list only
+
 ### Client-Side Configuration
 
 These variables are exposed to the client-side React application:
@@ -353,7 +382,7 @@ The project includes GitHub Actions workflows for automated testing and Docker i
 
 #### PR Testing
 
-When a pull request is created or updated, the `pnpm test` command will automatically run to ensure code quality.
+When a pull request is created or updated, the `pnpm test` command will automatically run to ensure code quality. The `integration-mysql` job of the same workflow runs the [MySQL integration tests](#mysql-integration-tests) against a `mysql:8.0` service container.
 
 #### Docker Build and Push
 
@@ -413,6 +442,19 @@ pnpm run jest
 - Fix linting issues automatically:
 ```bash
 pnpm run lint-fix
+```
+
+### MySQL Integration Tests
+
+Suites named `*.integration.test.js` need a real MySQL and are skipped otherwise. They drop and recreate every table in the database that `TEST_DATABASE_URL` points at, which is why its name has to contain `test`.
+
+```bash
+docker run -d --rm --name faucet-test-mysql \
+  -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=faucet_test \
+  -p 127.0.0.1:3306:3306 mysql:8.0
+
+# once `docker exec faucet-test-mysql mysqladmin ping -h 127.0.0.1 -ptest` succeeds:
+TEST_DATABASE_URL=mysql://root:test@127.0.0.1:3306/faucet_test pnpm run test:integration
 ```
 
 ## Debugging

@@ -49,6 +49,7 @@
   "error_api_token_invalid": "无效的token",
   "error_api_token_invalid_type": "无效的token类型",
   "error_api_token_required": "Token是必须的",
+  "error_api_tracking_id_required": "Tracking ID是必须的",
   "error_api_unknown_user": "未知用户",
   "error_api_user_exists_not": "用户不存在",
   "error_api_username_required": "用户名是必须的",
