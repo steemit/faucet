@@ -142,6 +142,69 @@ describe('database advisory locks and rate limits', () => {
     expect(mockConnectionManager.releaseConnection).not.toHaveBeenCalled();
   });
 
+  it('runs queries issued inside the callback on the connection holding the locks', async () => {
+    const calls = [];
+    mockQuery.mockImplementation(async (sql, opts) => {
+      calls.push({ sql, opts });
+      return sql.includes('GET_LOCK') ? [{ acquired: 1 }] : [{ released: 1 }];
+    });
+
+    await database.withAdvisoryLocks(['lock-a'], async () => {
+      await database.query('SELECT :now AS now', {
+        replacements: { now: 1 },
+        type: 'SELECT',
+      });
+      await database.query('SELECT 2', {
+        transaction: { connection: { id: 'explicit' } },
+      });
+    });
+
+    // calls[0] is GET_LOCK, the last one is RELEASE_LOCK
+    expect(calls).toHaveLength(4);
+    expect(calls[1].opts.transaction).toEqual({ connection: mockConnection });
+    expect(calls[1].opts.replacements).toEqual({ now: 1 });
+    // a caller-supplied transaction is left alone
+    expect(calls[2].opts.transaction).toEqual({
+      connection: { id: 'explicit' },
+    });
+    expect(mockConnectionManager.getConnection).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops pinning once the callback returns, including work it left running', async () => {
+    const seen = [];
+    mockQuery.mockImplementation(async (sql, opts) => {
+      if (!sql.includes('LOCK')) {
+        seen.push(opts || {});
+      }
+      return sql.includes('GET_LOCK') ? [{ acquired: 1 }] : [{ released: 1 }];
+    });
+
+    let detached;
+    await database.withAdvisoryLocks(['lock-a'], async () => {
+      await database.query('SELECT 1');
+      detached = new Promise((resolve) =>
+        setTimeout(() => resolve(database.query('SELECT 2')), 5)
+      );
+    });
+    expect(seen[0].transaction).toEqual({ connection: mockConnection });
+
+    await detached;
+    expect(seen[1].transaction).toBeUndefined();
+  });
+
+  it('rejects nested withAdvisoryLocks instead of borrowing a second connection', async () => {
+    await expect(
+      database.withAdvisoryLocks(['lock-a'], async () =>
+        database.withAdvisoryLocks(['lock-b'], async () => 'never')
+      )
+    ).rejects.toThrow('withAdvisoryLocks() must not be nested');
+
+    expect(mockConnectionManager.getConnection).toHaveBeenCalledTimes(1);
+    expect(mockConnectionManager.releaseConnection).toHaveBeenCalledWith(
+      mockConnection
+    );
+  });
+
   it('blocks actionLimitNew when ipActions reaches ipLimit (>=)', async () => {
     mockActionsCount.mockResolvedValueOnce(32);
     await expect(

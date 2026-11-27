@@ -238,6 +238,25 @@ This will verify your SMTP connection and display the configuration being used.
   - Default redirect URI after account creation
   - Example: `https://steemit.com/login.html#account={{username}}`
 
+### Reverse Proxy Configuration
+
+The app trusts `X-Forwarded-For` for exactly two hops: the direct peer (the
+load balancer, which must be on a loopback or private address) and the edge in
+front of it, which must be inside Cloudflare's IP ranges or an
+`EXTRA_TRUSTED_PROXIES` entry. Cloudflare's ranges are fetched from their HTTPS
+endpoint at startup and every 24 hours; when a fetch fails the list currently
+in use (the built-in one at first) is kept.
+
+- **`EXTRA_TRUSTED_PROXIES`** (optional)
+  - Comma-separated CIDRs or single IP addresses of additional reverse proxies
+    in front of the load balancer
+  - Invalid entries are ignored with a warning
+  - Example: `10.0.0.0/8,2001:db8::/32`
+
+- **`CLOUDFLARE_IP_REFRESH`** (optional, default: `ON`)
+  - Set to `OFF` to disable the periodic Cloudflare IP range refresh and rely
+    on the built-in list only
+
 ### Client-Side Configuration
 
 These variables are exposed to the client-side React application:

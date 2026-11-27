@@ -174,7 +174,7 @@ async function handleRequestEmailCode(req) {
   return database.withAdvisoryLocks(
     [`email:${normalizedEmail}`],
     {
-      timeoutSec: 10,
+      timeoutSec: 5,
       timeoutErrorType: 'error_api_wait_one_minute',
       timeoutField: 'email',
       timeoutStatus: 429,
@@ -798,66 +798,82 @@ async function handleConfirmEmailCode(req) {
 
   await database.actionLimitNew(req.ip, 'check_email_code', 60);
 
-  const record = await database.findEmailRecordByNormalized(currentEmail);
+  const normalizedEmail = normalizeEmail(currentEmail);
 
-  if (!record) {
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_unknown_email',
-    });
-  }
+  // Serialized per email: concurrent guesses must not all be checked against
+  // the same snapshot of the attempt counter.
+  return database.withAdvisoryLocks(
+    [`email:${normalizedEmail}`],
+    {
+      timeoutSec: 5,
+      timeoutErrorType: 'error_api_wait_one_minute',
+      timeoutField: 'email_code',
+      timeoutStatus: 429,
+    },
+    async () => {
+      const record = await database.findEmailRecordByNormalized(currentEmail);
 
-  if ((record.email_code_attempts || 0) >= MAX_EMAIL_CODE_ATTEMPTS) {
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_phone_too_many',
-    });
-  }
+      if (!record) {
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_unknown_email',
+        });
+      }
 
-  // code expires after 30 mins from generated time
-  if (
-    !record.email_code ||
-    !isSixDigitCode(record.email_code) ||
-    !record.email_code_generated ||
-    record.email_code_generated.getTime() <= minusHalfHour
-  ) {
-    if (
-      record.email_code_generated &&
-      record.email_code_generated.getTime() <= minusHalfHour
-    ) {
-      await database.clearExpiredEmailCode(record.id);
+      if ((record.email_code_attempts || 0) >= MAX_EMAIL_CODE_ATTEMPTS) {
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_phone_too_many',
+        });
+      }
+
+      // code expires after 30 mins from generated time
+      if (
+        !record.email_code ||
+        !isSixDigitCode(record.email_code) ||
+        !record.email_code_generated ||
+        record.email_code_generated.getTime() <= minusHalfHour
+      ) {
+        if (
+          record.email_code_generated &&
+          record.email_code_generated.getTime() <= minusHalfHour
+        ) {
+          await database.clearExpiredEmailCode(record.id);
+        }
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_email_code_invalid',
+        });
+      }
+
+      if (!codesMatch(record.email_code, code)) {
+        // Only a wrong guess spends the attempt budget. The frontend re-checks
+        // a correct code on every submit, and finalizeSignup turns records that
+        // reached the cap away.
+        const incremented = await database.incrementEmailCodeAttempts(
+          record.id,
+          MAX_EMAIL_CODE_ATTEMPTS
+        );
+        await database.logAction({
+          action: 'check_email_code',
+          ip: req.ip,
+          metadata: { email_normalized: normalizedEmail },
+        });
+        if (!incremented) {
+          throw new ApiError({
+            field: 'email_code',
+            type: 'error_api_phone_too_many',
+          });
+        }
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_email_code_invalid',
+        });
+      }
+
+      return { success: true };
     }
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_email_code_invalid',
-    });
-  }
-
-  // Atomically increment attempts before verifying
-  const incremented = await database.incrementEmailCodeAttempts(
-    record.id,
-    MAX_EMAIL_CODE_ATTEMPTS
   );
-  if (!incremented) {
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_phone_too_many',
-    });
-  }
-
-  if (!codesMatch(record.email_code, code)) {
-    await database.logAction({
-      action: 'check_email_code',
-      ip: req.ip,
-      metadata: { email_normalized: normalizeEmail(currentEmail) },
-    });
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_email_code_invalid',
-    });
-  }
-
-  return { success: true };
 }
 
 async function handleConfirmSms(req) {
@@ -1079,83 +1095,98 @@ async function finalizeSignup(req) {
     });
   }
 
-  const emailRecord = await database.findEmailRecordByNormalized(email);
+  // Serialized per email (see handleConfirmEmailCode): the attempt counter is
+  // read, compared and consumed without another request interleaving.
+  const jti = await database.withAdvisoryLocks(
+    [`email:${normalizedEmail}`],
+    {
+      timeoutSec: 5,
+      timeoutErrorType: 'error_api_account_creation_progress',
+      timeoutField: 'general',
+      timeoutStatus: 409,
+    },
+    async () => {
+      const emailRecord = await database.findEmailRecordByNormalized(email);
 
-  if (!emailRecord) {
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_unknown_email',
-    });
-  }
+      if (!emailRecord) {
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_unknown_email',
+        });
+      }
 
-  if ((emailRecord.email_code_attempts || 0) >= MAX_EMAIL_CODE_ATTEMPTS) {
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_phone_too_many',
-    });
-  }
+      if ((emailRecord.email_code_attempts || 0) >= MAX_EMAIL_CODE_ATTEMPTS) {
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_phone_too_many',
+        });
+      }
 
-  const now = new Date();
-  const minGeneratedAt = new Date(now.getTime() - EMAIL_CODE_TTL_MS);
+      const now = new Date();
+      const minGeneratedAt = new Date(now.getTime() - EMAIL_CODE_TTL_MS);
 
-  if (
-    !emailRecord.email_code ||
-    !isSixDigitCode(emailRecord.email_code) ||
-    !emailRecord.email_code_generated ||
-    emailRecord.email_code_generated <= minGeneratedAt
-  ) {
-    if (
-      emailRecord.email_code_generated &&
-      emailRecord.email_code_generated <= minGeneratedAt
-    ) {
-      await database.clearExpiredEmailCode(emailRecord.id);
-    }
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_email_code_invalid',
-    });
-  }
+      if (
+        !emailRecord.email_code ||
+        !isSixDigitCode(emailRecord.email_code) ||
+        !emailRecord.email_code_generated ||
+        emailRecord.email_code_generated <= minGeneratedAt
+      ) {
+        if (
+          emailRecord.email_code_generated &&
+          emailRecord.email_code_generated <= minGeneratedAt
+        ) {
+          await database.clearExpiredEmailCode(emailRecord.id);
+        }
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_email_code_invalid',
+        });
+      }
 
-  if (!codesMatch(emailRecord.email_code, emailCode)) {
-    const incremented = await database.incrementEmailCodeAttempts(
-      emailRecord.id,
-      MAX_EMAIL_CODE_ATTEMPTS
-    );
-    await database.logAction({
-      action: 'create_user_attempt',
-      ip,
-      metadata: { email_normalized: normalizedEmail },
-    });
-    if (!incremented) {
-      throw new ApiError({
-        field: 'email_code',
-        type: 'error_api_phone_too_many',
+      if (!codesMatch(emailRecord.email_code, emailCode)) {
+        const incremented = await database.incrementEmailCodeAttempts(
+          emailRecord.id,
+          MAX_EMAIL_CODE_ATTEMPTS
+        );
+        await database.logAction({
+          action: 'create_user_attempt',
+          ip,
+          metadata: { email_normalized: normalizedEmail },
+        });
+        if (!incremented) {
+          throw new ApiError({
+            field: 'email_code',
+            type: 'error_api_phone_too_many',
+          });
+        }
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_email_code_invalid',
+        });
+      }
+
+      // Atomically consume the 6-digit verification code and bind one-time JTI + username
+      const jti = crypto.randomUUID();
+      const jtiMarker = buildJtiMarker(jti, username);
+      const consumed = await database.consumeEmailCodeForSignup({
+        id: emailRecord.id,
+        expectedCode: emailCode,
+        jtiMarker,
+        minGeneratedAt,
+        maxAttempts: MAX_EMAIL_CODE_ATTEMPTS,
+        now,
       });
+
+      if (!consumed) {
+        throw new ApiError({
+          field: 'email_code',
+          type: 'error_api_email_code_invalid',
+        });
+      }
+
+      return jti;
     }
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_email_code_invalid',
-    });
-  }
-
-  // Atomically consume the 6-digit verification code and bind one-time JTI + username
-  const jti = crypto.randomUUID();
-  const jtiMarker = buildJtiMarker(jti, username);
-  const consumed = await database.consumeEmailCodeForSignup({
-    id: emailRecord.id,
-    expectedCode: emailCode,
-    jtiMarker,
-    minGeneratedAt,
-    maxAttempts: MAX_EMAIL_CODE_ATTEMPTS,
-    now,
-  });
-
-  if (!consumed) {
-    throw new ApiError({
-      field: 'email_code',
-      type: 'error_api_email_code_invalid',
-    });
-  }
+  );
 
   const token = jwt.sign(
     {
@@ -1296,7 +1327,7 @@ async function handleCreateAccount(req) {
   const user = await database.withAdvisoryLocks(
     [`email:${normalizedEmail}`, `user:${decoded.username}`],
     {
-      timeoutSec: 15,
+      timeoutSec: 5,
       timeoutErrorType: 'error_api_account_creation_progress',
       timeoutField: 'general',
       timeoutStatus: 409,

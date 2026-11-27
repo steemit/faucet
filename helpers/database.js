@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { AsyncLocalStorage } from 'async_hooks';
 import moment from 'moment';
 import db from '../db/models/index.js';
 import ApiError from './errortypes.js';
@@ -7,6 +8,34 @@ import cache from './cache.js';
 
 const { Sequelize, sequelize } = db;
 const { Op } = Sequelize;
+
+/**
+ * Carries the connection that holds the advisory locks through the async call
+ * tree of a withAdvisoryLocks() callback, so it does not have to be threaded
+ * through every query helper.
+ */
+const lockConnectionStorage = new AsyncLocalStorage();
+
+/**
+ * Every query issued inside a withAdvisoryLocks() callback runs on the
+ * connection that holds the locks. The pool is small (5 by default) and each
+ * locked section already pins one connection: if the queries inside borrowed
+ * their own, five concurrent signups would drain the pool and then queue
+ * behind the very connections they are holding (ConnectionAcquireTimeoutError
+ * after 60s). Pinning keeps it at one connection per request.
+ *
+ * `{ connection }` is the same shape ConnectionManager#getConnection passes to
+ * query(): no START TRANSACTION is sent and every statement still autocommits.
+ */
+const runQuery = sequelize.query.bind(sequelize);
+sequelize.query = (sql, options) => {
+  const connection = options?.transaction
+    ? undefined
+    : lockConnectionStorage.getStore()?.connection;
+  return connection
+    ? runQuery(sql, { ...options, transaction: { connection } })
+    : runQuery(sql, options);
+};
 
 /**
  * Throws if user or ip exceeds number of allowed actions within time period.
@@ -106,6 +135,10 @@ export function buildAdvisoryLockKey(rawKey) {
  * Acquire non-transactional MySQL session advisory locks (GET_LOCK) in sorted
  * order and release them in reverse order in finally. Opens NO InnoDB transaction
  * and locks NO table or row.
+ *
+ * The connection holding the locks is also the one `fn` queries with, so `fn`
+ * must await everything it does. Nesting is rejected: a nested section would
+ * need a second pooled connection while the first one is still held.
  */
 export async function withAdvisoryLocks(lockKeys, optionsOrFn, maybeFn) {
   const fn = typeof optionsOrFn === 'function' ? optionsOrFn : maybeFn;
@@ -122,9 +155,14 @@ export async function withAdvisoryLocks(lockKeys, optionsOrFn, maybeFn) {
     new Set(lockKeys.map((key) => buildAdvisoryLockKey(key)))
   ).sort();
 
+  if (lockConnectionStorage.getStore()?.connection) {
+    throw new Error('withAdvisoryLocks() must not be nested');
+  }
+
   const connection = await sequelize.connectionManager.getConnection({
     type: 'WRITE',
   });
+  const lockState = { connection };
   const acquiredLocks = [];
   let connectionBroken = false;
 
@@ -147,8 +185,13 @@ export async function withAdvisoryLocks(lockKeys, optionsOrFn, maybeFn) {
       }
       acquiredLocks.push(lockName);
     }
-    return await fn();
+    // fn() and everything it awaits inherit the context, so its queries reuse
+    // `connection` instead of borrowing from the pool.
+    return await lockConnectionStorage.run(lockState, fn);
   } finally {
+    // Whatever fn() left running in the background must not touch the
+    // connection once it is back in the pool.
+    lockState.connection = null;
     for (const lockName of acquiredLocks.reverse()) {
       try {
         await sequelize.query(

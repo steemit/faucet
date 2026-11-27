@@ -349,6 +349,65 @@ describe('signup security hardening in apiHandlers (VULN-0006/0007/0008/0059/006
       ).rejects.toMatchObject({ type: 'error_api_phone_too_many' });
     });
 
+    it('does not spend the attempt budget on a correct code (the form re-checks it on every submit)', async () => {
+      store.emailRecords.push(
+        makeEmailRow({
+          email: 'frank@gmail.com',
+          email_normalized: 'frank@gmail.com',
+          email_code: '111222',
+          email_code_attempts: 0,
+          email_code_generated: new Date(),
+        })
+      );
+
+      for (let i = 0; i < 12; i += 1) {
+        await expect(
+          apiHandlers.handleConfirmEmailCode(
+            makeReq({ email: 'frank@gmail.com', code: '111222' })
+          )
+        ).resolves.toEqual({ success: true });
+      }
+      expect(store.emailRecords[0].email_code_attempts).toBe(0);
+    });
+
+    it('accepts a correct code on the 10th try in both check_email_code and finalizeSignup', async () => {
+      store.emailRecords.push(
+        makeEmailRow({
+          email: 'grace@gmail.com',
+          email_normalized: 'grace@gmail.com',
+          email_code: '333444',
+          email_code_attempts: 0,
+          email_code_generated: new Date(),
+        })
+      );
+
+      for (let i = 0; i < 9; i += 1) {
+        await expect(
+          apiHandlers.handleConfirmEmailCode(
+            makeReq({ email: 'grace@gmail.com', code: '000000' })
+          )
+        ).rejects.toMatchObject({ type: 'error_api_email_code_invalid' });
+      }
+      expect(store.emailRecords[0].email_code_attempts).toBe(9);
+
+      await expect(
+        apiHandlers.handleConfirmEmailCode(
+          makeReq({ email: 'grace@gmail.com', code: '333444' })
+        )
+      ).resolves.toEqual({ success: true });
+      expect(store.emailRecords[0].email_code_attempts).toBe(9);
+
+      const { token } = await apiHandlers.finalizeSignup(
+        makeReq({
+          captcha: 'ok-turnstile',
+          email: 'grace@gmail.com',
+          emailCode: '333444',
+          username: 'gracesteem',
+        })
+      );
+      expect(jwt.decode(token).username).toBe('gracesteem');
+    });
+
     it('rejects expired (>30m) email codes in finalizeSignup (VULN-0059 / #58)', async () => {
       store.emailRecords.push(
         makeEmailRow({
@@ -451,6 +510,43 @@ describe('signup security hardening in apiHandlers (VULN-0006/0007/0008/0059/006
       expect(mockServices.createAccount).toHaveBeenCalledTimes(1);
       expect(store.users).toHaveLength(1);
       expect(store.emailRecords).toHaveLength(0);
+    });
+
+    it('serializes code checks and finalization on the email lock, and caps every lock wait at 5s', async () => {
+      await apiHandlers.handleRequestEmailCode(
+        makeReq({ email: 'henry@gmail.com' })
+      );
+      const sentCode = store.emailRecords[0].email_code;
+
+      await apiHandlers.handleConfirmEmailCode(
+        makeReq({ email: 'Henry@gmail.com', code: sentCode })
+      );
+      const { token } = await apiHandlers.finalizeSignup(
+        makeReq({
+          captcha: 'ok-turnstile',
+          email: 'henry@gmail.com',
+          emailCode: sentCode,
+          username: 'henrysteem',
+        })
+      );
+      await apiHandlers.handleCreateAccount(
+        makeReq({
+          token,
+          public_keys: validPublicKeys,
+          tracking_id: 'track-henry',
+        })
+      );
+
+      const lockCalls = mockDb.withAdvisoryLocks.mock.calls;
+      expect(lockCalls.map(([keys]) => keys)).toEqual([
+        ['email:henry@gmail.com'],
+        ['email:henry@gmail.com'],
+        ['email:henry@gmail.com'],
+        ['email:henry@gmail.com', 'user:henrysteem'],
+      ]);
+      expect(lockCalls.map(([, options]) => options.timeoutSec)).toEqual([
+        5, 5, 5, 5,
+      ]);
     });
 
     it('rejects legacy/forged signup_new JWTs that lack exp or jti (VULN-0006)', async () => {
