@@ -85,6 +85,10 @@ cp .env.example .env
   - Number of days to keep database records before cleanup
   - Used for automatic cleanup of old actions and users
 
+- **Connection pool** (set in `db/config/config.json`, not by an environment variable)
+  - Each application process holds at most `pool.max` (`20`) connections; the block used is the one `DATABASE_NAME` selects
+  - Every instance adds up to that many, so leave room for all of them within the database's `max_connections`
+
 ### Mail Configuration
 
 Emails are sent through AWS SES (API v2) by default, using the AWS SDK default
